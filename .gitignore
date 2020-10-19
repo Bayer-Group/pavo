@@ -70,3 +70,6 @@ yarn-error.log
 
 # PyCharm
 .idea/
+
+# python module
+**/*.egg-info
