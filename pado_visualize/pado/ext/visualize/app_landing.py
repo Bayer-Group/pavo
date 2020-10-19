@@ -6,33 +6,20 @@ import pandas as pd
 import plotly.express as px
 
 # from pado.ext.visualize.app import app
+from pado.ext.visualize.utils import rowcol
 
 layout = dbc.Container(
-    [
-        dbc.Row(
+    rowcol(
+        dbc.Jumbotron(
             [
-                dbc.Col(
-                    [
-                        dbc.Jumbotron(
-                            [
-                                html.H1(
-                                    "Visualize your dataset", className="display-3"
-                                ),
-                                html.P(
-                                    "pado let's you visualize the metadata, image data "
-                                    "and annotations in your PadoDataset.",
-                                    className="lead",
-                                ),
-                                html.P(
-                                    dbc.Button("Open Dataset", color="primary"),
-                                    className="lead",
-                                ),
-                            ]
-                        )
-                    ]
-                )
-            ],
-            style={"margin-top": "10px"},
+                html.H1("Visualize your dataset", className="display-3"),
+                html.P(
+                    "pado let's you visualize the metadata, image data "
+                    "and annotations in your PadoDataset.",
+                    className="lead",
+                ),
+                html.P(dbc.Button("Open Dataset", color="primary"), className="lead"),
+            ]
         )
-    ]
+    )
 )

@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-from pado.ext.visualize import app_landing, app_metadata
+from pado.ext.visualize import app_landing, app_metadata, app_overview
 from pado.ext.visualize.app import app
 
 # base layout of the landing page
@@ -32,8 +32,10 @@ def display_page(pathname):
     """update the index page dependent on the path"""
     if pathname == "/":
         return app_landing.layout
-    if pathname == "/metadata":
+    elif pathname == "/metadata":
         return app_metadata.layout
+    elif pathname == "/overview":
+        return app_overview.layout
     else:
         return "404"
 
@@ -41,15 +43,11 @@ def display_page(pathname):
 if __name__ == "__main__":
     import argparse
 
-    from pado.dataset import PadoDataset
+    from pado.ext.visualize.dataloader import set_dataset
 
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset_path", help="path to a pado dataset")
     args = parser.parse_args()
-
-    try:
-        ds = PadoDataset(args.dataset_path, mode="r")
-    except FileNotFoundError:
-        ds = None
+    set_dataset(args.dataset_path)
 
     app.run_server(debug=True)
