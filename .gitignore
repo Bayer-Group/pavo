@@ -73,3 +73,6 @@ yarn-error.log
 
 # python module
 **/*.egg-info
+pado_visualize/pado/ext/visualize/_version.py
+
+
