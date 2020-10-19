@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>{% block title %}{{ page_title_prefix|default("pado_visualize ::") }} {{ page_title }}{% endblock title %}</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ url_for_versioned('static', filename='favicon.ico') }}">
+
+  {% block styles_base %}
+    <link rel="stylesheet" href="{{ url_for_versioned('static', filename='_base.css') }}">
+  {% endblock styles_base %}
+  {% block styles %}{% endblock styles %}
+  {% block styles_override %}{% endblock styles_override %}
+  {% block scripts_header %}{% endblock scripts_header %}
+</head>
+<body>
+  <div class="pado pado-root">
+    <header class="pado-header">
+      {% include "header.html" %}
+    </header>
+    <nav class="pado-sidebar">
+      {% include "sidebar.html" %}
+    </nav>
+    <main class="pado-main">
+      {% block content %}{% endblock content %}
+    </main>
+    <footer class="pado-footer">
+      {% block footer %}{% endblock footer %}
+    </footer>
+  </div>
+{% block page_scripts %}
+  <script type="text/javascript" src="{{ url_for_versioned('static', filename='_base.js') }}"></script>
+{% endblock page_scripts %}
+</body>
+</html>

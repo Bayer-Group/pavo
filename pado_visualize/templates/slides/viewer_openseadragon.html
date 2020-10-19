@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='slides_openseadragon.css') }}">
+{% endblock styles %}
+
+{% block scripts_header %}
+{% endblock scripts_header %}
+
+{% block content %}
+<div class="seadragon-container-parent">
+    <div id="progress-overlay"><div class="progress-container"><div class="progress"></div></div></div>
+    <div id="seadragon-container" ></div>
+</div>
+{% endblock content %}
+
+{% block page_scripts %}
+<script type="text/javascript" src="{{ url_for('static', filename='slides_openseadragon.js') }}"></script>
+<script type="text/javascript">
+    'use strict';
+
+    // progress bar
+    const progressUrl = "{{ url_for('slides.cache_status', image_id=image_id) }}";
+    const progressBar = document.querySelector(".progress");
+    const progressOverlay = document.querySelector("#progress-overlay");
+    const changeProgress = () => {
+      fetch(progressUrl).then(res => res.json()).then(out => {
+          let progress;
+          if (out.ready) {
+              progress = 100;
+          } else if (out.progress > 0) {
+              progress = Math.min(out.progress, 100);
+          } else {
+              progress = 0;
+          }
+          progressBar.style.width = `${progress}%`;
+          if (progress < 100) {
+              setTimeout(changeProgress, 200);
+          }
+          else {
+            setTimeout(() => {progressOverlay.style.display = "none"}, 1000);
+          }
+      }).catch(err => {throw err});
+    };
+    changeProgress();
+
+    // setup the slide viewer
+    pavo.slides_openseadragon.setupOpenSeadragonViewer({
+        id: "seadragon-container",
+        tileSources: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
+        prefixUrl: "{{ url_for('static', filename='images/openseadragon/') }}",
+    },{
+        annotationUrl: "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}",
+    });
+
+</script>
+{% endblock %}

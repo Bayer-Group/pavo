@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='home.css') }}">
+{% endblock styles %}
+
+{% block page_scripts %}
+  {{ super() }}
+  <script type="text/javascript" href="{{ url_for_versioned('static', filename='home.js') }}"></script>
+{% endblock page_scripts %}
+
+{% macro pado_nested_dict_table(data) -%}
+  <table class="nested-table">
+    <tbody>
+      {% for item in data %}
+      <tr>
+        {% if item is iterable %} 
+          {% for x in item %}
+            {% if x is number %}
+              <td>{{ x | round(3, 'floor') }}</td>
+            {% else %}
+              <td>{{ x }}</td>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{%- endmacro %}
+
+{% macro pado_dict_table(data) -%}
+    <table class="overview-table">
+    <thead>
+      <tr>
+          <th>Dataset Attribute</th>
+          <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key in data %}
+      <tr>
+        <td>
+          {{ key |
+            replace("_", " ") |
+            replace("num", "number of") |
+            replace("std", "standard deviation of") |
+            capitalize }}
+        </td>
+        {% if data[key] is string %} 
+          <td>{{ data[key] }}</td>
+        {% elif data[key] is number %}
+          {% if "size" in key %}
+            <td>{{ data[key] | filesizeformat }}</td>
+          {% else %}
+            <td>{{ data[key] or 0.0 | round(3, 'floor') }}</td>
+          {% endif %}
+        {% elif data[key] is iterable %} 
+          <td style="padding: 0px;;">
+            {{ pado_nested_dict_table(data[key]) }}
+          </td>
+        {% else %}
+          <td>{{ data[key] }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{%- endmacro %}
+
+{% block content %}
+  <div id="landing-container" class="container">
+    <h1>Dataset Overview</h1>
+    <div class="row">
+      <div class="col">
+        {{ pado_dict_table(info) }}
+      </div>
+    </div>
+  </div>
+{% endblock content %}

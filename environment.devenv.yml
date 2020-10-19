@@ -1,0 +1,78 @@
+#
+# Conda devenv environment for pado_visualize.
+#
+# Create the environment, do not install pado in development mode:
+#   conda devenv
+# equivalent to:
+#   PADO_VISUALIZE_DEVEL="" conda devenv
+# Create the environment, install pado in development mode:
+#   PADO_VISUALIZE_DEVEL=TRUE conda devenv
+#
+
+{% set PADO_VISUALIZE_DEVEL = os.environ.get('PADO_VISUALIZE_DEVEL', False) %}
+
+name: pado_visualize
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.9  # let's not carry the 3.6, 3.7, 3.8 baggage for now
+  - pip
+
+  # dev related
+  - nodejs
+  - pre-commit
+  - pytest
+  - pytest-cov
+  - mypy
+  - supervisor
+
+  # webapp related
+  - celery
+  - click
+  - diskcache
+  - dynaconf
+  - filelock
+  - flask>=2
+  - flask-caching>=1.8.0
+  - flask-dance
+  - flower
+  - redis-py
+  - werkzeug
+  - pyopenssl
+
+  # data deps
+  - numpy
+  - pandas
+  - rasterio
+
+  # tiffslide deps
+  - fsspec
+  - imagecodecs
+  - pillow
+  - tifffile>=2020.9.22
+  - zarr
+
+  # pado deps
+  - platformdirs
+  - orjson
+  - toml
+  - pyarrow
+  - shapely
+  - pydantic
+  - geojson-pydantic
+
+  # utils
+  - tqdm
+  - s3fs
+  - typer
+
+  - pip:
+    # flask extras
+    - Flask-JSGlue
+
+    # homemade dependencies
+    - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado
+    - tiffslide
+    - "-e ."  # [ PADO_VISUALIZE_DEVEL ]

@@ -1,0 +1,27 @@
+
+{% macro menu_item(text, href, fa=none) -%}
+  <li class="menu-item {% if href.split('.')[0] == request.endpoint.split('.')[0] %}active{% endif %}">
+    <a href="{{ url_for(href) }}" >
+      <span class="menu-icon">{% if fa %}<i class="fas fa-{{ fa }}"></i>{% endif %}</span>
+      <span class="menu-text">{{ text }}</span>
+    </a>
+  </li>
+{%- endmacro %}
+
+
+<div class="pado-sidebar container">
+  <div class="header">
+    <a href="{{ url_for('home.index') }}">
+      <h2>Pado Visualize</h2>
+      <h3>Pathological Data Obsession</h3>
+      <img alt="logo" src="{{ url_for('static', filename='images/pathological-heart.jpg') }}">
+    </a>
+  </div>
+
+  <ul class="menu">
+    {{ menu_item("Overview", 'home.index', fa='globe-europe') }}
+    {{ menu_item("Metadata", 'metadata.index', fa='file-alt') }}
+    {{ menu_item("Slides", 'slides.index', fa='microscope') }}
+  </ul>
+
+</div>

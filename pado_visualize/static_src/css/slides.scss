@@ -1,0 +1,246 @@
+@import "colors";
+
+
+.container.slide-container {
+
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+
+  div > .card.slide-card {
+    display: flex;
+    position: relative;
+    width: 250px;
+    height: 250px;
+    margin: 8px;
+    border-radius: 8px;
+    color: $color-primary-dark;
+    overflow: hidden;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-color: lightgray;
+    border-style: solid;
+
+    .card-header {
+      position: absolute;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px 8px 0 0;
+      box-sizing: border-box;
+      padding: 12px;
+
+      .card-title {
+        text-align: left;
+        font-weight: bold;
+      }
+
+      .card-actions {
+        text-align: right;
+
+        a {
+          text-decoration: none;
+          color: grey;
+          padding-left: 8px;
+        }
+        a:hover {
+          color: $color-primary-dark;
+        }
+      }
+    }
+  }
+
+  div > .card.slide-card:hover {
+    border-color: $color-primary-dark;
+    .card-header {
+      background: $color-primary-light;
+    }
+  }
+
+}
+
+.thumbnail {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  background: #f3f4f5;  /* fixme: make dynamic */
+
+  pointer-events: none;
+
+  img {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+  }
+}
+
+
+.container-thumbnails {
+  padding: 2em;
+}
+
+.pagination-container {
+  margin-top: 2em;
+  display:flex; 
+  flex-direction: row; 
+  justify-content: center; 
+  align-items: center;
+
+  .page-picker {
+    border: thin solid grey;
+    display: inline-block;
+    margin-right: 1em;
+    padding: 2px;
+  
+    select {
+      margin: 0px 8px;
+      padding: 8px 8px;
+      border: none;
+    }
+  }
+
+  .pagination {
+    white-space : nowrap; 
+    width: 200px;
+    height: 30px;
+    overflow-x: scroll;
+    background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, $color-primary-light 25%, $color-primary-light 75%, rgba(255, 255, 255, 1) 100%);
+  
+    a.active {
+      background-color: $color-primary-dark;
+      color: white;
+      font-weight: 700;
+      border: thin solid $color-primary-dark;
+    }
+
+    a:hover:not(.active) {
+      border: thin solid $color-primary-dark;
+    }
+  }
+
+  a {
+    color: black;
+    text-align: center;
+    width: 30px;
+    height: 28px;
+    text-decoration: none;
+    display: inline-block;
+  }
+}
+
+.thumbnail-card > img {
+  image-rendering: optimizeSpeed;
+}
+
+// ---- filter bar styling
+.container.filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  padding: 2em;
+}
+
+.filter-bar {
+  border-radius: 5px;
+  width: 100%;
+}
+
+.filter-bar legend {
+  background-color: white;
+  padding: 8px;
+  border: thin solid grey;
+  border-radius: 5px;
+  h2 {
+    margin: 0px ;
+  }
+}
+
+li.filter-form-list {
+  list-style-type: none;
+}
+
+span.filter-label {
+  display: inline-block;
+  min-width: 10em;
+  padding: 0.5em;
+}
+
+.filter-widget-container {
+  display: inline-block;
+  width: 40em;
+  display: grid;
+
+  select {
+    border-radius: 5px;
+  }
+
+  input {
+    border-radius: 5px;
+    z-index: 2;
+  }
+}
+
+.filter-button {
+  background-color: $color-primary-light;
+  border-color: $color-primary-light;
+  padding: 8px;
+  margin-top: 16px;
+  min-width: 10em;
+  border: thin solid white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.filter-button:hover {
+  background-color: $color-primary-light;
+  border-color: $color-primary-dark;
+}
+
+// ---- Custom multiselect styling
+.custom-multiselect {
+  height: 128px;
+  border: thin grey solid;
+  border-radius: 5px;
+  margin-top: 8px;
+}
+
+.multiselect{
+  display: flex-wrap;
+  max-width: 100%;
+  height: 128px;
+  border: thin grey solid;
+  border-radius: 5px;
+  margin-top: 8px;
+  background-color: rgb(235, 235, 235);
+  overflow-y: scroll;
+}
+
+.multiselect-item {
+  padding: 4px 16px 4px;
+  margin: 4px;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 10px;
+  border: thin solid grey;
+  transition: background 0.1s;
+  background-color: white;
+  display: inline-block;
+}
+
+.multiselect-item:hover {
+  z-index: 1;
+  border-color: black;
+}
+
+.multiselect-item--selected {
+  background-color: $color-primary-light;
+  border-color: $color-primary-dark;
+}
+
+iframe {
+  border: none; 
+  width: 100%;
+}
+
