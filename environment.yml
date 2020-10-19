@@ -1,0 +1,10 @@
+name: pado_visualize
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python>=3.6
+  - pandas
+  - dash
