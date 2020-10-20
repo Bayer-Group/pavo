@@ -42,12 +42,17 @@ def display_page(pathname):
 
 if __name__ == "__main__":
     import argparse
+    from pathlib import Path
 
     from pado.ext.visualize.dataloader import set_dataset
 
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset_path", help="path to a pado dataset")
     args = parser.parse_args()
-    set_dataset(args.dataset_path)
 
-    app.run_server(debug=True)
+    p = Path(args.dataset_path).expanduser().absolute().resolve()
+
+    if not set_dataset(p):
+        raise ValueError(f"no dataset at '{p}'")
+
+    app.run_server(host="127.0.0.1", port=8080)
