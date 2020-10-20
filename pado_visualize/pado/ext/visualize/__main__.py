@@ -55,4 +55,4 @@ if __name__ == "__main__":
     if not set_dataset(p):
         raise ValueError(f"no dataset at '{p}'")
 
-    app.run_server(host="127.0.0.1", port=8080)
+    app.run_server(host="127.0.0.1", port=8080, debug=True)
