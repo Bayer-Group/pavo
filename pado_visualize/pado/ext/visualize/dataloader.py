@@ -1,5 +1,5 @@
 import io
-from typing import Optional
+from typing import Dict, Optional
 
 from flask import abort, send_file
 from pado.dataset import PadoDataset
@@ -8,6 +8,7 @@ from PIL import Image
 from tifffile import TiffFile, TiffPage, TiffPageSeries
 
 dataset: Optional[PadoDataset] = None
+image_map: Dict[str, int] = {}
 
 
 def set_dataset(path):
@@ -19,6 +20,9 @@ def set_dataset(path):
         dataset = PadoDataset(path, mode="r")
     except FileNotFoundError:
         dataset = None
+    else:
+        image_map.update(((img.id_str, idx) for idx, img in enumerate(dataset.images)))
+    return dataset
 
 
 def get_dataset() -> Optional[PadoDataset]:
@@ -26,7 +30,12 @@ def get_dataset() -> Optional[PadoDataset]:
     return dataset
 
 
-def extract_thumbnail(filename, buffer):
+def get_image_id_map() -> Dict[str, int]:
+    global image_map
+    return image_map
+
+
+def extract_thumbnail(filename):
     """extract the binary data of a thumbnail from the whole-slide image"""
     t = TiffFile(filename)
 
@@ -43,33 +52,39 @@ def extract_thumbnail(filename, buffer):
     (page,) = series.pages
 
     arr = page.asarray(maxworkers=1)
-    Image.fromarray(arr).save(buffer, format="JPEG")
+    with io.BytesIO() as buffer:
+        Image.fromarray(arr).save(buffer, format="JPEG")
+    return buffer.getvalue()
 
 
 @app.server.route("/thumbnails/<image_id>.jpg")
 def serve_thumbnail_jpg(image_id):
     # get the dataset
     ds = get_dataset()
+    img_map = get_image_id_map()
     if not ds:
         return abort(500, "dataset not loaded")
 
     # retrieve the image resource
     try:
-        img_resource = ds.images[image_id]
+        img_resource = ds.images[img_map[image_id]]
     except KeyError:
-        return abort(404, "image is not local")
+        return abort(404, f"image_id '{image_id}' not found")
+
+    # check if remote resource
+    p = img_resource.local_path
+    if p is None:
+        return abort(404, "image is remote")
 
     # verify the resource is local
-    p = img_resource.local_path
-    if not p or not p.is_file():
-        return abort(404, "image is not local")
+    if not p.is_file():
+        return abort(404, "image is not accessible locally")
 
-    with io.BytesIO() as buffer:
-        extract_thumbnail(p, buffer)
-        buffer.seek(0)
-        return send_file(
-            buffer,
-            mimetype="image/jpeg",
-            as_attachment=True,
-            attachment_filename=f"{image_id}.jpg",
-        )
+    data = extract_thumbnail(p)
+
+    return send_file(
+        io.BytesIO(data),
+        mimetype="image/jpeg",
+        as_attachment=True,
+        attachment_filename=f"{image_id}.jpg",
+    )
