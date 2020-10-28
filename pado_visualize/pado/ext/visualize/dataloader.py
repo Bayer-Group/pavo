@@ -54,7 +54,7 @@ def extract_thumbnail(filename):
     arr = page.asarray(maxworkers=1)
     with io.BytesIO() as buffer:
         Image.fromarray(arr).save(buffer, format="JPEG")
-    return buffer.getvalue()
+        return buffer.getvalue()
 
 
 @app.server.route("/thumbnails/<image_id>.jpg")
