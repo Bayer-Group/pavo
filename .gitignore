@@ -75,5 +75,5 @@ yarn-error.log
 **/*.egg-info
 pado_visualize/pado/ext/visualize/_version.py
 **/__pycache__
-
+dist
 
