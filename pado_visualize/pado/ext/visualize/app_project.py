@@ -34,6 +34,4 @@ def render_preview_cards(pathname):
     return cards
 
 
-layout = dbc.Row(
-    dbc.Col(html.Div(id="preview-card-container", className="thumbnail-container"))
-)
+layout = dbc.Row(dbc.Col(html.A(href="/qupath/project/download.qpzip")))

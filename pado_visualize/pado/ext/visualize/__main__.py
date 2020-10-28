@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-from pado.ext.visualize import app_landing, app_metadata, app_overview
+from pado.ext.visualize import app_landing, app_metadata, app_overview, app_project
 from pado.ext.visualize.app import app
 
 # base layout of the landing page
@@ -36,6 +36,8 @@ def display_page(pathname):
         return app_metadata.layout
     elif pathname == "/overview":
         return app_overview.layout
+    elif pathname == "/project":
+        return app_project.layout
     else:
         return "404"
 
