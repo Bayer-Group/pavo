@@ -95,3 +95,43 @@ def serve_thumbnail_jpg(image_id):
         as_attachment=True,
         attachment_filename=f"{image_id}.jpg",
     )
+
+
+def wds_grid_thumbnail(wds_tar_path: Path):
+
+    arr = None
+    image_id = None
+
+    with tarfile.open(wds_tar_path, mode="r") as tar:
+        extractfile = tar.extractfile
+        json_load = json.load
+        for tarinfo in tar:
+            if not tarinfo.name.endswith(".json"):
+                continue
+
+            tile_dict = json_load(extractfile(tarinfo))
+            tile = tile_dict["tile"]
+            filt = tile_dict["filter"]
+            ix = tile["idx_x"]
+            iy = tile["idx_y"]
+
+            try:
+                arr[iy, ix] = filt["tissue_perc"]
+            except TypeError:
+                x, y = tile["slide_x"], tile["slide_y"]
+                tw, th = tuple(tile["size"])
+                sw, sh = tw + x + filt["dist_right"], th + y + filt["dist_bottom"]
+                aw = int(math.ceil(sw / tw))
+                ah = int(math.ceil(sh / th))
+                arr = np.zeros((ah, aw), dtype=np.float)
+                arr[iy, ix] = filt["tissue_perc"]
+                image_id = tile_dict["IMAGE"]
+
+    # make green channel
+    out = np.zeros((arr.shape[0], arr.shape[1], 4), dtype=np.uint8)
+    out[:, :, 1] = 255
+    out[:, :, 3] = 255 * arr
+
+    with io.BytesIO() as buffer:
+        Image.fromarray(out).save(buffer, format="PNG")
+        return buffer.getvalue()
