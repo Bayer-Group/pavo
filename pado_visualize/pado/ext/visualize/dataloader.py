@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import numpy as np
+import tqdm
 from flask import abort, send_file
 from pado.dataset import PadoDataset
 from pado.ext.visualize.app import app
@@ -32,6 +33,12 @@ def set_dataset(path):
     return dataset
 
 
+def set_dataset_from_store(ds):
+    global dataset
+    dataset = ds
+    return dataset
+
+
 def get_dataset() -> Optional[PadoDataset]:
     global dataset
     return dataset
@@ -49,7 +56,7 @@ def set_wds_dirs(*paths: Path):
             warnings.warn(f"{wds_dir} not a directory")
             continue
 
-        for wds_tar in wds_dir.glob("*.tar"):
+        for wds_tar in tqdm.tqdm(wds_dir.glob("*.tar")):
             if wds_tar.with_suffix(wds_tar.suffix + ".error").is_file():
                 warnings.warn(f"{wds_tar} ignored due to error")
                 continue
@@ -71,6 +78,12 @@ def set_wds_dirs(*paths: Path):
 
 def get_wds_map() -> Dict[str, Path]:
     global wds_map
+    return wds_map
+
+
+def set_wds_map_from_store(x):
+    global wds_map
+    wds_map = x
     return wds_map
 
 
