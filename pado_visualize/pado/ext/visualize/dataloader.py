@@ -1,6 +1,11 @@
 import io
+import json
+import math
+import tarfile
+from pathlib import Path
 from typing import Dict, Optional
 
+import numpy as np
 from flask import abort, send_file
 from pado.dataset import PadoDataset
 from pado.ext.visualize.app import app
@@ -35,7 +40,7 @@ def get_image_id_map() -> Dict[str, int]:
     return image_map
 
 
-def extract_thumbnail(filename):
+def extract_thumbnail_array(filename):
     """extract the binary data of a thumbnail from the whole-slide image"""
     t = TiffFile(filename)
 
@@ -51,10 +56,7 @@ def extract_thumbnail(filename):
     page: TiffPage
     (page,) = series.pages
 
-    arr = page.asarray(maxworkers=1)
-    with io.BytesIO() as buffer:
-        Image.fromarray(arr).save(buffer, format="JPEG")
-        return buffer.getvalue()
+    return page.asarray(maxworkers=1)
 
 
 @app.server.route("/thumbnails/<image_id>.jpg")
@@ -80,7 +82,12 @@ def serve_thumbnail_jpg(image_id):
     if not p.is_file():
         return abort(404, "image is not accessible locally")
 
-    data = extract_thumbnail(p)
+    arr = extract_thumbnail_array(p)
+
+    # save as image
+    with io.BytesIO() as buffer:
+        Image.fromarray(arr).save(buffer, format="JPEG")
+        data = buffer.getvalue()
 
     return send_file(
         io.BytesIO(data),
