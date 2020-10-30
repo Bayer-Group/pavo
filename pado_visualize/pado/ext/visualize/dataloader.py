@@ -36,6 +36,7 @@ def set_dataset(path):
 def set_dataset_from_store(ds):
     global dataset
     dataset = ds
+    image_map.update(((img.id_str, idx) for idx, img in enumerate(dataset.images)))
     return dataset
 
 
