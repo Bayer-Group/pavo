@@ -12,8 +12,7 @@ from pado.ext.visualize.dataloader import get_dataset
 
 
 @app.callback(
-    output=Output("preview-card-container", "children"),
-    inputs=[Input("url", "pathname")],
+    output=Output("prev-card-container", "children"), inputs=[Input("url", "pathname")],
 )
 def render_preview_cards(pathname):
     ds = get_dataset()
@@ -39,5 +38,5 @@ def render_preview_cards(pathname):
 
 
 layout = dbc.Row(
-    dbc.Col(html.Div(id="preview-card-container", className="thumbnail-container"))
+    dbc.Col(html.Div(id="prev-card-container", className="thumbnail-container"))
 )
