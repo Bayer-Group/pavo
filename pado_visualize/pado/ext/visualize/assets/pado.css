@@ -21,13 +21,21 @@
 }
 
 .thumbnail {
-    display: block;
     max-width: 100%;
     max-height: 100%;
     width: auto;
     height: auto;
     margin: auto;
 }
+
+.thumbnail-card > .thumbnail {
+    display: block;
+}
+
+.thumbnail-card:hover > .thumbnail {
+    display: none;
+}
+
 
 .grid-overlay {
     display: none;
@@ -36,4 +44,12 @@
     width: auto;
     height: auto;
     margin: auto;
+}
+
+.thumbnail-card > .grid-overlay {
+    display: none;
+}
+
+.thumbnail-card:hover > .grid-overlay {
+    display: block;
 }
