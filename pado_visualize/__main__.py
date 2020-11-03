@@ -52,7 +52,7 @@ def main():
     import shelve
     from pathlib import Path
 
-    from pado.ext.visualize.dataloader import (
+    from pado_visualize.dataloader import (
         get_wds_map,
         set_dataset,
         set_dataset_from_store,
