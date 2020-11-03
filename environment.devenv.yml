@@ -1,0 +1,39 @@
+#
+# Conda devenv environment for palo.
+# Beware, this fat environment might get you in trouble, treat with care.
+#
+# Create the environment, do not install pado in development mode:
+#   conda devenv
+# equivalent to:
+#   PADO_VISUALIZE_DEVEL="" conda devenv
+# Create the environment, install pado in development mode:
+#   PADO_VISUALIZE_DEVEL=TRUE conda devenv
+#
+
+{% set PADO_VISUALIZE_DEVEL = os.environ.get('PADO_VISUALIZE_DEVEL', False) %}
+
+name: pado_visualize
+
+channels:
+  - sdvillal
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python
+  - pip
+
+  - dash
+  - dash-bootstrap-components
+  - dash-table
+
+  - numpy
+  - pandas
+  - tifffile>=2020.10.1
+  - pillow
+
+  - tqdm
+
+  - pip:
+    - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
