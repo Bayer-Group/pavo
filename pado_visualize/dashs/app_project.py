@@ -7,8 +7,8 @@ import dash_html_components as html
 import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output
-from pado.ext.visualize.app import app
-from pado.ext.visualize.dataloader import get_dataset
+from pado_visualize.app import app
+from pado_visualize.dataloader import get_dataset
 
 
 @app.callback(

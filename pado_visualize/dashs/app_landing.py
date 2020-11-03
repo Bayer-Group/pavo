@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 
 # from pado.ext.visualize.app import app
-from pado.ext.visualize.utils import rowcol
+from pado_visualize.utils import rowcol
 
 layout = dbc.Container(
     rowcol(

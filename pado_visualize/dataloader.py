@@ -10,9 +10,10 @@ import numpy as np
 import tqdm
 from flask import abort, send_file
 from pado.dataset import PadoDataset
-from pado.ext.visualize.app import app
 from PIL import Image
 from tifffile import TiffFile, TiffPage, TiffPageSeries
+
+from pado_visualize.app import app
 
 dataset: Optional[PadoDataset] = None
 image_map: Dict[str, int] = {}

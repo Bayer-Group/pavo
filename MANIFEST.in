@@ -1,4 +1,4 @@
 include pyproject.toml
 
 #
-graft pado_visualize/pado/ext/visualize/assets
+graft pado_visualize/assets
