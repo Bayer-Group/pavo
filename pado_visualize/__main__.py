@@ -47,7 +47,7 @@ def display_page(pathname):
         return "404"
 
 
-if __name__ == "__main__":
+def main():
     import argparse
     import shelve
     from pathlib import Path
@@ -84,3 +84,7 @@ if __name__ == "__main__":
             set_wds_map_from_store(store[str(w)])
 
     app.run_server(host="127.0.0.1", port=8080, debug=True)
+
+
+if __name__ == "__main__":
+    main()
