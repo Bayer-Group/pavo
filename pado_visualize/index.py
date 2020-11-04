@@ -9,6 +9,7 @@ from pado_visualize.dashs import (
     app_metadata,
     app_overview,
     app_project,
+    app_seadragon,
 )
 from pado_visualize.utils import rowcol
 
@@ -66,7 +67,9 @@ def display_page(pathname):
         return app_metadata.layout
     elif pathname == "/slides":
         return app_overview.layout
-    elif pathname == "/slides":
+    elif pathname.startswith("/slide/"):
+        return app_seadragon.layout
+    elif pathname == "/table":
         return app_project.layout
     else:
         return "404"

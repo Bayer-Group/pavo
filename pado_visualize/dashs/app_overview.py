@@ -25,13 +25,15 @@ def render_preview_cards(pathname):
             className="grid-overlay", src=f"/grid/{image_resource.id_str}.png"
         )
         # title = html.H5("Card title", className="card-title")
-        card = dbc.Card(
-            [
-                # title,
-                img,
-                overlay,
-            ],
-            className="thumbnail-card",
+        card = html.A(
+            [dbc.Card(
+                [
+                    # title,
+                    img,
+                    overlay,
+                ],
+                className="thumbnail-card",
+            )], href=f"/slide/{image_resource.id_str}"
         )
         cards.append(card)
     return cards
