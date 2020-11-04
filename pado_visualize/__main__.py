@@ -4,6 +4,7 @@ def main():
     import shelve
     from pathlib import Path
 
+    from pado_visualize.routes import init_routes
     from pado_visualize.dataloader import (
         get_wds_map,
         set_dataset,
@@ -11,8 +12,10 @@ def main():
         set_wds_dirs,
         set_wds_map_from_store,
     )
-    import pado_visualize.index
     from pado_visualize.app import app
+
+    # register all routes
+    init_routes()
 
     parser = argparse.ArgumentParser()
     # parser.add_argument("--wds-path", help="path to wds path folder")
