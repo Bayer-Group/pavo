@@ -1,8 +1,8 @@
 $(document).ready(function() {
-    let seadragonContainer = $("#seadragon-container");
-    let sources = seadragonContainer.data("tilesources");
+    let sources = $("#seadragon-container").attr("data-tilesources");
+
     if (!sources) {
-        console.log("no tilesources set");
+        console.log("no tilesources set " + sources);
         return;
     }
     var viewer = new OpenSeadragon({
