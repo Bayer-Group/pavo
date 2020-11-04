@@ -24,7 +24,7 @@ def view_slide(pathname):
     return f"""
     $(document).ready(function() {{
         var viewer = new OpenSeadragon({{
-            id: "view",
+            id: "seadragon-container",
             tileSources: "{slide_url}",
             prefixUrl: "{prefix_url}",
             showNavigator: true,
@@ -45,7 +45,6 @@ def view_slide(pathname):
             // from DZI XML.
             viewer.source.minLevel = 8;
         }});
-
     }});
     """
 
