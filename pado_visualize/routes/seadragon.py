@@ -36,7 +36,7 @@ def slide_dzi(image_id):
     return resp
 
 
-@app.server.route('/slide/<string:image_id>_files/<int:level>/<int:col>_<int:row>.jpeg')
+@app.server.route('/slide/<string:image_id>/image_files/<int:level>/<int:col>_<int:row>.jpeg')
 def slide_tile(image_id, level, col, row):
     dz = _get_deep_zoom(image_id)
     try:
