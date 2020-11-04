@@ -25,7 +25,7 @@ def _get_deep_zoom(image_id: str) -> TifffileDeepZoomGenerator:
     return dz
 
 
-@app.server.route('/slide/<str:image_id>/image.dzi')
+@app.server.route('/slide/<string:image_id>/image.dzi')
 def slide_dzi(image_id):
     dz = _get_deep_zoom(image_id)
 
@@ -34,7 +34,7 @@ def slide_dzi(image_id):
     return resp
 
 
-@app.server.route('/slide/<str:image_id>_files/<int:level>/<int:col>_<int:row>.jpeg')
+@app.server.route('/slide/<string:image_id>_files/<int:level>/<int:col>_<int:row>.jpeg')
 def slide_tile(image_id, level, col, row):
     dz = _get_deep_zoom(image_id)
     try:
