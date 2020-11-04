@@ -1,11 +1,14 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
 import math
+from contextlib import redirect_stdout
 from functools import lru_cache
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Union
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
+import numpy as np
+import palo.deephistopath.wsi.filter as wsi_filter
 from PIL import Image, ImageFile
 from tifffile import TiffFile, TiffPage, TiffPageSeries, TIFF
 
@@ -86,6 +89,45 @@ def get_svs_thumbnail(filename: PathOrStr) -> bytes:
 
     with BytesIO() as buffer:
         im = Image.fromarray(arr)
+        im.save(buffer, format="JPEG")
+        return buffer.getvalue()
+
+
+@lru_cache(maxsize=1)
+def get_svs_thumbnail_filtered(filename: PathOrStr) -> bytes:
+    """extract the binary data of a thumbnail from the whole-slide image"""
+    thumbnail_series = _get_svs_series(filename, "Thumbnail")
+    baseline_series = _get_svs_series(filename, "Thumbnail")
+    assert not thumbnail_series.is_pyramidal
+
+    # this series should have only one page
+    page: TiffPage
+    page, = thumbnail_series.pages
+
+    org_h, org_w, _ = baseline_series.shape
+    scale_factor = 32  # fixme: expose
+    new_w = math.floor(org_w / scale_factor)
+    new_h = math.floor(org_h / scale_factor)
+
+    # get the thumbnail as array
+    arr = page.asarray(maxworkers=1)
+    im = Image.fromarray(arr).resize((new_w, new_h), Image.BILINEAR)
+    np_img = np.array(im)
+
+    # horribly slow...
+    with StringIO() as s_stdout:
+        try:
+            with redirect_stdout(s_stdout):
+                # todo: this is no place for a ~500ms conversion...
+                filtered_np_img = wsi_filter.apply_image_filters(
+                    np_img, display=False, remove_red_pen=False
+                )
+        except Exception:
+            print(s_stdout.getvalue())
+            raise
+
+    with BytesIO() as buffer:
+        im = Image.fromarray(filtered_np_img)
         im.save(buffer, format="JPEG")
         return buffer.getvalue()
 
@@ -215,7 +257,7 @@ if __name__ == "__main__":
 
         with timer(f"accessing level {test_lvl}", samples=len(test_idx)):
             for flat_idx in test_idx:
-                address = flat_idx % lvl_size[0], flat_idx // lvl_size[0]
-                dz.get_tile(test_lvl, address)
+                addr = flat_idx % lvl_size[0], flat_idx // lvl_size[0]
+                dz.get_tile(test_lvl, addr)
 
     print("done.")

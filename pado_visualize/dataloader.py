@@ -14,6 +14,7 @@ from PIL import Image
 from tifffile import TiffFile, TiffPage, TiffPageSeries
 
 from pado_visualize.app import app
+from pado_visualize.data.slides import get_svs_thumbnail_filtered
 
 dataset: Optional[PadoDataset] = None
 image_map: Dict[str, int] = {}
@@ -205,15 +206,13 @@ def image_id_to_wds_path(image_id):
 @app.server.route("/grid/<image_id>.png")
 def serve_grid_png(image_id):
     try:
-        p = image_id_to_wds_path(image_id)
+        p = image_id_to_image_path(image_id)
+    except RuntimeError as err:
+        return abort(500, str(err))
     except FileNotFoundError as err:
         return abort(404, str(err))
 
-    arr = wds_grid_thumbnail_array(p)
-
-    with io.BytesIO() as buffer:
-        Image.fromarray(arr).save(buffer, format="PNG")
-        data = buffer.getvalue()
+    data = get_svs_thumbnail_filtered(p)
 
     return send_file(
         io.BytesIO(data),
