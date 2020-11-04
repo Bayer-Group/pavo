@@ -115,16 +115,10 @@ def get_svs_thumbnail_filtered(filename: PathOrStr) -> bytes:
     np_img = np.array(im)
 
     # horribly slow...
-    with StringIO() as s_stdout:
-        try:
-            with redirect_stdout(s_stdout):
-                # todo: this is no place for a ~500ms conversion...
-                filtered_np_img = wsi_filter.apply_image_filters(
-                    np_img, display=False, remove_red_pen=False
-                )
-        except Exception:
-            print(s_stdout.getvalue())
-            raise
+    # todo: this is no place for a ~500ms conversion...
+    filtered_np_img = wsi_filter.apply_image_filters(
+        np_img, display=False, remove_red_pen=False
+    )
 
     with BytesIO() as buffer:
         im = Image.fromarray(filtered_np_img)
