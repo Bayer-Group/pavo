@@ -47,9 +47,9 @@ app.layout = dbc.Container([
     dcc.Location(id="url", refresh=False),
     dbc.Row([
         # add the sidebar of the landing page
-        dbc.Col([sidebar], md=3, className="pado-sidebar"),
+        dbc.Col([sidebar], lg=3, className="pado-sidebar"),
         # add the content
-        dbc.Col(content, md=9, className="pado-content"),
+        dbc.Col(content, lg=9, className="pado-content"),
     ], className="pado-body"),
 ], fluid=True)
 

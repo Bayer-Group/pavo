@@ -51,7 +51,6 @@
 }
 
 .pado-sidebar {
-    height: 100vh;
     padding: 0;
     background: #333333;
 }
@@ -78,6 +77,10 @@
 
 .pado-content {
     padding: 0;
+}
+
+.pado-body {
+    min-height: 100vh;
 }
 
 
