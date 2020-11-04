@@ -9,7 +9,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             let viewer = new OpenSeadragon({
                 id: "seadragon-container",
                 tileSources: sources,
-                prefixUrl: "/slide",
+                prefixUrl: "/assets/",
                 showNavigator: true,
                 showRotationControl: true,
                 animationTime: 0.5,
