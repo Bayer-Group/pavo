@@ -3,14 +3,14 @@ from pado_visualize.dataloader import image_id_to_image_path
 from pado_visualize.data.slides import TifffileDeepZoomGenerator
 
 
-@app.before_first_request
+@app.server.before_first_request
 def slide_init():
-    app.slides = {}
+    app.server.slides = {}
 
 
 def _get_deep_zoom(image_id: str) -> TifffileDeepZoomGenerator:
     try:
-        dz = app.slides[image_id]
+        dz = app.server.slides[image_id]
     except KeyError:
         # we should take a lock here... but let's move quick to meet the deadline
         # fixme: not good in multiuser scenario
@@ -21,11 +21,11 @@ def _get_deep_zoom(image_id: str) -> TifffileDeepZoomGenerator:
         except FileNotFoundError:
             return abort(404, "image_id doesn't match local file")
         else:
-            dz = app.slides[image_id] = TifffileDeepZoomGenerator(image_path)
+            dz = app.server.slides[image_id] = TifffileDeepZoomGenerator(image_path)
     return dz
 
 
-@app.route('/slide/<str:image_id>/image.dzi')
+@app.server.route('/slide/<str:image_id>/image.dzi')
 def slide_dzi(image_id):
     dz = _get_deep_zoom(image_id)
 
@@ -34,7 +34,7 @@ def slide_dzi(image_id):
     return resp
 
 
-@app.route('/slide/<str:image_id>_files/<int:level>/<int:col>_<int:row>.jpeg')
+@app.server.route('/slide/<str:image_id>_files/<int:level>/<int:col>_<int:row>.jpeg')
 def slide_tile(image_id, level, col, row):
     dz = _get_deep_zoom(image_id)
     try:
