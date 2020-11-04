@@ -1,4 +1,86 @@
 
+.pado-logo {
+    position: relative;
+    margin-top: 20px;
+    height: 40px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.pado-logo .logo-image-container {
+    width: 36px;
+    height: 36px;
+    border: black 1px solid;
+    text-decoration: none;
+    margin: 4px 2px;
+    border-radius: 5px;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.pado-logo .logo-image-container > img {
+    width: 100%;
+    height: 100%;
+}
+
+.pado-logo .logo-text {
+    color: #ee99d4;
+    font-size: 36px;
+    font-family: monospace;
+    alignment-baseline: top;
+    margin-left: 5px;
+    position: absolute;
+    top: -11px;
+    left: 36px;
+}
+
+.pado-logo .logo-subtext {
+    position: absolute;
+    top: 28px;
+    left: 36px;
+    font-size: 12px;
+    font-family: monospace;
+    font-weight: 100;
+    color: lightgray;
+    padding: 0;
+    margin-left: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pado-sidebar {
+    height: 100vh;
+    padding: 0;
+    background: #333333;
+}
+
+.pado-sidebar p {
+    text-align: justify;
+    font-size: 12px;
+    color: lightgray;
+}
+
+.pado-nav-buttons {
+    display: flex;
+}
+
+.pado-nav-buttons .btn {
+    flex: 1;
+}
+
+.pado-sidebar .btn-secondary:not(:disabled):not(.disabled):active,
+.pado-sidebar .btn-secondary:not(:disabled):not(.disabled).active
+{
+    background: #DF59A8;
+}
+
+.pado-content {
+    padding: 0;
+}
+
+
 #page-content {
     padding-top: 10px;
 }
