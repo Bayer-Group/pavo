@@ -148,13 +148,14 @@ def serve_thumbnail_jpg(image_id):
     # save as image
     with io.BytesIO() as buffer:
         Image.fromarray(arr).save(buffer, format="JPEG")
-        buffer.seek(0)
-        return send_file(
-            buffer,
-            mimetype="image/jpeg",
-            as_attachment=True,
-            attachment_filename=f"{image_id}.jpg",
-        )
+        data = buffer.getvalue()
+
+    return send_file(
+        io.BytesIO(data),
+        mimetype="image/jpeg",
+        as_attachment=True,
+        attachment_filename=f"{image_id}.jpg",
+    )
 
 
 def wds_grid_thumbnail_array(wds_tar_path: Path):
@@ -213,10 +214,9 @@ def serve_grid_png(image_id):
 
     data = get_svs_thumbnail_filtered(p)
 
-    with io.BytesIO(data) as buffer:
-        return send_file(
-            buffer,
-            mimetype="image/png",
-            as_attachment=True,
-            attachment_filename=f"{image_id}.png",
-        )
+    return send_file(
+        io.BytesIO(data),
+        mimetype="image/png",
+        as_attachment=True,
+        attachment_filename=f"{image_id}.png",
+    )
