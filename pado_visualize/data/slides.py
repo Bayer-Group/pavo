@@ -71,7 +71,7 @@ def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
         buffer.write(jpeg_tables_tag.value[:-2])
         buffer.write(b"\xFF\xEE\x00\x0E\x41\x64\x6F\x62\x65\x00\x64\x80\x00\x00\x00\x00")  # colorspace fix
         buffer.write(data[2:])
-        return buffer.getvalue()
+    return buffer.getvalue()
 
 
 @lru_cache(maxsize=1)
@@ -90,7 +90,7 @@ def get_svs_thumbnail(filename: PathOrStr) -> bytes:
     with BytesIO() as buffer:
         im = Image.fromarray(arr)
         im.save(buffer, format="JPEG")
-        return buffer.getvalue()
+    return buffer.getvalue()
 
 
 @lru_cache(maxsize=1)
@@ -129,7 +129,7 @@ def get_svs_thumbnail_filtered(filename: PathOrStr) -> bytes:
     with BytesIO() as buffer:
         im = Image.fromarray(filtered_np_img)
         im.save(buffer, format="JPEG")
-        return buffer.getvalue()
+    return buffer.getvalue()
 
 
 class TifffileDeepZoomGenerator:
@@ -196,7 +196,7 @@ class TifffileDeepZoomGenerator:
 
             with BytesIO() as buffer:
                 dst.save(buffer, format="JPEG")
-                return buffer.getvalue()
+            return buffer.getvalue()
 
         else:
             raise IndexError("requested level invalid")
@@ -216,7 +216,7 @@ class TifffileDeepZoomGenerator:
 
         with BytesIO() as buffer:
             tree.write(buffer, encoding="UTF-8")
-            return buffer.getvalue().decode("UTF-8")
+        return buffer.getvalue().decode("UTF-8")
 
 
 if __name__ == "__main__":
