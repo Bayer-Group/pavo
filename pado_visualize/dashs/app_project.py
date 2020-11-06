@@ -4,34 +4,36 @@ import itertools
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_table
 import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output
+from pado.metadata import PadoColumn
+
 from pado_visualize.app import app
 from pado_visualize.dataloader import get_dataset
 
 
 @app.callback(
-    output=Output("preview-card-container", "children"),
+    output=Output("pado-table", "data"),
     inputs=[Input("url", "pathname")],
 )
-def render_preview_cards(pathname):
+def render_table(pathname):
     ds = get_dataset()
-    cards = []
-    for image_resource in itertools.islice(ds.images, 0, 100):
-        img = html.Img(
-            className="thumbnail", src=f"/thumbnails/{image_resource.id_str}.jpg"
-        )
-        # title = html.H5("Card title", className="card-title")
-        card = dbc.Card(
-            [
-                # title,
-                img,
-            ],
-            className="thumbnail-card",
-        )
-        cards.append(card)
-    return cards
+    return ds.metadata.to_dict("records")
 
 
-layout = dbc.Row(dbc.Col(html.A(href="/qupath/project/download.qpzip")))
+layout = dbc.Row(
+    dbc.Col(
+        dash_table.DataTable(
+            id='pado-table',
+            columns=[{"name": c, "id": c} for c in PadoColumn],
+            style_as_list_view=True,
+            style_header={'backgroundColor': 'rgb(30, 30, 30)'},
+            style_cell={
+                'backgroundColor': 'rgb(50, 50, 50)',
+                'color': 'white'
+            },
+        ),
+    )
+)

@@ -21,5 +21,6 @@ layout = dbc.Container(
                 html.P(dbc.Button("Open Dataset", color="primary"), className="lead"),
             ]
         )
-    )
+    ),
+    id="landing-container"
 )

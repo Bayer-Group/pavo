@@ -147,3 +147,23 @@
     background: black;
     color: white;
 }
+
+.pado-body {
+  background: url(background_small.jpg) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  background-position: 0 0;
+  /* animation: ANIMATION-background 20s linear infinite; */
+}
+/*
+@keyframes ANIMATION-background {
+    0% { background-position: 0 0; }
+    50% { background-position: -200px 0; }
+    100% { background-position: 0 0; }
+}
+*/
+
+.pado-content {
+}
