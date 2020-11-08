@@ -1,7 +1,7 @@
 from flask import abort, make_response
 
 from pado_visualize.app import app
-from pado_visualize.dataloader import image_id_to_image_path
+from pado_visualize.routes._route_utils import _image_path_from_image_id
 from pado_visualize.data.slides import TifffileDeepZoomGenerator
 
 
@@ -16,14 +16,8 @@ def _get_deep_zoom(image_id: str) -> TifffileDeepZoomGenerator:
     except KeyError:
         # we should take a lock here... but let's move quick to meet the deadline
         # fixme: not good in multiuser scenario
-        try:
-            image_path = image_id_to_image_path(image_id)
-        except RuntimeError:
-            return abort(500, "no data available")
-        except FileNotFoundError:
-            return abort(404, "image_id doesn't match local file")
-        else:
-            dz = app.server.slides[image_id] = TifffileDeepZoomGenerator(image_path)
+        image_path = _image_path_from_image_id(image_id)
+        dz = app.server.slides[image_id] = TifffileDeepZoomGenerator(image_path)
     return dz
 
 
