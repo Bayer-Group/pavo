@@ -5,6 +5,7 @@ def main():
     from pathlib import Path
 
     from pado_visualize.routes import init_routes
+    from pado_visualize.data.dataset import init_dataset
     from pado_visualize.dataloader import (
         get_wds_map,
         set_dataset,
@@ -25,13 +26,7 @@ def main():
     p = Path(args.dataset_path).expanduser().absolute().resolve()
     # w = Path(args.wds_path).expanduser().absolute().resolve()
 
-    with shelve.open(".pado_visualize.shelve") as store:
-        if str(p) not in store:
-            print("getting dataset")
-            store[str(p)] = set_dataset(p)
-        else:
-            print("getting cached dataset")
-            set_dataset_from_store(store[str(p)])
+    init_dataset(p, persist=True)
 
         # if str(w) not in store:
         #     print("getting wds_map")

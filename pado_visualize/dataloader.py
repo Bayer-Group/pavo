@@ -16,40 +16,7 @@ from tifffile import TiffFile, TiffPage, TiffPageSeries
 from pado_visualize.app import app
 from pado_visualize.data.slides import get_svs_thumbnail_filtered
 
-dataset: Optional[PadoDataset] = None
-image_map: Dict[str, int] = {}
 wds_map: Dict[str, Path] = {}
-
-
-def set_dataset(path):
-    """quick and dirty solution to speed up prototyping"""
-    # fixme: should use some shared way of providing the cached dataset instance
-    #   to the individual worker threads...
-    global dataset
-    try:
-        dataset = PadoDataset(path, mode="r")
-    except FileNotFoundError:
-        dataset = None
-    else:
-        image_map.update(((img.id_str, idx) for idx, img in enumerate(dataset.images)))
-    return dataset
-
-
-def set_dataset_from_store(ds):
-    global dataset
-    dataset = ds
-    image_map.update(((img.id_str, idx) for idx, img in enumerate(dataset.images)))
-    return dataset
-
-
-def get_dataset() -> Optional[PadoDataset]:
-    global dataset
-    return dataset
-
-
-def get_image_id_map() -> Dict[str, int]:
-    global image_map
-    return image_map
 
 
 def set_wds_dirs(*paths: Path):
@@ -107,55 +74,6 @@ def extract_thumbnail_array(filename):
     (page,) = series.pages
 
     return page.asarray(maxworkers=1)
-
-
-def image_id_to_image_path(image_id):
-    # get the dataset
-    ds = get_dataset()
-    img_map = get_image_id_map()
-    if not ds:
-        raise RuntimeError("dataset not loaded")
-
-    # retrieve the image resource
-    try:
-        img_resource = ds.images[img_map[image_id]]
-    except KeyError:
-        raise FileNotFoundError(f"image_id '{image_id}' not found")
-
-    # check if remote resource
-    p = img_resource.local_path
-    if p is None:
-        raise FileNotFoundError("image is remote")
-
-    # verify the resource is local
-    if not p.is_file():
-        raise FileNotFoundError("image is not accessible locally")
-
-    return p
-
-
-@app.server.route("/thumbnails/<image_id>.jpg")
-def serve_thumbnail_jpg(image_id):
-    try:
-        p = image_id_to_image_path(image_id)
-    except RuntimeError as err:
-        return abort(500, str(err))
-    except FileNotFoundError as err:
-        return abort(404, str(err))
-
-    arr = extract_thumbnail_array(p)
-
-    # save as image
-    with io.BytesIO() as buffer:
-        Image.fromarray(arr).save(buffer, format="JPEG")
-        data = buffer.getvalue()
-
-    return send_file(
-        io.BytesIO(data),
-        mimetype="image/jpeg",
-        as_attachment=True,
-        attachment_filename=f"{image_id}.jpg",
-    )
 
 
 def wds_grid_thumbnail_array(wds_tar_path: Path):

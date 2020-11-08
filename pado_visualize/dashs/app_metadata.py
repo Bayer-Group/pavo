@@ -8,7 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from pado_visualize.app import app
-from pado_visualize.dataloader import get_dataset
+from pado_visualize.data.dataset import get_dataset
 from pado.metadata import PadoColumn, PadoReserved
 
 record_cache = None
