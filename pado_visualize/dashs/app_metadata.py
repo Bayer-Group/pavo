@@ -1,10 +1,7 @@
-# import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from pado_visualize.app import app
@@ -20,7 +17,7 @@ record_cache = None
 def render_preview_cards(pathname):
     global record_cache
     if record_cache is None:
-        ds = get_dataset()
+        ds = get_dataset(abort_if_none=True)
         record_cache = ds.metadata.to_dict("records"), ds.metadata.columns
     records, columns = record_cache
     table = dash_table.DataTable(
@@ -107,21 +104,21 @@ layout = dbc.Container(
     output=Output("fig-datasource", "figure"), inputs=[Input("url", "pathname")]
 )
 def update_barchart_datasource(pathname):
-    ds = get_dataset()
+    ds = get_dataset(abort_if_none=True)
     counts = ds.metadata[PadoReserved.DATA_SOURCE_ID].value_counts()
     return _plot_card_bar(x=counts.index, y=counts.values,)
 
 
 @app.callback(output=Output("fig-studies", "figure"), inputs=[Input("url", "pathname")])
 def update_barchart_studies(pathname):
-    ds = get_dataset()
+    ds = get_dataset(abort_if_none=True)
     counts = ds.metadata[PadoColumn.STUDY].value_counts()
     return _plot_card_bar(x=counts.index, y=counts.values,)
 
 
 @app.callback(output=Output("fig-organs", "figure"), inputs=[Input("url", "pathname")])
 def update_barchart_organs(pathname):
-    ds = get_dataset()
+    ds = get_dataset(abort_if_none=True)
     counts = ds.metadata[PadoColumn.ORGAN].value_counts()
     return _plot_card_bar(x=counts.index, y=counts.values,)
 
@@ -130,7 +127,7 @@ def update_barchart_organs(pathname):
     output=Output("fig-annotations", "figure"), inputs=[Input("url", "pathname")]
 )
 def update_barchart_annotations(pathname):
-    ds = get_dataset()
+    ds = get_dataset(abort_if_none=True)
     counts = (
         ds.metadata[PadoColumn.IMAGE].map(ds.annotations.__contains__).value_counts()
     )
@@ -141,6 +138,6 @@ def update_barchart_annotations(pathname):
     output=Output("fig-findings", "figure"), inputs=[Input("url", "pathname")]
 )
 def update_barchart_findings(pathname):
-    ds = get_dataset()
+    ds = get_dataset(abort_if_none=True)
     counts = ds.metadata[PadoColumn.FINDING].value_counts()
     return _plot_card_bar(x=counts.index[:20], y=counts.values[:20],)

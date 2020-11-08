@@ -1,4 +1,3 @@
-import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
@@ -87,5 +86,3 @@ def set_active(pathname):
         "btn active" if pathname.startswith(f"/{label}") else "btn"
         for label in ["graphs", "table", "slides"]
     ]
-
-

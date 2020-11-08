@@ -1,12 +1,9 @@
-# import dash
 import itertools
 
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
 import dash_html_components as html
-import pandas as pd
-import plotly.express as px
 from dash.dependencies import Input, Output
+
 from pado_visualize.app import app
 from pado_visualize.data.dataset import get_dataset
 
@@ -15,7 +12,7 @@ from pado_visualize.data.dataset import get_dataset
     output=Output("prev-card-container", "children"), inputs=[Input("url", "pathname")],
 )
 def render_preview_cards(pathname):
-    ds = get_dataset()
+    ds = get_dataset(abort_if_none=True)
     cards = []
     for image_resource in itertools.islice(ds.images, 0, 100):
         img = html.Img(

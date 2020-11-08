@@ -1,16 +1,15 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
 import math
-from contextlib import redirect_stdout
 from functools import lru_cache
-from io import BytesIO, StringIO
+from io import BytesIO
 from pathlib import Path
 from typing import Union
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 import numpy as np
-import palo.deephistopath.wsi.filter as wsi_filter
 from PIL import Image, ImageFile
 from tifffile import TiffFile, TiffPage, TiffPageSeries, TIFF
+import palo.deephistopath.wsi.filter as wsi_filter
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 PathOrStr = Union[Path, str]

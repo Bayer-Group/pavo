@@ -1,7 +1,6 @@
 
 def main():
     import argparse
-    import shelve
     from pathlib import Path
 
     from pado_visualize.routes import init_routes
