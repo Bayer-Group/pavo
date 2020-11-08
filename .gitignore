@@ -76,4 +76,5 @@ yarn-error.log
 pado_visualize/_version.py
 **/__pycache__
 dist
+*.shelve.db
 
