@@ -1,3 +1,7 @@
+"""dash instance submodule
+
+to prevent circular imports provide Dash instance in its own submodule
+"""
 import dash
 import dash_bootstrap_components as dbc
 
