@@ -1,20 +1,13 @@
-import io
 import json
 import math
 import tarfile
 import warnings
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import tqdm
-from flask import abort, send_file
-from pado.dataset import PadoDataset
-from PIL import Image
 from tifffile import TiffFile, TiffPage, TiffPageSeries
-
-from pado_visualize.app import app
-from pado_visualize.data.slides import get_svs_thumbnail_filtered
 
 wds_map: Dict[str, Path] = {}
 
@@ -119,22 +112,3 @@ def image_id_to_wds_path(image_id):
     except KeyError:
         raise FileNotFoundError(f"no wds key {image_id}")
     return wds_path
-
-
-@app.server.route("/grid/<image_id>.png")
-def serve_grid_png(image_id):
-    try:
-        p = image_id_to_image_path(image_id)
-    except RuntimeError as err:
-        return abort(500, str(err))
-    except FileNotFoundError as err:
-        return abort(404, str(err))
-
-    data = get_svs_thumbnail_filtered(p)
-
-    return send_file(
-        io.BytesIO(data),
-        mimetype="image/png",
-        as_attachment=True,
-        attachment_filename=f"{image_id}.png",
-    )
