@@ -47,7 +47,7 @@ def init_dataset(
         dataset, image_map = load_dataset(dataset_path)
 
     else:
-        with shelve.open(cache_file) as store:
+        with shelve.open(str(cache_file)) as store:
             key = str(dataset_path)
             if key not in store or ignore_cache:
                 print("loading dataset from disk...", end=" ", flush=True)

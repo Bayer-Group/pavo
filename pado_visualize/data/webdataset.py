@@ -66,7 +66,7 @@ def init_wds(
         wds_map.update(load_wds(wds_path))
 
     else:
-        with shelve.open(cache_file) as store:
+        with shelve.open(str(cache_file)) as store:
             key = str(wds_path)
             if key not in store or ignore_cache:
                 print("loading web dataset from disk...")
