@@ -17,7 +17,7 @@ def main():
     args = parser.parse_args()
 
     # dataset
-    _cache = Path("./pado_visualize.shelve")
+    _cache = Path("./.pado_visualize.shelve")
     p = Path(args.dataset_path)
     init_dataset(p, persist=True, cache_file=_cache)
     # w = Path(args.wds_path)
