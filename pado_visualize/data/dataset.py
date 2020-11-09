@@ -16,7 +16,7 @@ image_map: Optional[Dict[str, Optional[Path]]] = None
 def init_dataset(
     dataset_path: Path,
     persist: bool = True,
-    ignore_cache: bool = True,
+    ignore_cache: bool = False,
     cache_file: Optional[Path] = None,
 ) -> None:
     """initialize the pado dataset for the flask instance"""
