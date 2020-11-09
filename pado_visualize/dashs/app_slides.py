@@ -39,7 +39,7 @@ def render_preview_cards(pathname, data):
                 [
                     # title,
                     img,
-                    overlay,
+                    # overlay,  # FIXME: cut for now
                 ],
                 className="thumbnail-card",
             )], href=f"/slide/{image_resource.id_str}"
