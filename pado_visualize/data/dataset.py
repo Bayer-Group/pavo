@@ -101,7 +101,7 @@ def get_dataset_column_values(column) -> List[dict]:
     }:
         return [
             {"label": x, "value": x}
-            for x in ds.metadata.loc[:, [column]].drop_duplicates()[column].values
+            for x in ds.metadata.loc[:, [column]].drop_duplicates()[column].values if isinstance(x, str) and x.strip()
         ]
 
     elif column == "annotations":
