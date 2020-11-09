@@ -2,6 +2,8 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+from pado.metadata import PadoReserved, PadoColumn
+
 from pado_visualize.app import app
 from pado_visualize.dashs import (
     app_landing,
@@ -11,6 +13,7 @@ from pado_visualize.dashs import (
     app_seadragon,
 )
 from pado_visualize.dash_pado_components import LabeledDropDown, RowCol
+from pado_visualize.data.dataset import get_dataset_column_values
 
 logo = html.Div([
     html.Div([
@@ -49,7 +52,7 @@ sidebar = dbc.Container([
                     LabeledDropDown(
                         "Dataset",
                         id="data-dataset-select",
-                        options=[],
+                        options=get_dataset_column_values(PadoReserved.DATA_SOURCE_ID),
                     ),
                 ],
                 xs=12
@@ -59,7 +62,7 @@ sidebar = dbc.Container([
                     LabeledDropDown(
                         "Studies",
                         id="data-study-select",
-                        options=[],
+                        options=get_dataset_column_values(PadoColumn.STUDY),
                     ),
                 ],
                 xs=12
@@ -69,7 +72,7 @@ sidebar = dbc.Container([
                     LabeledDropDown(
                         "Organs",
                         id="data-organ-select",
-                        options=[],
+                        options=get_dataset_column_values(PadoColumn.ORGAN),
                     ),
                 ],
                 xs=12
@@ -79,7 +82,7 @@ sidebar = dbc.Container([
                     LabeledDropDown(
                         "Findings",
                         id="data-finding-select",
-                        options=[],
+                        options=get_dataset_column_values(PadoColumn.FINDING),
                     ),
                 ],
                 xs=12
@@ -89,7 +92,8 @@ sidebar = dbc.Container([
                     LabeledDropDown(
                         "Annotations",
                         id="data-annotation-select",
-                        options=[],
+                        options=get_dataset_column_values("annotations"),
+                        multi=False,
                     ),
                 ],
                 xs=12
@@ -99,14 +103,15 @@ sidebar = dbc.Container([
                     LabeledDropDown(
                         "Predictions",
                         id="data-prediction-select",
-                        options=[],
+                        options=get_dataset_column_values("predictions"),
+                        multi=False,
                     ),
                 ],
                 xs=12
             ),
         ],
-    )
-])
+    ),
+], className="dash-bootstrap")
 
 content = html.Div(id="page-content"),
 
@@ -119,6 +124,7 @@ app.layout = dbc.Container([
         # add the content
         dbc.Col(content, lg=9, className="pado-content"),
     ], className="pado-body"),
+    dcc.Store(id='subset-filter-store', storage_type='session'),
 ], id="pado-body", fluid=True)
 
 
@@ -158,3 +164,20 @@ def set_active(pathname):
         "btn active" if pathname.startswith(f"/{label}") else "btn"
         for label in ["graphs", "table", "slides"]
     ]
+
+
+# keep in sync with layout
+FILTER_INPUTS = [
+    "dataset", "study", "organ", "finding", "annotation", "prediction"
+]
+
+
+@app.callback(
+    output=Output("subset-filter-store", "data"),
+    inputs=[
+        Input(f"data-{column}-select", "value") for column in FILTER_INPUTS
+    ]
+)
+def filter_dataset(*values):
+    data = dict(zip(FILTER_INPUTS, values))
+    return data

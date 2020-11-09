@@ -8,6 +8,7 @@ def RowCol(children, **col_kwargs) -> dbc.Row:
 
 
 def LabeledDropDown(label, /, *args, **kwargs) -> html.Label:
+    multi = kwargs.pop("multi", True)  # default to multi select
     return html.Label(
-        [label, dcc.Dropdown(*args, className="dash-bootstrap", **kwargs)],
+        [label, dcc.Dropdown(*args, multi=multi, **kwargs)],
     )
