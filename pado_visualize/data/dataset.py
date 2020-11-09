@@ -2,7 +2,7 @@ import shelve
 import warnings
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional, Dict, Literal, overload, List
+from typing import Optional, Dict, Literal, overload, List, Tuple
 
 from flask import abort
 from pado.dataset import PadoDataset
@@ -60,21 +60,33 @@ def init_dataset(
     print("OK")
 
 
-@overload
-def get_dataset(abort_if_none: Literal[True]) -> PadoDataset:
-    ...
-
-
 def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
     global dataset
     if abort_if_none and dataset is None:
         return abort(500, "missing dataset")
+
     return dataset
 
 
-@overload
-def get_image_map(abort_if_none: Literal[True]) -> Dict[str, Optional[Path]]:
-    ...
+def filter_metadata(df, filter_items: Optional[Tuple[Tuple[str, str], ...]] = None):
+    if filter_items:
+        q_ands = []
+
+        for column, values in filter_items:
+            if not values:
+                continue
+
+            q_ors = []
+            for value in values:
+                q_ors.append(f"{column} == '{value}'")
+
+            q_ands.append(f'({" or ".join(q_ors)})')
+
+        if q_ands:
+            query = " and ".join(q_ands)
+            print(query)
+            return df.query(query)
+    return df
 
 
 def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Path]]]:

@@ -5,16 +5,20 @@ from dash.dependencies import Input, Output
 
 from pado.metadata import PadoColumn
 from pado_visualize.app import app
-from pado_visualize.data.dataset import get_dataset
+from pado_visualize.data.dataset import get_dataset, filter_metadata
 
 
 @app.callback(
     output=Output("pado-table", "data"),
-    inputs=[Input("url", "pathname")],
+    inputs=[
+        Input("url", "pathname"),
+        Input("subset-filter-store", "data"),
+    ],
 )
-def render_table(pathname):
+def render_table(pathname, data):
     ds = get_dataset(abort_if_none=True)
-    return ds.metadata.to_dict("records")
+    df = filter_metadata(ds.metadata, filter_items=data)
+    return df.to_dict("records")
 
 
 layout = dbc.Row(

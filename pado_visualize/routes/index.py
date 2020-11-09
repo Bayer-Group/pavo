@@ -170,6 +170,14 @@ def set_active(pathname):
 FILTER_INPUTS = [
     "dataset", "study", "organ", "finding", "annotation", "prediction"
 ]
+COLUMN_NAMES = [
+    PadoReserved.DATA_SOURCE_ID,
+    PadoColumn.STUDY,
+    PadoColumn.ORGAN,
+    PadoColumn.FINDING,
+    "annotation",
+    "prediction",
+]
 
 
 @app.callback(
@@ -179,5 +187,4 @@ FILTER_INPUTS = [
     ]
 )
 def filter_dataset(*values):
-    data = dict(zip(FILTER_INPUTS, values))
-    return data
+    return tuple(zip(COLUMN_NAMES, values))
