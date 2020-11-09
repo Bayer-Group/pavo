@@ -21,12 +21,12 @@
   box-shadow: none;
 }
 
-.dash-bootstrap .is-open > .Select-control {
+.dash-bootstrap .Select.is-open > .Select-control {
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
 }
 
-.dash-bootstrap .is-focused:not(.is-open) > .Select-control {
+.dash-bootstrap .Select.is-focused:not(.is-open) > .Select-control {
   border-color: #aaa;
   outline: 0;
   box-shadow: 0 0 0 0.2rem rgba(55, 90, 127, 0.25);

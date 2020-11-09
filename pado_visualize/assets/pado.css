@@ -184,3 +184,11 @@
     font-family: monospace;
     color: #333333;
 }
+
+.pado-card .card-header {
+    background: #333333;
+    color: #ee99d4;
+    font-size: 18px;
+    font-weight: 400;
+    font-family: monospace;
+}

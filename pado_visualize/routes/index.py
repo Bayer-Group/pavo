@@ -9,8 +9,8 @@ from pado_visualize.dashs import (
     app_landing,
     app_metadata,
     app_overview,
-    app_project,
     app_seadragon,
+    app_table,
 )
 from pado_visualize.dash_pado_components import LabeledDropDown, RowCol
 from pado_visualize.data.dataset import get_dataset_column_values
@@ -146,7 +146,7 @@ def display_page(pathname):
     elif pathname.startswith("/slide/"):
         return app_seadragon.layout, ""
     elif pathname == "/table":
-        return app_project.layout, ""
+        return app_table.layout, ""
     else:
         # 404
         return app_landing.layout_404, "pado-background"
