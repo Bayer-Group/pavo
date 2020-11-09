@@ -5,21 +5,33 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from pado_visualize.app import app
-from pado_visualize.data.dataset import get_dataset
+from pado_visualize.data.dataset import get_dataset, filter_metadata
 
 
 @app.callback(
-    output=Output("prev-card-container", "children"), inputs=[Input("url", "pathname")],
+    output=Output("prev-card-container", "children"),
+    inputs=[
+        Input("url", "pathname"),
+        Input("subset-filter-store", "data"),
+    ],
 )
-def render_preview_cards(pathname):
+def render_preview_cards(pathname, data):
     ds = get_dataset(abort_if_none=True)
+
+    df = filter_metadata(ds.metadata, filter_items=data)
+    image_ids = df["IMAGE"].unique()
+
     cards = []
-    for image_resource in itertools.islice(ds.images, 0, 100):
+    for image_resource in ds.images:
+        if image_resource.id_str not in image_ids:
+            continue
+        if not image_resource.local_path.is_file():
+            continue
         img = html.Img(
-            className="thumbnail", src=f"/thumbnails/{image_resource.id_str}.jpg"
+            className="thumbnail", src=f"/thumbnails/slide_{image_resource.id_str}.jpg"
         )
         overlay = html.Img(
-            className="grid-overlay", src=f"/grid/{image_resource.id_str}.png"
+            className="grid-overlay", src=f"/thumbnails/tiling_{image_resource.id_str}.jpg"
         )
         # title = html.H5("Card title", className="card-title")
         card = html.A(
@@ -33,6 +45,9 @@ def render_preview_cards(pathname):
             )], href=f"/slide/{image_resource.id_str}"
         )
         cards.append(card)
+        if len(cards) >= 100:
+            break
+    print("Got:", len(cards), "thumbnails")
     return cards
 
 

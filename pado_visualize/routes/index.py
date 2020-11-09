@@ -8,7 +8,7 @@ from pado_visualize.app import app
 from pado_visualize.dashs import (
     app_landing,
     app_metadata,
-    app_overview,
+    app_slides,
     app_seadragon,
     app_table,
 )
@@ -142,7 +142,7 @@ def display_page(pathname):
     elif pathname == "/graphs":
         return app_metadata.layout, ""
     elif pathname == "/slides":
-        return app_overview.layout, ""
+        return app_slides.layout, ""
     elif pathname.startswith("/slide/"):
         return app_seadragon.layout, ""
     elif pathname == "/table":

@@ -8,7 +8,7 @@ from flask import abort
 from pado.dataset import PadoDataset
 from pado.metadata import PadoReserved, PadoColumn
 
-__all__ = ["init_dataset", "get_dataset", "get_image_map"]
+__all__ = ["init_dataset", "get_dataset", "get_image_map", "filter_metadata"]
 
 # data storage
 dataset: Optional[PadoDataset] = None
@@ -64,7 +64,6 @@ def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
     global dataset
     if abort_if_none and dataset is None:
         return abort(500, "missing dataset")
-
     return dataset
 
 
