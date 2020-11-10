@@ -97,8 +97,42 @@
     padding-top: 10px;
 }
 
+.card.info-card {
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.card.info-card .card-body {
+    background: #333333;
+}
+.card.info-card .card-title {
+    color: #ee99d4;
+    font-family: monospace;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+.card.info-card .card-text {
+    color: lightgray;
+    font-size: 12px;
+}
+
 .card.plot-card {
-    height: 350px;
+    margin-bottom: 20px;
+}
+
+.card.plot-card .card-title {
+    font-family: monospace;
+    color: #ee99d4;
+    margin: 0;
+}
+
+.card.plot-card .card-header {
+    background: #333333;
+    padding: 0.5em 1.25em;
+}
+
+.card.plot-card .card-body {
+    padding: 0.5em;
+    height: 220px;
 }
 
 .thumbnail-container {

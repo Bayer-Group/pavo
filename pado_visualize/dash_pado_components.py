@@ -12,3 +12,26 @@ def LabeledDropDown(label, /, *args, **kwargs) -> html.Label:
     return html.Label(
         [label, dcc.Dropdown(*args, multi=multi, **kwargs)],
     )
+
+
+def PlotCard(figure_id, title, text) -> dbc.Card:
+    graph = dcc.Graph(id=figure_id, figure={})
+    content = [
+        dbc.CardHeader([
+            html.H5(title, className="card-title"),
+        ]),
+        dbc.CardBody([graph]),
+        dbc.CardFooter([
+            html.P(text, className="card-text"),
+        ]),
+    ]
+    return dbc.Card(content, className="plot-card")
+
+
+def InfoCard(info_id, value, text) -> dbc.Card:
+    return dbc.Card([
+        dbc.CardBody([
+            html.H5(value, className="card-title", id=info_id),
+            html.P(text, className="card-text"),
+        ])
+    ], className="info-card")
