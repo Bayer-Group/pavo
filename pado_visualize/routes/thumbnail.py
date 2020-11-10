@@ -5,7 +5,7 @@ from flask import send_file, abort
 from tqdm import tqdm
 
 from pado_visualize.app import app
-from pado_visualize.data.dataset import get_dataset
+from pado_visualize.data.dataset import get_dataset, get_image_map
 from pado_visualize.data.slides import get_svs_thumbnail, get_svs_thumbnail_filtered
 from pado_visualize.routes._route_utils import _image_path_from_image_id
 
@@ -15,6 +15,7 @@ _thumbnail_cache = shelve.open(".pado_thumbnail.shelve")
 def _build_thumbnail_cache():
     global _thumbnail_cache
     image_ids = get_dataset().images.ids()
+    im = get_image_map()
 
     i = 0
     for image_id in tqdm(image_ids, desc="thumbnail caching"):
@@ -30,7 +31,8 @@ def _build_thumbnail_cache():
             i += 1
             _thumbnail_cache[k0] = get_svs_thumbnail(p)
             _thumbnail_cache[k1] = get_svs_thumbnail_filtered(p)
-    print(f"cached {i} thumbnails")
+    print(f"cached {i} thumbnails of {len(im)}")
+
 
 
 @app.server.route("/thumbnails/slide_<image_id>.jpg")

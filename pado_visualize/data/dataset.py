@@ -1,6 +1,7 @@
 import json
 import shelve
 import warnings
+from collections import defaultdict
 from functools import lru_cache, wraps
 from pathlib import Path
 from typing import Optional, Dict, Literal, overload, List, Tuple
@@ -94,6 +95,15 @@ def _filter_dict_cache(func):
     return wrapper
 
 
+@lru_cache()
+def get_annotation_map():
+    ds = get_dataset()
+    image_ids = ds.annotations.keys()
+    m = defaultdict.fromkeys(image_ids, "true")
+    m.default_factory = lambda: "false"
+    return m
+
+
 @_filter_dict_cache
 def get_metadata(
     filter_dict: Optional[Dict[str, List[str]]] = None,
@@ -103,6 +113,8 @@ def get_metadata(
     if ds is None:
         return None
 
+    df = ds.metadata
+    df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
     if filter_dict:
         q_ands = []
         for column, values in filter_dict.items():
@@ -119,8 +131,8 @@ def get_metadata(
             # group "and"-queries
             query = " and ".join(q_ands)
             print(query)
-            return ds.metadata.query(query)
-    return ds.metadata
+            df = df.query(query)
+    return df
 
 
 def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Path]]]:
