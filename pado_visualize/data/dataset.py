@@ -149,9 +149,7 @@ def get_dataset_column_values(column) -> List[dict]:
     """get the column selections for the subset"""
 
     # noinspection PyTypeChecker
-    ds = get_dataset(abort_if_none=False)
-    if ds is None:
-        return []
+    df = get_metadata(filter_dict={})
 
     if column in {
         PadoReserved.DATA_SOURCE_ID,
@@ -161,7 +159,8 @@ def get_dataset_column_values(column) -> List[dict]:
     }:
         return [
             {"label": x, "value": x}
-            for x in ds.metadata.loc[:, [column]].drop_duplicates()[column].values if isinstance(x, str) and x.strip()
+            for x in sorted(df[column].dropna().unique(), key=str.lower)
+            if isinstance(x, str) and x.strip()
         ]
 
     elif column == "annotation":
