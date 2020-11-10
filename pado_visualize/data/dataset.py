@@ -11,7 +11,15 @@ from flask import abort
 from pado.dataset import PadoDataset
 from pado.metadata import PadoReserved, PadoColumn
 
-__all__ = ["init_dataset", "get_dataset", "get_image_map", "get_metadata", "get_annotation_map"]
+__all__ = [
+    "init_dataset",
+    "get_dataset",
+    "get_image_map",
+    "get_metadata",
+    "get_annotation_map",
+    "get_prediction_map",
+    "get_dataset_column_values"
+]
 
 # data storage
 dataset: Optional[PadoDataset] = None
@@ -95,12 +103,16 @@ def _filter_dict_cache(func):
     return wrapper
 
 
+class _JSONBoolMapping(dict):
+    def __missing__(self, key):
+        return "false"
+
+
 @lru_cache()
 def get_annotation_map() -> Dict[str, Literal["true", "false"]]:
     ds = get_dataset()
     image_ids = ds.annotations.keys()
-    m = defaultdict.fromkeys(image_ids, "true")
-    m.default_factory = lambda: "false"
+    m = _JSONBoolMapping.fromkeys(image_ids, "true")
     # noinspection PyTypeChecker
     return m
 
@@ -116,13 +128,13 @@ def get_prediction_map():
     predictions_dir.mkdir(exist_ok=True)
 
     im = get_image_map()
-    pm = dict.fromkeys(im.keys(), False)
+    pm = _JSONBoolMapping()
     for image_prediction in predictions_dir.glob("*"):
         if not image_prediction.is_dir():
             continue
         if image_prediction.name not in im:
             continue
-        pm[image_prediction.name] = True
+        pm[image_prediction.name] = "true"
     return pm
 
 
