@@ -19,7 +19,9 @@ def _plot_card_bar(x, y, title=None):
         {
             "title": title,
             "yaxis": {},
-            "xaxis": {},
+            "xaxis": {
+                "showticklabels": False
+            },
             "height": 200,
             "margin": go.layout.Margin(l=0, r=0, t=0, b=0),
             "showlegend": False,
