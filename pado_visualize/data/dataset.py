@@ -11,7 +11,7 @@ from flask import abort
 from pado.dataset import PadoDataset
 from pado.metadata import PadoReserved, PadoColumn
 
-__all__ = ["init_dataset", "get_dataset", "get_image_map", "get_metadata"]
+__all__ = ["init_dataset", "get_dataset", "get_image_map", "get_metadata", "get_annotation_map"]
 
 # data storage
 dataset: Optional[PadoDataset] = None
@@ -77,7 +77,7 @@ def _filter_dict_cache(func):
     """a cache decorator for the get_metadata function"""
 
     def to_items(f_dict):
-        return tuple((k, tuple(sorted(v))) for k, v in sorted(f_dict.items()))
+        return tuple((k, tuple(sorted(v))) for k, v in sorted(f_dict.items()) if v)
 
     def to_dict(f_items):
         return dict(f_items)

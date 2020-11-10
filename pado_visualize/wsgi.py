@@ -2,7 +2,13 @@ from pathlib import Path
 
 
 def init_data(dataset_path: str, cache_path: str):
-    from pado_visualize.data.dataset import init_dataset
+    from pado_visualize.data.dataset import (
+        init_dataset,
+        get_dataset,
+        get_metadata,
+        get_image_map,
+        get_annotation_map,
+    )
 
     # dataset
     _cache = Path(cache_path)
@@ -12,6 +18,14 @@ def init_data(dataset_path: str, cache_path: str):
     # w = Path(args.wds_path)
     # from pado_visualize.data.webdataset import init_wds
     # init_webdataset(w, persist=True, cache_file=_cache)
+
+    # warm caches
+    print("warming caches...", end=" ", flush=True)
+    get_dataset()
+    get_image_map()
+    get_metadata(filter_dict={})
+    get_annotation_map()
+    print("OK")
 
 
 def init_app():
