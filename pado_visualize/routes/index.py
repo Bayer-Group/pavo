@@ -169,7 +169,9 @@ def filter_dataset(*values):
     for (_, column, multi), val in zip(DATASET_FILTER_INPUT_CONFIG, values):
         if val is None and multi:
             val = []
-        elif not multi:  # val is not None
+        elif not multi and val is not None:
             val = [val]
+        elif not multi and val is None:
+            val = []
         output[column] = list(map(str, val))
     return output
