@@ -19,7 +19,7 @@ def render_table(pathname, data):
     df = get_metadata(filter_dict=data)
     if df is None:
         return []
-    return df.to_dict("records")
+    return df.head(1000).to_dict("records")
 
 
 layout = dbc.Row(

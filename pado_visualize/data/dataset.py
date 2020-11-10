@@ -150,13 +150,13 @@ def get_dataset_column_values(column) -> List[dict]:
             for x in ds.metadata.loc[:, [column]].drop_duplicates()[column].values if isinstance(x, str) and x.strip()
         ]
 
-    elif column == "annotations":
+    elif column == "annotation":
         return [
             {"label": "with Annotations", "value": "true"},
             {"label": "without Annotations", "value": "false"},
         ]
 
-    elif column == "predictions":
+    elif column == "prediction":
         return [
             {"label": "with Predictions", "value": "true"},
             {"label": "without Predictions", "value": "false"},

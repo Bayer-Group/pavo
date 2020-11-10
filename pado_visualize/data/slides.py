@@ -1,5 +1,6 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
 import math
+import shelve
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
