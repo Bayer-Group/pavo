@@ -1,18 +1,23 @@
+import json
 import shelve
 import warnings
-from functools import lru_cache
+from functools import lru_cache, wraps
 from pathlib import Path
 from typing import Optional, Dict, Literal, overload, List, Tuple
 
+import pandas as pd
 from flask import abort
 from pado.dataset import PadoDataset
 from pado.metadata import PadoReserved, PadoColumn
 
-__all__ = ["init_dataset", "get_dataset", "get_image_map", "filter_metadata"]
+__all__ = ["init_dataset", "get_dataset", "get_image_map", "get_metadata"]
 
 # data storage
 dataset: Optional[PadoDataset] = None
 image_map: Optional[Dict[str, Optional[Path]]] = None
+
+# cache_sizes
+LRU_CACHE_MAX_SIZE = 16  # these could be split up, but will do for now
 
 
 def init_dataset(
@@ -67,25 +72,55 @@ def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
     return dataset
 
 
-def filter_metadata(df, filter_items: Optional[Tuple[Tuple[str, str], ...]] = None):
-    if filter_items:
-        q_ands = []
+def _filter_dict_cache(func):
+    """a cache decorator for the get_metadata function"""
 
-        for column, values in filter_items:
+    def to_items(f_dict):
+        return tuple((k, tuple(sorted(v))) for k, v in sorted(f_dict.items()))
+
+    def to_dict(f_items):
+        return dict(f_items)
+
+    @lru_cache(maxsize=LRU_CACHE_MAX_SIZE)
+    def _cached_func(filter_items):
+        filter_dict = to_dict(filter_items)
+        return func(filter_dict)
+
+    @wraps(func)
+    def wrapper(filter_dict):
+        f_items = to_items(filter_dict)
+        return _cached_func(f_items)
+
+    return wrapper
+
+
+@_filter_dict_cache
+def get_metadata(
+    filter_dict: Optional[Dict[str, List[str]]] = None,
+) -> Optional[pd.DataFrame]:
+    """return the optionally filtered metadata DataFrame"""
+    ds = get_dataset(abort_if_none=False)
+    if ds is None:
+        return None
+
+    if filter_dict:
+        q_ands = []
+        for column, values in filter_dict.items():
             if not values:
                 continue
 
-            q_ors = []
-            for value in values:
-                q_ors.append(f"{column} == '{value}'")
-
-            q_ands.append(f'({" or ".join(q_ors)})')
+            # group "or"-queries
+            q_ors = " or ".join(
+                f"{column} == {json.dumps(value)}" for value in values
+            )
+            q_ands.append(f"({q_ors})")
 
         if q_ands:
+            # group "and"-queries
             query = " and ".join(q_ands)
             print(query)
-            return df.query(query)
-    return df
+            return ds.metadata.query(query)
+    return ds.metadata
 
 
 def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Path]]]:
@@ -95,7 +130,7 @@ def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Pat
     return image_map
 
 
-@lru_cache(maxsize=16)
+@lru_cache(maxsize=LRU_CACHE_MAX_SIZE)
 def get_dataset_column_values(column) -> List[dict]:
     """get the column selections for the subset"""
 

@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output
 
 from pado.metadata import PadoColumn
 from pado_visualize.app import app
-from pado_visualize.data.dataset import get_dataset, filter_metadata
+from pado_visualize.data.dataset import get_dataset, get_metadata
 
 
 @app.callback(
@@ -16,8 +16,9 @@ from pado_visualize.data.dataset import get_dataset, filter_metadata
     ],
 )
 def render_table(pathname, data):
-    ds = get_dataset(abort_if_none=True)
-    df = filter_metadata(ds.metadata, filter_items=data)
+    df = get_metadata(filter_dict=data)
+    if df is None:
+        return []
     return df.to_dict("records")
 
 
