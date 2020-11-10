@@ -26,10 +26,14 @@
   border-bottom-left-radius: 0;
 }
 
+.dash-bootstrap .Select.is-focused > .Select-control {
+  background-color: #222;
+}
 .dash-bootstrap .Select.is-focused:not(.is-open) > .Select-control {
   border-color: #aaa;
   outline: 0;
   box-shadow: 0 0 0 0.2rem rgba(55, 90, 127, 0.25);
+  background-color: #222;
 }
 
 .dash-bootstrap .Select.is-disabled > .Select-control {
