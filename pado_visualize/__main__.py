@@ -5,6 +5,7 @@ def main():
 
     # parse commandline
     parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="debug mode")
     parser.add_argument("dataset_path", help="path to a pado dataset")
     parser.add_argument("--build-thumbnail-cache", action="store_true")
     args = parser.parse_args()
@@ -18,7 +19,7 @@ def main():
         return 0
 
     # run dev server
-    app.run_server(host="127.0.0.1", port=8080, debug=False)
+    app.run_server(host="127.0.0.1", port=8080, debug=args.debug)
 
 
 if __name__ == "__main__":
