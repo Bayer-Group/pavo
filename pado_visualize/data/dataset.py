@@ -96,12 +96,34 @@ def _filter_dict_cache(func):
 
 
 @lru_cache()
-def get_annotation_map():
+def get_annotation_map() -> Dict[str, Literal["true", "false"]]:
     ds = get_dataset()
     image_ids = ds.annotations.keys()
     m = defaultdict.fromkeys(image_ids, "true")
     m.default_factory = lambda: "false"
+    # noinspection PyTypeChecker
     return m
+
+
+@lru_cache()
+def get_prediction_map():
+    ds = get_dataset()
+
+    # prepare directories
+    qpzip_dir = ds.path / "qpzip"
+    qpzip_dir.mkdir(exist_ok=True)
+    predictions_dir = ds.path / "predictions"
+    predictions_dir.mkdir(exist_ok=True)
+
+    im = get_image_map()
+    pm = dict.fromkeys(im.keys(), False)
+    for image_prediction in predictions_dir.glob("*"):
+        if not image_prediction.is_dir():
+            continue
+        if image_prediction.name not in im:
+            continue
+        pm[image_prediction.name] = True
+    return pm
 
 
 @_filter_dict_cache
