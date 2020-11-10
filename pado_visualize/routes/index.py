@@ -1,3 +1,5 @@
+import string
+
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
@@ -15,6 +17,9 @@ from pado_visualize.dashs import (
 from pado_visualize.dash_pado_components import LabeledDropDown, RowCol
 from pado_visualize.data.dataset import get_dataset_column_values
 
+
+# -- sidebar header ---------------------------------------------------
+
 logo = html.Div([
     html.Div([
         html.Img(src=app.get_asset_url('pathological-heart.jpg')),
@@ -27,6 +32,9 @@ welcome_txt = html.P(
     "Welcome! Please select a display mode and the subset of data you want to look at."
 )
 
+
+# -- sidebar navigation -----------------------------------------------
+
 nav_buttons = dbc.ButtonGroup(
     [
         dbc.Button("Graphs", href="/graphs", id="btn-graphs"),
@@ -35,98 +43,81 @@ nav_buttons = dbc.ButtonGroup(
     ],
     size="md",
     className="pado-nav-buttons",
-),
+)
 
-sidebar = dbc.Container([
-    RowCol([
-        html.A([logo], href="/")
-    ]),
-    RowCol([welcome_txt]),
-    html.H5("Display Mode"),
-    RowCol(nav_buttons, style={"margin-bottom": "15px"}),
-    html.H5("Subset Filter"),
-    dbc.Form(
-        children=[
-            RowCol(
-                [
-                    LabeledDropDown(
-                        "Dataset",
-                        id="data-dataset-select",
-                        options=get_dataset_column_values(PadoReserved.DATA_SOURCE_ID),
-                    ),
-                ],
-                xs=12
-            ),
-            RowCol(
-                [
-                    LabeledDropDown(
-                        "Studies",
-                        id="data-study-select",
-                        options=get_dataset_column_values(PadoColumn.STUDY),
-                    ),
-                ],
-                xs=12
-            ),
-            RowCol(
-                [
-                    LabeledDropDown(
-                        "Organs",
-                        id="data-organ-select",
-                        options=get_dataset_column_values(PadoColumn.ORGAN),
-                    ),
-                ],
-                xs=12
-            ),
-            RowCol(
-                [
-                    LabeledDropDown(
-                        "Findings",
-                        id="data-finding-select",
-                        options=get_dataset_column_values(PadoColumn.FINDING),
-                    ),
-                ],
-                xs=12
-            ),
-            RowCol(
-                [
-                    LabeledDropDown(
-                        "Annotations",
-                        id="data-annotation-select",
-                        options=get_dataset_column_values("annotations"),
-                        multi=False,
-                    ),
-                ],
-                xs=12
-            ),
-            RowCol(
-                [
-                    LabeledDropDown(
-                        "Predictions",
-                        id="data-prediction-select",
-                        options=get_dataset_column_values("predictions"),
-                        multi=False,
-                    ),
-                ],
-                xs=12
-            ),
-        ],
-    ),
-], className="dash-bootstrap")
 
-content = html.Div(id="page-content"),
+# -- dataset filtering inputs -----------------------------------------
+
+DATASET_FILTER_INPUT_CONFIG = [
+    # label, column, is_multi_select
+    ("Dataset", PadoReserved.DATA_SOURCE_ID, True),
+    ("Study", PadoColumn.STUDY, True),
+    ("Organ", PadoColumn.ORGAN, True),
+    ("Finding", PadoColumn.FINDING, True),
+    #("Annotation", "annotations", False),
+    #("Prediction", "predictions", False),
+]
+
+dataset_filter_inputs = []
+for label, column, is_multi_select in DATASET_FILTER_INPUT_CONFIG:
+    assert set(label).issubset(string.ascii_letters)
+    dataset_filter_inputs.append(
+        RowCol(
+            [
+                LabeledDropDown(
+                    label,
+                    id=f"data-{label.lower()}-select",
+                    options=get_dataset_column_values(column),
+                    multi=is_multi_select
+                ),
+            ],
+            xs=12
+        )
+    )
+
+
+# -- sidebar ----------------------------------------------------------
+
+sidebar = dbc.Container(
+    [
+        RowCol([
+            html.A([logo], href="/")
+        ]),
+        RowCol([welcome_txt]),
+        html.H5("Display Mode"),
+        RowCol([nav_buttons], style={"margin-bottom": "15px"}),
+        html.H5("Subset Filter"),
+        dbc.Form(children=dataset_filter_inputs),
+    ],
+    className="dash-bootstrap"
+)
+
+
+# -- page layout ------------------------------------------------------
+
+content = html.Div(id="page-content")
 
 # base layout of the landing page
-app.layout = dbc.Container([
-    dcc.Location(id="url", refresh=False),
-    dbc.Row([
-        # add the sidebar of the landing page
-        dbc.Col([sidebar], lg=3, className="pado-sidebar"),
-        # add the content
-        dbc.Col(content, lg=9, className="pado-content"),
-    ], className="pado-body"),
-    dcc.Store(id='subset-filter-store', storage_type='session'),
-], id="pado-body", fluid=True)
+app.layout = dbc.Container(
+    [
+        dcc.Location(id="url", refresh=False),
+        dbc.Row(
+            [
+                # add the sidebar of the landing page
+                dbc.Col([sidebar], lg=3, className="pado-sidebar"),
+                # add the content
+                dbc.Col([content], lg=9, className="pado-content"),
+            ],
+            className="pado-body"
+        ),
+        dcc.Store(id='subset-filter-store', storage_type='session'),
+    ],
+    id="pado-body",
+    fluid=True
+)
 
+
+# -- callbacks --------------------------------------------------------
 
 @app.callback(
     output=[
@@ -166,25 +157,19 @@ def set_active(pathname):
     ]
 
 
-# keep in sync with layout
-FILTER_INPUTS = [
-    "dataset", "study", "organ", "finding", "annotation", "prediction"
-]
-COLUMN_NAMES = [
-    PadoReserved.DATA_SOURCE_ID,
-    PadoColumn.STUDY,
-    PadoColumn.ORGAN,
-    PadoColumn.FINDING,
-    "annotation",
-    "prediction",
-]
-
-
 @app.callback(
     output=Output("subset-filter-store", "data"),
     inputs=[
-        Input(f"data-{column}-select", "value") for column in FILTER_INPUTS
+        Input(f"data-{label.lower()}-select", "value")
+        for label, _, _ in DATASET_FILTER_INPUT_CONFIG
     ]
 )
 def filter_dataset(*values):
-    return tuple(zip(COLUMN_NAMES, values))
+    output = {}
+    for (_, column, multi), val in zip(DATASET_FILTER_INPUT_CONFIG, values):
+        if val is None and multi:
+            val = []
+        elif not multi:  # val is not None
+            val = [val]
+        output[column] = list(map(str, val))
+    return output
