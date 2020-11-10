@@ -27,13 +27,13 @@ def render_table(pathname, data):
 
 
 display_columns = [
-    PadoColumn.STUDY,
+    PadoColumn.STUDY.subcolumn("SHORT"),
     PadoColumn.EXPERIMENT,
     PadoColumn.GROUP,
     PadoColumn.ANIMAL,
     PadoColumn.COMPOUND,
     PadoColumn.ORGAN,
-    PadoColumn.IMAGE,
+    PadoColumn.IMAGE.subcolumn("SHORT"),
     PadoColumn.FINDING,
     "annotation",
 ]
@@ -48,7 +48,7 @@ layout = dbc.Row(
             dbc.CardBody([
                 dash_table.DataTable(
                     id='pado-table',
-                    columns=[{"name": c, "id": c} for c in display_columns],
+                    columns=[{"name": c.split("__")[0].upper(), "id": c} for c in display_columns],
                     style_as_list_view=True,
                     # style_header={
                     #    'backgroundColor': 'rgb(30, 30, 30)'

@@ -114,6 +114,8 @@ def get_metadata(
         return None
 
     df = ds.metadata
+    df[PadoColumn.STUDY.subcolumn("SHORT")] = df[PadoColumn.STUDY].apply(lambda x: x[6:])
+    df[PadoColumn.IMAGE.subcolumn("SHORT")] = df[PadoColumn.IMAGE].apply(lambda x: x.split("__")[-1])
     df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
     if filter_dict:
         q_ands = []
