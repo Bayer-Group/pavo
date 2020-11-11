@@ -59,7 +59,9 @@ def render_preview_cards(pathname, data):
             )
         if image_id_str in pm:
             items.append(
-                html.Div("P", className="prediction-indicator"),
+                html.A([
+                    html.Div("P", className="prediction-indicator"),
+                ], href=f"/qpzip/{image_id_str}.qpzip")
             )
         slide_container = html.Div(items, className="slide-container")
 
