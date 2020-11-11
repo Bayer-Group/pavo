@@ -36,6 +36,7 @@ display_columns = [
     PadoColumn.IMAGE.subcolumn("SHORT"),
     PadoColumn.FINDING,
     "annotation",
+    "prediction"
 ]
 
 

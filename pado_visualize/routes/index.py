@@ -55,7 +55,7 @@ DATASET_FILTER_INPUT_CONFIG = [
     ("Organ", PadoColumn.ORGAN, True),
     ("Finding", PadoColumn.FINDING, True),
     ("Annotation", "annotation", False),
-    #("Prediction", "predictions", False),
+    ("Prediction", "prediction", False),
 ]
 
 dataset_filter_inputs = []

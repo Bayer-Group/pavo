@@ -151,6 +151,8 @@ def get_metadata(
     df[PadoColumn.STUDY.subcolumn("SHORT")] = df[PadoColumn.STUDY].apply(lambda x: x[6:])
     df[PadoColumn.IMAGE.subcolumn("SHORT")] = df[PadoColumn.IMAGE].apply(lambda x: x.split("__")[-1])
     df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
+    df["prediction"] = df[PadoColumn.IMAGE].map(get_prediction_map())
+
     if filter_dict:
         q_ands = []
         for column, values in filter_dict.items():
