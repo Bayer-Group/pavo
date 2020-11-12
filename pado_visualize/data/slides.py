@@ -18,6 +18,10 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 PathOrStr = Union[Path, str]
 
 
+class SlideLevelError(Exception):
+    pass
+
+
 _svs_locks = defaultdict(Lock)
 
 
@@ -45,7 +49,7 @@ def _get_svs_series(filename: PathOrStr, name: str) -> TiffPageSeries:
         if series.name == name:
             return series
     else:
-        raise LookupError(f"no {name} series in {filename}")
+        raise LookupError(f"no series with name='{name}' in {filename}")
 
 
 @lru_cache(maxsize=64)
@@ -56,7 +60,10 @@ def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
     assert series.is_pyramidal
 
     # try to get correct level, raise IndexError if not
-    page_series = series.levels[level]
+    try:
+        page_series = series.levels[level]
+    except IndexError:
+        raise SlideLevelError(f"requires 0 <= level < {len(series.levels)} got {level}")
     # ensure that current page_series uses only one page
     page: TiffPage
     page, = page_series.pages
@@ -75,7 +82,7 @@ def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
     idx_length = (im_length + st_length - 1) // st_length
 
     if not ((0 <= x < idx_width) and (0 <= y < idx_length)):
-        raise IndexError("tile index out of bounds")
+        raise IndexError(f"tile index ({x}, {y}) at level={level} out of bounds: max ({idx_width}, {idx_length})")
 
     # index for reading tile
     tile_index = y * idx_width + x
@@ -91,7 +98,19 @@ def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
         buffer.write(jpeg_tables_tag.value[:-2])
         buffer.write(b"\xFF\xEE\x00\x0E\x41\x64\x6F\x62\x65\x00\x64\x80\x00\x00\x00\x00")  # colorspace fix
         buffer.write(data[2:])
-        return buffer.getvalue()
+        tile_data = buffer.getvalue()
+
+    # cut output if needed
+    out_width = ((im_width - 1) % st_width) + 1 if x == idx_width - 1 else st_width
+    out_length = ((im_length - 1) % st_length) + 1 if y == idx_length - 1 else st_length
+    if out_width < st_width or out_length < st_length:
+        with BytesIO(tile_data) as buffer:
+            im = Image.open(buffer).crop((0, 0, out_width, out_length))
+        with BytesIO() as buffer:
+            im.save(buffer, format="JPEG")
+            return buffer.getvalue()
+
+    return tile_data
 
 
 @lru_cache(maxsize=1)
@@ -179,6 +198,11 @@ class TifffileDeepZoomGenerator:
             for idx, lvl in enumerate(self._dz_levels)
         }
 
+    def get_tile_pil(self, level, address) -> Image:
+        data = self.get_tile(level, address)
+        with BytesIO(data) as fp:
+            return Image.open(fp)
+
     def get_tile(self, level, address) -> bytes:
         """return the jpeg tile as bytes"""
         x, y = address
@@ -192,6 +216,7 @@ class TifffileDeepZoomGenerator:
             # we need to compute new tiles from lower levels
             dst = Image.new('RGB', (2 * self._tile_size, 2 * self._tile_size))
 
+            out_width = out_height = 0
             for ix, iy in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 address_1 = 2 * x + ix, 2 * y + iy
 
@@ -204,16 +229,29 @@ class TifffileDeepZoomGenerator:
 
                 with BytesIO(data) as buffer:
                     im = Image.open(buffer)
+                    if ix == 0:
+                        out_height += im.height
+                    if iy == 0:
+                        out_width += im.width
                     dst.paste(im, (ix * self._tile_size, iy * self._tile_size))
 
-            dst.thumbnail((self._tile_size, self._tile_size), Image.ANTIALIAS)
+            if out_width == 0 or out_height == 0:
+                raise IndexError(f"tile index ({x}, {y}) at INTERMEDIATE level={level} out of bounds")
 
+            elif (out_width, out_height) != dst.size:
+                dst = dst.crop((0, 0, out_width, out_height))
+                thumb_size = (max(1, out_width // 2), max(1, out_height // 2))
+
+            else:
+                thumb_size = (self._tile_size, self._tile_size)
+
+            dst.thumbnail(thumb_size, Image.ANTIALIAS)
             with BytesIO() as buffer:
                 dst.save(buffer, format="JPEG")
                 return buffer.getvalue()
 
         else:
-            raise IndexError("requested level invalid")
+            raise SlideLevelError("requested level invalid")
 
     def get_dzi(self):
         """return the dzi XML metadata"""
