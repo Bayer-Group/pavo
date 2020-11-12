@@ -1,9 +1,11 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
 import math
 import shelve
-from functools import lru_cache
+from collections import defaultdict
+from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
+from threading import Lock
 from typing import Union
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
@@ -16,7 +18,24 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 PathOrStr = Union[Path, str]
 
 
-@lru_cache(maxsize=1)
+_svs_locks = defaultdict(Lock)
+
+
+def _per_image_thread_lock(salt=None):
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            cache_key = (salt, args[0])
+            with _svs_locks[cache_key]:
+                return func(*args, **kwargs)
+        return wrapper
+
+    return decorator
+
+
+@lru_cache(maxsize=16)
+@_per_image_thread_lock("image")
 def _get_svs_series(filename: PathOrStr, name: str) -> TiffPageSeries:
     """return the requested series from a tifffile"""
     t = TiffFile(filename)
@@ -30,6 +49,7 @@ def _get_svs_series(filename: PathOrStr, name: str) -> TiffPageSeries:
 
 
 @lru_cache(maxsize=64)
+@_per_image_thread_lock("tile")
 def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
     """dump a single tile from an svs as a jpeg into a buffer"""
     series = _get_svs_series(filename, "Baseline")
