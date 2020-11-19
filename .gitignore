@@ -78,3 +78,5 @@ pado_visualize/_version.py
 dist
 *.shelve.db
 
+environment.yml
+
