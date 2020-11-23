@@ -36,4 +36,5 @@ dependencies:
   - tqdm
 
   - pip:
+    - simplejpeg
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
