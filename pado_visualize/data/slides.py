@@ -1,6 +1,5 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
 import math
-import shelve
 from collections import defaultdict
 from functools import lru_cache, wraps
 from io import BytesIO
@@ -96,6 +95,7 @@ def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
 
     with BytesIO() as buffer:
         buffer.write(jpeg_tables_tag.value[:-2])
+        # See https://stackoverflow.com/questions/8747904/extract-jpeg-from-tiff-file/9658206#9658206
         buffer.write(b"\xFF\xEE\x00\x0E\x41\x64\x6F\x62\x65\x00\x64\x80\x00\x00\x00\x00")  # colorspace fix
         buffer.write(data[2:])
         tile_data = buffer.getvalue()
