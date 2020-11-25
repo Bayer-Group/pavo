@@ -58,6 +58,13 @@ DATASET_FILTER_INPUT_CONFIG = [
     ("Prediction", "prediction", False),
 ]
 
+DATASET_FILTER_INPUT_DEPENDENCY = {
+    # should options of DATASET_FILTER_INPUT_CONFIG[`key`] depend on changes of others
+    1: [0],
+    2: [0, 1],
+    3: [0, 1, 2],
+}
+
 dataset_filter_inputs = []
 for label, column, is_multi_select in DATASET_FILTER_INPUT_CONFIG:
     assert set(label).issubset(string.ascii_letters)
@@ -175,3 +182,24 @@ def filter_dataset(*values):
             val = []
         output[column] = list(map(str, val))
     return output
+
+
+# -- generated callbacks ----------------------------------------------
+
+for idx, dep_idxs in DATASET_FILTER_INPUT_DEPENDENCY.items():
+
+    label, column, _ = DATASET_FILTER_INPUT_CONFIG[idx]
+    output_select = Output(f"data-{label.lower()}-select", "options")
+
+    _columns = []
+    for dep_idx in dep_idxs:
+        _, filter_column, _ = DATASET_FILTER_INPUT_CONFIG[dep_idx]
+        _columns.append(filter_column)
+
+    @app.callback(
+        output=output_select,
+        inputs=[Input("subset-filter-store", "data")],
+    )
+    def options_filter(data, data_column=column, filter_columns=tuple(_columns)):
+        filter_dict = {k: v for k, v in data.items() if k in filter_columns}
+        return get_dataset_column_values(data_column, filter_dict=filter_dict)

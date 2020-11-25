@@ -190,12 +190,13 @@ def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Pat
     return image_map
 
 
-@lru_cache(maxsize=LRU_CACHE_MAX_SIZE)
-def get_dataset_column_values(column) -> List[dict]:
+def get_dataset_column_values(column, filter_dict=None) -> List[dict]:
     """get the column selections for the subset"""
 
+    if filter_dict is None:
+        filter_dict = {}
     # noinspection PyTypeChecker
-    df = get_metadata(filter_dict={})
+    df = get_metadata(filter_dict=filter_dict)
 
     if column in {
         PadoReserved.DATA_SOURCE_ID,
