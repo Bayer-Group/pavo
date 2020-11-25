@@ -14,7 +14,7 @@ _thumbnail_cache = shelve.open(".pado_thumbnail.shelve")
 
 def _build_thumbnail_cache():
     global _thumbnail_cache
-    image_ids = get_dataset().images.ids()
+    image_ids = list(get_dataset().images)
     im = get_image_map()
 
     i = 0

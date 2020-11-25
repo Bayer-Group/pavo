@@ -56,7 +56,7 @@ def init_dataset(
         except FileNotFoundError:
             return None, None
         # build image_id:idx map
-        im = {img.id_str: img.local_path for img in ds.images}
+        im = {image_id: img.local_path for image_id, img in ds.images.items()}
         return ds, im
 
     if not persist:
