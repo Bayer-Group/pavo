@@ -76,9 +76,7 @@ layout = dbc.Container([
 
 
 @app.callback(
-    output=[
-        Output("info-datasource", "children"),
-    ],
+    output=Output("info-datasource", "children"),
     inputs=[
         Input("url", "pathname"),
         Input("subset-filter-store", "data"),
@@ -86,8 +84,8 @@ layout = dbc.Container([
 )
 def update_info_datasource(pathname, data):
     df = get_metadata(filter_dict=data)
-    counts = df[PadoReserved.DATA_SOURCE_ID].value_counts()
-    return f"{sum(counts.values)} slides",
+    counts = df[PadoColumn.IMAGE].unique().count()
+    return f"{counts} slides"
 
 
 @app.callback(
