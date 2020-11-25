@@ -1,7 +1,8 @@
 from pathlib import Path
+from typing import List
 
 
-def init_data(dataset_path: str, cache_path: str):
+def init_data(dataset_path: List[str], cache_path: str):
     from pado_visualize.data.dataset import (
         init_dataset,
         get_dataset,
@@ -12,7 +13,7 @@ def init_data(dataset_path: str, cache_path: str):
 
     # dataset
     _cache = Path(cache_path)
-    p = Path(dataset_path)
+    p = [Path(d) for d in dataset_path]
     init_dataset(p, persist=True, cache_file=_cache)
 
     # w = Path(args.wds_path)

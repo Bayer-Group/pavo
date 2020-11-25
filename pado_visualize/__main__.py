@@ -7,7 +7,7 @@ def main():
     # parse commandline
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="debug mode")
-    parser.add_argument("dataset_path", help="path to a pado dataset")
+    parser.add_argument("dataset_path", nargs='+', help="path to a pado dataset")
     parser.add_argument("--build-thumbnail-cache", action="store_true")
     parser.add_argument("--build-qpzip-cache", action="store_true")
     args = parser.parse_args()

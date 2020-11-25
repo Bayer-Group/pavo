@@ -8,7 +8,7 @@ from typing import Optional, Dict, Literal, overload, List, Tuple
 
 import pandas as pd
 from flask import abort
-from pado.dataset import PadoDataset
+from pado.dataset import PadoDataset, PadoDatasetChain
 from pado.metadata import PadoReserved, PadoColumn
 
 __all__ = [
@@ -30,7 +30,7 @@ LRU_CACHE_MAX_SIZE = 16  # these could be split up, but will do for now
 
 
 def init_dataset(
-    dataset_path: Path,
+    dataset_paths: List[Path],
     persist: bool = True,
     ignore_cache: bool = False,
     cache_file: Optional[Path] = None,
@@ -47,27 +47,37 @@ def init_dataset(
         persist = False
 
     # normalize path
-    dataset_path = Path(dataset_path).expanduser().absolute().resolve()
+    dataset_paths = [
+        Path(ds_pth).expanduser().absolute().resolve()
+        for ds_pth in dataset_paths
+    ]
 
-    def load_dataset(path):
+    def load_dataset(paths):
         # there's no need to set this outside of init_dataset
-        try:
-            ds = PadoDataset(path, mode="r")
-        except FileNotFoundError:
+        datasets = []
+        for path in paths:
+            try:
+                datasets.append(PadoDataset(path, mode="r"))
+            except FileNotFoundError:
+                pass
+
+        if not datasets:
             return None, None
+
+        ds = PadoDatasetChain(*datasets)
         # build image_id:idx map
         im = {image_id: img.local_path for image_id, img in ds.images.items()}
         return ds, im
 
     if not persist:
-        dataset, image_map = load_dataset(dataset_path)
+        dataset, image_map = load_dataset(dataset_paths)
 
     else:
         with shelve.open(str(cache_file)) as store:
-            key = str(dataset_path)
+            key = str(dataset_paths)  # TODO: revisit...
             if key not in store or ignore_cache:
                 print("loading dataset from disk...", end=" ", flush=True)
-                dataset, image_map = store[key] = load_dataset(dataset_path)
+                dataset, image_map = store[key] = load_dataset(dataset_paths)
             else:
                 print("loading dataset from cache...", end=" ", flush=True)
                 dataset, image_map = store[key]
