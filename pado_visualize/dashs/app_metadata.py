@@ -84,7 +84,7 @@ layout = dbc.Container([
 )
 def update_info_datasource(pathname, data):
     df = get_metadata(filter_dict=data)
-    counts = df[PadoColumn.IMAGE].unique().count()
+    counts = df[PadoColumn.IMAGE].unique().size
     return f"{counts} slides"
 
 
@@ -110,7 +110,7 @@ def update_info_organs(pathname, data):
 )
 def update_barchart_annotations(pathname, data):
     df = get_metadata(filter_dict=data)
-    counts = sum(df["annotation"] == "true")
+    counts = df.loc[df["annotation"] == "true", PadoColumn.IMAGE].unique().size
     return f"{counts} annotated"
 
 
@@ -137,4 +137,5 @@ def update_barchart_studies(pathname, data):
 def update_barchart_findings(pathname, data):
     df = get_metadata(filter_dict=data)
     counts = df[PadoColumn.FINDING].value_counts()
+    del counts["UNREMARKABLE"]
     return _plot_card_bar(x=counts.index[:20], y=counts.values[:20])

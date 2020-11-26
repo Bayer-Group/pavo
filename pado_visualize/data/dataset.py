@@ -160,6 +160,8 @@ def get_metadata(
     df = ds.metadata.copy()
     df[PadoColumn.STUDY.subcolumn("SHORT")] = df[PadoColumn.STUDY].apply(lambda x: x[6:] if x.startswith("STUDY_") else x)
     df[PadoColumn.IMAGE.subcolumn("SHORT")] = df[PadoColumn.IMAGE].apply(lambda x: x.split("__")[-1])
+    df[PadoColumn.FINDING] = df[PadoColumn.FINDING].str.title()
+    df.loc[df[PadoColumn.FINDING] == "Unremarkable", PadoColumn.FINDING] = "UNREMARKABLE"
     df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
     df["prediction"] = df[PadoColumn.IMAGE].map(get_prediction_map())
 
