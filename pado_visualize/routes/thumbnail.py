@@ -1,5 +1,6 @@
 import io
 import shelve
+import warnings
 
 from flask import send_file, abort
 from tqdm import tqdm
@@ -18,19 +19,22 @@ def _build_thumbnail_cache():
     im = get_image_map()
 
     i = 0
-    for image_id in tqdm(image_ids, desc="thumbnail caching"):
-        k0 = f"thumbnail-{image_id}"
-        k1 = f"tiling-{image_id}"
+    for image_id_str in tqdm(image_ids, desc="thumbnail caching"):
+        k0 = f"thumbnail-{image_id_str}"
+        k1 = f"tiling-{image_id_str}"
 
-        image_id_str = "__".join(image_id)
         p = _image_path_from_image_id(image_id_str, abort_if_none=False)
         if p is None:
             _thumbnail_cache[k0] = None
             _thumbnail_cache[k1] = None
         else:
             i += 1
-            _thumbnail_cache[k0] = get_svs_thumbnail(p)
-            _thumbnail_cache[k1] = get_svs_thumbnail_filtered(p)
+            try:
+                _thumbnail_cache[k0] = get_svs_thumbnail(p)
+                _thumbnail_cache[k1] = get_svs_thumbnail_filtered(p)
+            except BaseException as err:
+                warnings.warn(f"{err!r}")
+
     print(f"cached {i} thumbnails of {len(im)}")
 
 
