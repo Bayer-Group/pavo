@@ -32,6 +32,7 @@ dependencies:
   - pandas
   - tifffile>=2020.10.1
   - pillow
+  - rasterio
 
   - tqdm
 
