@@ -137,5 +137,8 @@ def update_barchart_studies(pathname, data):
 def update_barchart_findings(pathname, data):
     df = get_metadata(filter_dict=data)
     counts = df[PadoColumn.FINDING].value_counts()
-    del counts["UNREMARKABLE"]
+    try:
+        del counts["UNREMARKABLE"]
+    except KeyError:
+        pass
     return _plot_card_bar(x=counts.index[:20], y=counts.values[:20])
