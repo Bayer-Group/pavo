@@ -4,12 +4,10 @@ import dash_html_components as html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
-from pado.metadata import PadoColumn, PadoReserved
+from pado.metadata import PadoColumn
 from pado_visualize.app import app
-from pado_visualize.dash_pado_components import PlotCard, InfoCard
-from pado_visualize.data.dataset import get_dataset, get_metadata
-
-record_cache = None
+from pado_visualize.components import PlotCard, InfoCard
+from pado_visualize.data.dataset import get_metadata
 
 
 def _plot_card_bar(x, y, title=None):

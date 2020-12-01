@@ -1,8 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
-# from pado.ext.visualize.app import app
-from pado_visualize.dash_pado_components import RowCol
+from pado_visualize.components import RowCol
 
 layout = dbc.Container(
     RowCol([

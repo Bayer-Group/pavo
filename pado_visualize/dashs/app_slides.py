@@ -1,4 +1,3 @@
-import itertools
 import time
 
 import dash_bootstrap_components as dbc
@@ -6,7 +5,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from pado_visualize.app import app
-from pado_visualize.data.dataset import get_dataset, get_image_map, get_metadata, get_annotation_map, get_prediction_map
+from pado_visualize.data.dataset import get_image_map, get_metadata, get_annotation_map, get_prediction_map
 
 
 @app.callback(

@@ -14,7 +14,7 @@ from pado_visualize.dashs import (
     app_seadragon,
     app_table,
 )
-from pado_visualize.dash_pado_components import LabeledDropDown, RowCol
+from pado_visualize.components import LabeledDropDown, RowCol
 from pado_visualize.data.dataset import get_dataset_column_values
 
 
