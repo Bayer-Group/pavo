@@ -2775,7 +2775,7 @@ $.EventSource.prototype = /** @lends OpenSeadragon.EventSource.prototype */{
      * Add an event handler for a given event.
      * @function
      * @param {String} eventName - Name of event to register.
-     * @param {OpenSeadragon.EventHandler} handler - Function to call when event is triggered.
+     * @param {function(*): void} handler - Function to call when event is triggered.
      * @param {Object} [userData=null] - Arbitrary object to be passed unchanged to the handler.
      */
     addHandler: function ( eventName, handler, userData ) {
