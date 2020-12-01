@@ -27,6 +27,7 @@ dependencies:
   - dash
   - dash-bootstrap-components
   - dash-table
+  - flask-caching
 
   - numpy
   - pandas
