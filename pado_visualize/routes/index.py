@@ -7,14 +7,13 @@ from dash.dependencies import Input, Output
 from pado.metadata import PadoReserved, PadoColumn
 
 from pado_visualize.app import app
-from pado_visualize.dashs import (
-    app_landing,
-    app_metadata,
-    app_slides,
-    app_seadragon,
-    app_table,
-)
-from pado_visualize.components import LabeledDropDown, RowCol
+from pado_visualize.components import LabeledDropDown
+from pado_visualize.components import RowCol
+from pado_visualize.dashs import app_landing
+from pado_visualize.dashs import app_metadata
+from pado_visualize.dashs import app_slides
+from pado_visualize.dashs import app_seadragon
+from pado_visualize.dashs import app_table
 from pado_visualize.data.dataset import get_dataset_column_values
 
 
@@ -57,6 +56,10 @@ DATASET_FILTER_INPUT_CONFIG = [
     ("Annotation", "annotation", False),
     ("Prediction", "prediction", False),
 ]
+assert all(
+    set(label).issubset(string.ascii_letters)
+    for label, *_ in DATASET_FILTER_INPUT_CONFIG
+)
 
 DATASET_FILTER_INPUT_DEPENDENCY = {
     # should options of DATASET_FILTER_INPUT_CONFIG[`key`] depend on changes of others
@@ -65,22 +68,20 @@ DATASET_FILTER_INPUT_DEPENDENCY = {
     3: [0, 1, 2],
 }
 
-dataset_filter_inputs = []
-for label, column, is_multi_select in DATASET_FILTER_INPUT_CONFIG:
-    assert set(label).issubset(string.ascii_letters)
-    dataset_filter_inputs.append(
-        RowCol(
-            [
-                LabeledDropDown(
-                    label,
-                    id=f"data-{label.lower()}-select",
-                    options=get_dataset_column_values(column),
-                    multi=is_multi_select
-                ),
-            ],
-            xs=12
-        )
+dataset_filter_inputs = [
+    RowCol(
+        [
+            LabeledDropDown(
+                label,
+                id=f"data-{label.lower()}-select",
+                options=get_dataset_column_values(column),
+                multi=is_multi_select
+            ),
+        ],
+        xs=12
     )
+    for label, column, is_multi_select in DATASET_FILTER_INPUT_CONFIG
+]
 
 
 # -- sidebar ----------------------------------------------------------
@@ -186,13 +187,13 @@ def filter_dataset(*values):
 
 # -- generated callbacks ----------------------------------------------
 
-for idx, dep_idxs in DATASET_FILTER_INPUT_DEPENDENCY.items():
+for idx, dep_indices in DATASET_FILTER_INPUT_DEPENDENCY.items():
 
     label, column, _ = DATASET_FILTER_INPUT_CONFIG[idx]
     output_select = Output(f"data-{label.lower()}-select", "options")
 
     _columns = []
-    for dep_idx in dep_idxs:
+    for dep_idx in dep_indices:
         _, filter_column, _ = DATASET_FILTER_INPUT_CONFIG[dep_idx]
         _columns.append(filter_column)
 
