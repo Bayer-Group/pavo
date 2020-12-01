@@ -3,22 +3,19 @@ from pathlib import Path
 import tempfile
 from typing import Optional
 
-from flask import send_file, abort
-
-# noinspection PyProtectedMember
+from flask import abort, send_file
 from tqdm import tqdm
-
-from pado_visualize.data.dataset import get_dataset, get_image_map, get_prediction_map
-from palo._scratch.prediction_conversion import (
-    xai_inference_pickle_conversion,
-    vk_inference_pickle_conversion_from_mb,
-)
+# noinspection PyProtectedMember
+from palo._scratch.prediction_conversion import xai_inference_pickle_conversion
+# noinspection PyProtectedMember
+from palo._scratch.prediction_conversion import vk_inference_pickle_conversion_from_mb
+# noinspection PyProtectedMember
+from paquo._cli import qpzip_project
 from paquo.images import QuPathImageType
 from paquo.projects import QuPathProject
-# noinspection PyUnresolvedReferences
-from paquo._cli import qpzip_project
 
 from pado_visualize.app import app
+from pado_visualize.data.dataset import get_dataset, get_image_map, get_prediction_map
 
 
 def _build_qpzip_cache():
