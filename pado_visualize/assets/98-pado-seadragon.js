@@ -6,10 +6,10 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 return "";
             }
             let sources = url_pathname + "/image.dzi"
-            let viewer = new OpenSeadragon({
+            window.osdviewer = new OpenSeadragon({
                 id: "seadragon-container",
                 tileSources: sources,
-                prefixUrl: "/assets/images/",
+                prefixUrl: "/assets/img/openseadragon-icons/",
                 showNavigator: true,
                 showRotationControl: true,
                 animationTime: 0.5,
@@ -21,15 +21,39 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 zoomPerScroll: 2,
                 timeout: 120000,
             });
-            viewer.addHandler("open", function() {
+            window.osdviewer.addHandler("open", function() {
                 // To improve load times, ignore the lowest-resolution Deep Zoom
                 // levels.  This is a hack: we can't configure the minLevel via
                 // OpenSeadragon configuration options when the viewer is created
                 // from DZI XML.
-                viewer.source.minLevel = 8;
+                window.osdviewer.source.minLevel = 8;
             });
+
+            console.log("initialized osd for " + sources);
+            return sources;
+        },
+        load_open_seadragon_multi: function(url_pathname) {
+            if (!url_pathname.startsWith("/slide_multi/")) {
+                console.log("no seadragon slide " + url_pathname);
+                return "";
+            }
+            let sources = url_pathname + "/image.dzi";
+
+
+            $(document).ready(function() {
+                OpenSeadragonMultiApp.init({
+                    id: "seadragon-multi-container",
+                    prefixUrl: "/assets/img/openseadragon-icons/",
+                    preserveViewport: true,
+                    zoomPerScroll: 2,
+              });
+            });
+            // OpenSeadragonMultiApp.init();
+
             console.log("initialized osd for " + sources);
             return sources;
         }
+
+
     }
 });

@@ -13,6 +13,7 @@ from pado_visualize.dashs import app_landing
 from pado_visualize.dashs import app_metadata
 from pado_visualize.dashs import app_slides
 from pado_visualize.dashs import app_seadragon
+from pado_visualize.dashs import app_seadragon_multi
 from pado_visualize.dashs import app_table
 from pado_visualize.data.dataset import get_dataset_column_values
 
@@ -144,6 +145,8 @@ def display_page(pathname):
         return app_slides.layout, ""
     elif pathname.startswith("/slide/"):
         return app_seadragon.layout, ""
+    elif pathname.startswith("/slide_multi/"):
+        return app_seadragon_multi.layout, ""
     elif pathname == "/table":
         return app_table.layout, ""
     else:
