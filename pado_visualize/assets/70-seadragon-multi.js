@@ -30,7 +30,7 @@
 
       this.viewer = OpenSeadragon(config);
 
-      this.viewer.addHandler("open", function() {
+      this.viewer.addHandler("open", function(event) {
         // To improve load times, ignore the lowest-resolution Deep Zoom
         // levels.  This is a hack: we can't configure the minLevel via
         // OpenSeadragon configuration options when the viewer is created
