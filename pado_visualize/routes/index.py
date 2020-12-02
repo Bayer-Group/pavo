@@ -22,7 +22,7 @@ from pado_visualize.data.dataset import get_dataset_column_values
 
 logo = html.Div([
     html.Div([
-        html.Img(src=app.get_asset_url('pathological-heart.jpg')),
+        html.Img(src=app.get_asset_url('img/pathological-heart.jpg')),
     ], className="logo-image-container"),
     html.Span("Pado", className="logo-text"),
     html.H3("Pathological Data Obsession", className="logo-subtext")
