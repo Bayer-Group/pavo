@@ -22,40 +22,10 @@
       return;
     }
 
-    // console.log(config.sizes);
-    var levels = _.chain(config.sizes)
-      .filter(function(v, i) {
-        return (/(thumbnail|small 320|medium 640|large)/i).test(v.label) && !(/square/i).test(v.label);
-      })
-      .map(function(v, i) {
-        var output = {
-          url: (v.source || '').replace(/\?.*$/, ''),
-          width: parseInt(v.width, 10),
-          height: parseInt(v.height, 10)
-        };
-
-        return output;
-      })
-      .sortBy('width')
-      .value();
-
-    if (!levels.length) {
-      handleError();
-      return; 
-    }
-
     // console.log(_.pluck(levels, 'width'));
 
-    var level = levels[levels.length - 1];
-    var longestSide = Math.max(level.width, level.height);
-    if (longestSide < 900) {
-      console.log('skipping image', longestSide, level.url, config.sizes);
-      handleError();
-      return;
-    }
-
-    this.targetWidth = Math.sqrt(level.width / level.height);
-    this.targetHeight = this.targetWidth * (level.height / level.width);
+    this.targetWidth = 400;
+    this.targetHeight = 300;
 
     this.tags = _.map(config.tags.split(' '), function(v, i) {
       return new OpenSeadragonMultiApp.Tag({
@@ -85,10 +55,7 @@
       x: this.x - (this.width / 2),
       y: this.y - (this.height / 2),
       width: this.width,
-      tileSource: {
-        type: 'legacy-image-pyramid',
-        levels: levels
-      },
+      tileSource: this.pageUrl,
       success: function(event) {
         self.tiledImage = event.item;
       }

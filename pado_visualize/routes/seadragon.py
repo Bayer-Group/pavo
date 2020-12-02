@@ -43,7 +43,7 @@ def slide_tile(image_id, level, col, row):
         return abort(403, "requested level invalid")
     except NotImplementedError:
         # Invalid level or coordinates
-        return abort(500, "not implemented tile request")
+        return abort(404, "not implemented tile request")
 
     resp = make_response(tile)
     resp.mimetype = 'image/%s' % format

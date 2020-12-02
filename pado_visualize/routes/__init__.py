@@ -5,3 +5,4 @@ def init_routes():
     import pado_visualize.routes.qpzip
     import pado_visualize.routes.seadragon
     import pado_visualize.routes.thumbnail
+    import pado_visualize.routes.wsickr

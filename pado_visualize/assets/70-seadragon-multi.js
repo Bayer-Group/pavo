@@ -65,6 +65,7 @@
       });
 
       this.spin(true);
+      /*
       this.flickrRequest({
         method: 'interestingness.getList',
         content: {
@@ -79,6 +80,13 @@
           });
         }
       });
+      */
+      this.fakeFlickrGetList({
+        success: function(data) {
+          self.processPhotos(data, new OpenSeadragon.Point(0, 0));
+        }
+      });
+
 
       $('.info-button').click(function() {
         $('.modal').show();
@@ -209,36 +217,23 @@
 
       // console.log(data);
       _.each(data.photos.photo, function(v, i) {
-        self.flickrRequest({
-          method: 'photos.getSizes',
-          content: {
-            photo_id: v.id
-          },
-          success: function(data2) {
-            // console.log(data2);
-            setTimeout(function() {
-              new self.Photo({
-                sizes: data2.sizes.size,
-                x: center.x + ((Math.random() - 0.5) * 3),
-                y: center.y + ((Math.random() - 0.5) * 1),
-                tags: v.tags,
-                ownerName: v.ownername,
-                pageUrl: 'https://www.flickr.com/photos/' + v.owner + '/' + v.id,
-                title: v.title,
-                onLoad: function() {
-                  self.spin(false);
-                  increment();
-                },
-                onError: function() {
-                  increment();
-                }
-              });
-            }, 200 * i);
-          },
-          error: function() {
-            increment();
-          }
-        });
+        setTimeout(function() {
+          new self.Photo({
+            x: center.x + ((Math.random() - 0.5) * 3),
+            y: center.y + ((Math.random() - 0.5) * 1),
+            tags: v.tags,
+            ownerName: v.ownername,
+            pageUrl: "/slide/" + v.id + "/image.dzi",
+            title: v.title,
+            onLoad: function() {
+              self.spin(false);
+              increment();
+            },
+            onError: function() {
+              increment();
+            }
+          });
+        }, 200 * i);
         // console.log(v.o_width);
       });
     },
@@ -365,6 +360,16 @@
         data: config.content,
         dataType: 'jsonp',
         jsonp: 'jsoncallback',
+        success: config.success,
+        error: config.error
+      });
+    },
+
+    fakeFlickrGetList: function (config) {
+      $.ajax({
+        url: "/wsickr/get_list.json",
+        data: config.content,
+        dataType: 'json',
         success: config.success,
         error: config.error
       });
