@@ -224,7 +224,8 @@
     -ms-interpolation-mode: nearest-neighbor;   /* IE8+                */
 }
 
-#seadragon-container {
+#seadragon-container,
+#seadragon-multi-container {
     position: absolute;
     top: 0;
     left: 0;
