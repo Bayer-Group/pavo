@@ -48,7 +48,7 @@ def render_preview_cards(pathname, data):
                     ],
                     className="thumbnail-card",
                 )
-            ], href=f"/slide/{image_id_str}"
+            ], href=f"/slide/overview/{image_id_str}"
         )
 
         items = [card]

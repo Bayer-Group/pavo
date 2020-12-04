@@ -1,5 +1,7 @@
 import string
+from urllib.parse import urlparse
 
+import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
@@ -45,6 +47,15 @@ nav_buttons = dbc.ButtonGroup(
     className="pado-nav-buttons",
 )
 
+slide_nav_buttons = dbc.ButtonGroup(
+    [
+        dbc.Button("Go Back", href="/slides", id="btn-slides"),
+        dbc.Button("Overview", href="", id="btn-slide-overview"),
+        dbc.Button("Tiles", href="", id="btn-slide-tiles")
+    ],
+    size="md",
+    className="pado-nav-buttons",
+)
 
 # -- dataset filtering inputs -----------------------------------------
 
@@ -87,16 +98,30 @@ dataset_filter_inputs = [
 
 # -- sidebar ----------------------------------------------------------
 
+sidebar_subset_filter = [
+    html.H5("Display Mode"),
+    RowCol([nav_buttons], style={"margin-bottom": "15px"}),
+    html.H5("Subset Filter"),
+    dbc.Form(children=dataset_filter_inputs),
+]
+
+sidebar_slide_metadata = [
+    html.H5("Slide View"),
+    RowCol([slide_nav_buttons], style={"margin-bottom": "15px"}),
+    html.H5("Slide Metadata"),
+    html.Div("")
+]
+
 sidebar = dbc.Container(
     [
         RowCol([
             html.A([logo], href="/")
         ]),
         RowCol([welcome_txt]),
-        html.H5("Display Mode"),
-        RowCol([nav_buttons], style={"margin-bottom": "15px"}),
-        html.H5("Subset Filter"),
-        dbc.Form(children=dataset_filter_inputs),
+        html.Div(
+            sidebar_subset_filter,
+            id="sidebar-content"
+        ),
     ],
     className="dash-bootstrap"
 )
@@ -137,21 +162,41 @@ app.layout = dbc.Container(
 )
 def display_page(pathname):
     """update the index page dependent on the path"""
-    if pathname == "/":
+    result = urlparse(pathname)
+    section, *subsection = result.path[1:].split("/")
+
+    print(section, subsection, result)
+
+    if section == "":
         return app_landing.layout, "pado-background"
-    elif pathname == "/graphs":
+    elif section == "graphs":
         return app_metadata.layout, ""
-    elif pathname == "/slides":
+    elif section == "slides":
         return app_slides.layout, ""
-    elif pathname.startswith("/slide/"):
+    elif section == "slide" and subsection and subsection[0] == "overview":
         return app_seadragon.layout, ""
-    elif pathname.startswith("/slide_multi/"):
+    elif section == "slide" and subsection and subsection[0] == "tiles":
         return app_seadragon_multi.layout, ""
-    elif pathname == "/table":
+    elif section == "table":
         return app_table.layout, ""
     else:
         # 404
         return app_landing.layout_404, "pado-background"
+
+
+@app.callback(
+    output=Output("sidebar-content", "children"),
+    inputs=[Input("url", "pathname")],
+)
+def display_page(pathname):
+    """update the sidebar dependent on the path"""
+    result = urlparse(pathname)
+    section, *subsection = result.path[1:].split("/")
+
+    if section == "slide":
+        return sidebar_slide_metadata
+    else:
+        return sidebar_subset_filter
 
 
 @app.callback(
@@ -166,6 +211,43 @@ def set_active(pathname):
         "btn active" if pathname.startswith(f"/{label}") else "btn"
         for label in ["graphs", "table", "slides"]
     ]
+
+
+@app.callback(
+    output=[
+        Output(f"btn-{label}", "className")
+        for label in ["slide-overview", "slide-tiles"]
+    ],
+    inputs=[Input("url", "pathname")],
+)
+def set_slidenav_active(pathname):
+    return [
+        "btn active" if label.split("-")[1] in pathname else "btn"
+        for label in ["slide-overview", "slide-tiles"]
+    ]
+
+
+@app.callback(
+    output=[
+        Output(f"btn-{label}", "href")
+        for label in ["slide-overview", "slide-tiles"]
+    ],
+    inputs=[Input("url", "pathname")],
+)
+def set_slidenav_href(pathname):
+    result = urlparse(pathname)
+    section, *subsection = result.path[1:].split("/")
+    if section != "slide":
+        return dash.no_update
+
+    subsection = list(subsection)
+    out = []
+    for label in ["slide-overview", "slide-tiles"]:
+        btn_subsection = subsection.copy()
+        btn_subsection[0] = label.split("-")[1]
+        out.append(f"/{section}/{'/'.join(btn_subsection)}")
+
+    return out
 
 
 @app.callback(
