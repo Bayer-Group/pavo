@@ -1,3 +1,5 @@
+import sys
+
 from pado_visualize.wsgi import init_data, init_app
 
 
@@ -25,8 +27,8 @@ def main():
         return 0
 
     # run dev server
-    app.run_server(host="127.0.0.1", port=8080, debug=args.debug)
+    return app.run_server(host="127.0.0.1", port=8080, debug=args.debug)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
