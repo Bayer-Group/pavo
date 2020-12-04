@@ -51,7 +51,7 @@ slide_nav_buttons = dbc.ButtonGroup(
     [
         dbc.Button("Go Back", href="/slides", id="btn-slides"),
         dbc.Button("Overview", href="", id="btn-slide-overview"),
-        dbc.Button("Tiles", href="", id="btn-slide-tiles")
+        dbc.Button("Tiles", href="", id="btn-slide-tiles"),
     ],
     size="md",
     className="pado-nav-buttons",

@@ -40,7 +40,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             }
             let sources = url_pathname + "/image.dzi";
 
-
             $(document).ready(function() {
                 OpenSeadragonMultiApp.init({
                     id: "seadragon-multi-container",
