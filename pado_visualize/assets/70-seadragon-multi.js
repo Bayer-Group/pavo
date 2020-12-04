@@ -148,11 +148,20 @@
       if (photo) {
         this.viewer.world.setItemIndex(photo.tiledImage, this.viewer.world.getItemCount() - 1);
         this.fitPhoto(photo, OpenSeadragonMultiApp.isTouch ? 0.05 : 0.3);
-        photo.select();
+        // photo.select();
       }
 
-      this.showTags(photo);
+      // this.showTags(photo);
       this.selectedPhoto = photo;
+
+      let self = this;
+
+      this.fakeFlickrGetList({
+        success: function(data) {
+          let pos = self.viewer.viewport.getBounds(true).getCenter();
+          self.processPhotos(data, new OpenSeadragon.Point(pos.x, pos.y));
+        }
+      });
     },
 
     // ----------

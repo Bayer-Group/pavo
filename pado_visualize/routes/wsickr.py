@@ -10,7 +10,7 @@ from pado_visualize.wsickr.types import ResponseGetSizes
 
 @app.server.route("/wsickr/get_list.json")
 def fake_flickr_photos_get_list():
-    num_images = 16
+    num_images = 8
     photos = []
     # for idx, (image_id, pth) in enumerate(get_image_map().items()):
     #     if pth is None or not pth.is_file():
