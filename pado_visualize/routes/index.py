@@ -109,7 +109,7 @@ sidebar_slide_metadata = [
     html.H5("Slide View"),
     RowCol([slide_nav_buttons], style={"margin-bottom": "15px"}),
     html.H5("Slide Metadata"),
-    html.Div("")
+    html.Div([], id="slide-metadata-view")
 ]
 
 sidebar = dbc.Container(

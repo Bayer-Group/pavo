@@ -265,3 +265,11 @@
     font-weight: 400;
     font-family: monospace;
 }
+
+#slide-metadata-view {
+    height: 60vh;
+    overflow-y: scroll;
+}
+
+#slide-metadata-view::-webkit-scrollbar { width: 2px !important }
+

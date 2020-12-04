@@ -1,12 +1,15 @@
+from urllib.parse import urlparse
+
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
+from dash import dash
 from dash.dependencies import Input, Output
 
 from pado.metadata import PadoColumn
 from pado_visualize.app import app
-from pado_visualize.components import PlotCard, InfoCard
+from pado_visualize.components import PlotCard, InfoCard, RowCol, LabeledDropDown
 from pado_visualize.data.dataset import get_metadata
 
 
@@ -300,3 +303,43 @@ def display_selected_study_data(selectedData, data):
     data.setdefault("STUDY", []).extend(selected_studies)
     df = get_metadata(filter_dict=data)
     return _plot_summary_studies(df)
+
+
+@app.callback(
+    output=Output("slide-metadata-view", "children"),
+    inputs=[
+        Input("url", "pathname"),
+    ],
+    state=[
+        Input("subset-filter-store", "data"),
+    ],
+)
+def display_selected_study_data(pathname, data):
+    result = urlparse(pathname)
+    section, *subsection = result.path[1:].split("/")
+
+    if section != "slide":
+        return dash.no_update
+
+    image_id = subsection[1]
+    df = get_metadata(filter_dict=data)
+    metadata = df.loc[df["IMAGE"] == image_id].T
+    out = [
+        RowCol(
+            [
+                html.Label(
+                    [
+                        label,
+                        html.P(
+                            value[0],
+                            style={"margin": 0, "font-weight": 300}
+                        )
+                    ],
+                    style={"font-weight": 800},
+                )
+            ],
+            xs=12
+        )
+        for label, *value in metadata.itertuples() if not label.startswith("_")
+    ]
+    return out
