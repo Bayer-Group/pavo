@@ -30,6 +30,7 @@
 
       this.viewer = OpenSeadragon(config);
 
+      /*
       this.viewer.addHandler("open", function(event) {
         // To improve load times, ignore the lowest-resolution Deep Zoom
         // levels.  This is a hack: we can't configure the minLevel via
@@ -37,6 +38,7 @@
         // from DZI XML.
         self.viewer.source.minLevel = 8;
       });
+       */
 
       var $viewer = $(this.viewer.element).on('mousemove', function(event) {
         self.hoverPhoto = self.hitTest(new OpenSeadragon.Point(event.clientX, event.clientY));

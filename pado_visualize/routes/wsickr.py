@@ -10,11 +10,20 @@ from pado_visualize.wsickr.types import ResponseGetSizes
 
 @app.server.route("/wsickr/get_list.json")
 def fake_flickr_photos_get_list():
-    num_images = 10
+    num_images = 16
     photos = []
-    for idx, (image_id, pth) in enumerate(get_image_map().items()):
+    # for idx, (image_id, pth) in enumerate(get_image_map().items()):
+    #     if pth is None or not pth.is_file():
+    #        continue
+
+    for image_id, pth in get_image_map().items():
         if pth is None or not pth.is_file():
             continue
+        break
+    else:
+        raise LookupError("nothing there")
+
+    for _ in range(num_images):
         p = Photo(
             id=image_id,
             ownername="SomeOwner",
@@ -22,8 +31,8 @@ def fake_flickr_photos_get_list():
             title="Organ Slice",
         )
         photos.append(p)
-        if len(photos) >= num_images:
-            break
+    #    if len(photos) >= num_images:
+    #        break
     minimal = ResponseGetList(photos=Photos(photo=photos))
 
     return jsonify(minimal)

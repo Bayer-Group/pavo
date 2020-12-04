@@ -24,8 +24,8 @@
 
     // console.log(_.pluck(levels, 'width'));
 
-    this.targetWidth = 400;
-    this.targetHeight = 300;
+    // this.targetWidth = 40;
+    // this.targetHeight = 40;
 
     this.tags = _.map(config.tags.split(' '), function(v, i) {
       return new OpenSeadragonMultiApp.Tag({
@@ -47,15 +47,30 @@
 
     OpenSeadragonMultiApp.viewer.addHandler('tile-drawn', tileDrawnHandler);
 
-    this.width = this.targetWidth / 10;
-    this.height = this.targetHeight / 10;
+    // this.width = this.targetWidth / 10;
+    // this.height = this.targetHeight / 10;
+    this.targetWidth = 2;
+    this.targetHeight = 2;
+    this.width = 1;
+    this.height = 1;
+
+    let idx_x = Math.floor(Math.random() * 6) + 3;
+    let idx_y = Math.floor(Math.random() * 5) + 3;
+
 
     OpenSeadragonMultiApp.viewer.addTiledImage({
       index: 0,
       x: this.x - (this.width / 2),
       y: this.y - (this.height / 2),
       width: this.width,
-      tileSource: this.pageUrl,
+      tileSource: {
+        type: 'legacy-image-pyramid',
+        levels: [{
+          url: "/slide/overview/41468.svs/image_files/12/" + idx_x + "_" + idx_y + ".jpeg",
+          width: 240,
+          height: 240,
+        }]
+      },
       success: function(event) {
         self.tiledImage = event.item;
       }

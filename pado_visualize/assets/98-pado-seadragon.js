@@ -1,7 +1,7 @@
 window.dash_clientside = Object.assign({}, window.dash_clientside, {
     clientside: {
         load_open_seadragon: function(url_pathname) {
-            if (!url_pathname.startsWith("/slide/")) {
+            if (!url_pathname.startsWith("/slide/overview/")) {
                 console.log("no seadragon slide " + url_pathname);
                 return "";
             }
@@ -21,6 +21,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 zoomPerScroll: 2,
                 timeout: 120000,
             });
+            /*
             window.osdviewer.addHandler("open", function() {
                 // To improve load times, ignore the lowest-resolution Deep Zoom
                 // levels.  This is a hack: we can't configure the minLevel via
@@ -28,12 +29,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 // from DZI XML.
                 window.osdviewer.source.minLevel = 8;
             });
-
+            */
             console.log("initialized osd for " + sources);
             return sources;
         },
         load_open_seadragon_multi: function(url_pathname) {
-            if (!url_pathname.startsWith("/slide_multi/")) {
+            if (!url_pathname.startsWith("/slide/tiles/")) {
                 console.log("no seadragon slide " + url_pathname);
                 return "";
             }
