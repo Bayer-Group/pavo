@@ -315,6 +315,7 @@ def display_selected_study_data(selectedData, data):
     ],
 )
 def display_selected_study_data(pathname, data):
+    from pado.images import ImageId
     result = urlparse(pathname)
     section, *subsection = result.path[1:].split("/")
 
@@ -323,7 +324,10 @@ def display_selected_study_data(pathname, data):
 
     image_id = subsection[1]
     df = get_metadata(filter_dict=data)
-    metadata = df.loc[df["IMAGE"] == image_id].T
+    metadata = df.loc[df["IMAGE"] == "__".join(image_id)].T
+    raise Exception("")
+    if metadata.size == 0:
+        metadata = df.loc[df["IMAGE"] == "__".join(ImageId.from_str(image_id))].T
     out = [
         RowCol(
             [
@@ -340,6 +344,6 @@ def display_selected_study_data(pathname, data):
             ],
             xs=12
         )
-        for label, *value in metadata.itertuples() if not label.startswith("_")
+        for label, *value in metadata.itertuples() if ((not label.startswith("_")) and value)
     ]
     return out

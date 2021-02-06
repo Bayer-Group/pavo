@@ -1,11 +1,11 @@
 import json
 import math
-import shelve
 import tarfile
 import warnings
 from pathlib import Path
 from typing import Dict, Optional
 
+import diskcache
 import numpy as np
 from tqdm import tqdm
 
@@ -66,7 +66,7 @@ def init_wds(
         wds_map.update(load_wds(wds_path))
 
     else:
-        with shelve.open(str(cache_file)) as store:
+        with diskcache.Cache(str(cache_file)) as store:
             key = str(wds_path)
             if key not in store or ignore_cache:
                 print("loading web dataset from disk...")

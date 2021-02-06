@@ -12,9 +12,10 @@ def main():
     parser.add_argument("dataset_path", nargs='+', help="path to a pado dataset")
     parser.add_argument("--build-thumbnail-cache", action="store_true")
     parser.add_argument("--build-qpzip-cache", action="store_true")
+    parser.add_argument("--rebuild-cache", action="store_true")
     args = parser.parse_args()
 
-    init_data(args.dataset_path, cache_path="./.pado_visualize.shelve")
+    init_data(args.dataset_path, cache_path="./.pado_visualize.cache", rebuild=args.rebuild_cache)
     app = init_app()
 
     if args.build_thumbnail_cache:

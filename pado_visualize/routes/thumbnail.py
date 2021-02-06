@@ -1,7 +1,7 @@
 import io
-import shelve
 import warnings
 
+import diskcache
 from flask import send_file, abort
 from tqdm import tqdm
 
@@ -10,7 +10,7 @@ from pado_visualize.data.dataset import get_dataset, get_image_map
 from pado_visualize.data.slides import get_svs_thumbnail, get_svs_thumbnail_filtered
 from pado_visualize.routes._route_utils import _image_path_from_image_id
 
-_thumbnail_cache = shelve.open(".pado_thumbnail.shelve")
+_thumbnail_cache = diskcache.Cache(".pado_visualize.thumbnail.cache")
 
 
 def _build_thumbnail_cache():
@@ -22,6 +22,7 @@ def _build_thumbnail_cache():
     for image_id_str in tqdm(image_ids, desc="thumbnail caching"):
         k0 = f"thumbnail-{image_id_str}"
         k1 = f"tiling-{image_id_str}"
+        print(k0)
 
         p = _image_path_from_image_id(image_id_str, abort_if_none=False)
         if p is None:

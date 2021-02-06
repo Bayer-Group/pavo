@@ -24,7 +24,6 @@ def _get_deep_zoom(image_id: str) -> TifffileDeepZoomGenerator:
 @app.server.route('/slide/overview/<string:image_id>/image.dzi')
 def slide_dzi(image_id):
     dz = _get_deep_zoom(image_id)
-
     resp = make_response(dz.get_dzi())
     resp.mimetype = 'application/xml'
     return resp

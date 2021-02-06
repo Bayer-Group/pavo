@@ -16,9 +16,11 @@ from pado_visualize.data.dataset import get_image_map, get_metadata, get_annotat
     ],
 )
 def render_preview_cards(pathname, data):
+    from pado.images import ImageId
+
     start = time.time()
     df = get_metadata(filter_dict=data)
-    image_ids = set(df["IMAGE"].unique())
+    image_ids = {ImageId(*iid.split("__")) for iid in set(df["IMAGE"].unique())}
     print("Got", "took", time.time() - start)
     im = get_image_map()
     am = get_annotation_map()

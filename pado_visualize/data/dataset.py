@@ -1,10 +1,11 @@
+import collections
 import json
-import shelve
 import warnings
 from functools import lru_cache, wraps
 from pathlib import Path
 from typing import Optional, Dict, Literal, List
 
+import diskcache
 import pandas as pd
 from flask import abort
 from pado.dataset import PadoDataset, PadoDatasetChain
@@ -61,6 +62,7 @@ def init_dataset(
                 pass
 
         if not datasets:
+            print("ERROR? no datasets loaded")
             return None, None
 
         ds = PadoDatasetChain(*datasets)
@@ -72,7 +74,7 @@ def init_dataset(
         dataset, image_map = load_dataset(dataset_paths)
 
     else:
-        with shelve.open(str(cache_file)) as store:
+        with diskcache.Cache(str(cache_file)) as store:
             key = str(dataset_paths)  # TODO: revisit...
             if key not in store or ignore_cache:
                 print("loading dataset from disk...", end=" ", flush=True)
@@ -161,8 +163,12 @@ def get_metadata(
     df[PadoColumn.IMAGE.subcolumn("SHORT")] = df[PadoColumn.IMAGE].apply(lambda x: x.split("__")[-1])
     df[PadoColumn.FINDING] = df[PadoColumn.FINDING].str.title()
     df.loc[df[PadoColumn.FINDING] == "Unremarkable", PadoColumn.FINDING] = "UNREMARKABLE"
-    df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
-    df["prediction"] = df[PadoColumn.IMAGE].map(get_prediction_map())
+    # df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
+    amap = collections.defaultdict(lambda: 'false', dict.fromkeys(map("__".join, get_annotation_map()), 'true'))
+    df["annotation"] = df[PadoColumn.IMAGE].map(amap)
+    # df["prediction"] = df[PadoColumn.IMAGE].map(get_prediction_map())
+    pmap = collections.defaultdict(lambda: 'false', dict.fromkeys(map("__".join, get_prediction_map()), 'true'))
+    df["prediction"] = df[PadoColumn.IMAGE].map(pmap)
 
     if filter_dict:
         q_ands = []
