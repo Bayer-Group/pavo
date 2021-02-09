@@ -77,6 +77,8 @@ pado_visualize/_version.py
 **/__pycache__
 dist
 *.shelve.db
+.pado_visualize.*cache
+.pado_visualize.*shelve
 
 environment.yml
 
