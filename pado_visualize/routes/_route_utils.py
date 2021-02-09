@@ -17,7 +17,7 @@ def _image_path_from_image_id(image_id, abort_if_none=True):
 
         try:
             p = im[ImageId.from_str(image_id)]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             pass
 
         try:
@@ -27,7 +27,7 @@ def _image_path_from_image_id(image_id, abort_if_none=True):
 
         try:
             p = im[ImageId(*image_id.split("__"))]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, AttributeError):
             pass
 
         if p is None:
