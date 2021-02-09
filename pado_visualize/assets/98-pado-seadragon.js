@@ -5,7 +5,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 console.log("no seadragon slide " + url_pathname);
                 return "";
             }
-            let sources = url_pathname + "/image.dzi"
+            let sources = url_pathname + "/image.dzi";
+            let annotations = url_pathname + "/annotations.json";
             window.osdviewer = new OpenSeadragon({
                 id: "seadragon-container",
                 tileSources: sources,
@@ -21,7 +22,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 zoomPerScroll: 2,
                 timeout: 120000,
             });
-            /*
             window.osdviewer.addHandler("open", function() {
                 // To improve load times, ignore the lowest-resolution Deep Zoom
                 // levels.  This is a hack: we can't configure the minLevel via
@@ -29,7 +29,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 // from DZI XML.
                 window.osdviewer.source.minLevel = 8;
             });
-            */
+            let anno = OpenSeadragon.Annotorious(window.osdviewer);
+            anno.loadAnnotations(annotations);
             console.log("initialized osd for " + sources);
             return sources;
         },
