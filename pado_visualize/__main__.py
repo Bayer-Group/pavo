@@ -13,6 +13,7 @@ def main():
     parser.add_argument("--build-thumbnail-cache", action="store_true")
     parser.add_argument("--build-qpzip-cache", action="store_true")
     parser.add_argument("--rebuild-cache", action="store_true")
+    parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
 
     init_data(args.dataset_path, cache_path="./.pado_visualize.cache", rebuild=args.rebuild_cache)
@@ -28,7 +29,7 @@ def main():
         return 0
 
     # run dev server
-    return app.run_server(host="127.0.0.1", port=8080, debug=args.debug)
+    return app.run_server(host="127.0.0.1", port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":
