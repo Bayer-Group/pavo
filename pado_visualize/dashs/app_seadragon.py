@@ -16,4 +16,4 @@ app.clientside_callback(
 
 layout = html.Div([
     html.Div([], id="seadragon-container", **{"data-tilesources": ""}),
-])
+], className="seadragon-container-parent")

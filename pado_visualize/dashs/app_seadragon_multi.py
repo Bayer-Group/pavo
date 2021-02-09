@@ -21,4 +21,4 @@ layout = html.Div([
         className="openseadragon needsclick",
         **{"data-tilesources": ""}
     ),
-])
+], className="seadragon-container-parent")

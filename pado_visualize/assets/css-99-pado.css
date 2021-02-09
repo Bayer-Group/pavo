@@ -224,11 +224,17 @@
     -ms-interpolation-mode: nearest-neighbor;   /* IE8+                */
 }
 
-#seadragon-container,
-#seadragon-multi-container {
+.seadragon-container-parent {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+#seadragon-container,
+#seadragon-multi-container {
     width: 100%;
     height: 100%;
     background: black;
