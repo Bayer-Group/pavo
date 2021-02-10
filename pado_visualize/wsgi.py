@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from flask import Flask
 
 
-def init_config(server: Flask, *, override_config: Optional[dict] = None):
+def init_config(server: Flask, *, override_config: Optional[dict] = None, force_env: Optional[str] = None):
     """apply configuration to the flask server"""
     dynaconf_config = dict(
         envvar_prefix="PADOVIS",
@@ -22,15 +22,20 @@ def init_config(server: Flask, *, override_config: Optional[dict] = None):
         ],
         default_settings_paths=[],
     )
-
-    if override_config is not None:
-        dynaconf_config.update(override_config)
+    if force_env:
+        dynaconf_config['env'] = force_env
 
     flask_config = FlaskDynaconf(app=None, **dynaconf_config)
     flask_config.kwargs["ENV_SWITCHER"] = "PADOVIS_ENV"
     flask_config.kwargs["ENVIRONMENTS"] = True
     flask_config.kwargs["load_dotenv"] = True
+
     flask_config.init_app(server)
+
+    if override_config is not None:
+        for key, value in override_config.items():
+            server.config[key] = value
+
     return flask_config
 
 
@@ -64,13 +69,13 @@ def init_data(server: Flask) -> None:
     server.logger.info("cashes are lukewarm.")
 
 
-def _init_dash_app_config(*, override_config: Optional[dict] = None) -> FlaskDynaconf:
+def _init_dash_app_config(*, override_config: Optional[dict] = None, force_env: Optional[str] = None) -> FlaskDynaconf:
     from pado_visualize.app import server
 
     # NOTE: after this point we access global config settings
     #   through app.server.config.SETTING, which is why we pass
     #   the app or app.server instance around.
-    return init_config(server, override_config=override_config)
+    return init_config(server, override_config=override_config, force_env=force_env)
 
 
 def _init_dash_app_data() -> Dash:
