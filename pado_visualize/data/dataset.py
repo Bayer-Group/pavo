@@ -1,5 +1,7 @@
 import collections
 import json
+import logging
+import time
 import warnings
 from functools import lru_cache, wraps
 from pathlib import Path
@@ -21,6 +23,22 @@ __all__ = [
     "get_dataset_column_values"
 ]
 
+# flask and dash unrelated data logger
+_logger = logging.getLogger(__name__)
+
+
+def log_access(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        _logger.info(f"{func.__name__}() called with args={args!r} kwargs={kwargs!r}")
+        t0 = time.monotonic()
+        result = func(*args, **kwargs)
+        t1 = time.monotonic()
+        _logger.info(f"{func.__name__}() took {t1-t0} seconds")
+        return result
+    return wrapped
+
+
 # data storage
 dataset: Optional[PadoDataset] = None
 image_map: Optional[Dict[str, Optional[Path]]] = None
@@ -29,6 +47,7 @@ image_map: Optional[Dict[str, Optional[Path]]] = None
 LRU_CACHE_MAX_SIZE = 16  # these could be split up, but will do for now
 
 
+@log_access
 def init_dataset(
     dataset_paths: List[Path],
     persist: bool = True,
@@ -43,7 +62,7 @@ def init_dataset(
 
     if cache_file is None:
         if persist:
-            warnings.warn("persist=True requested but cache_file is None")
+            _logger.warning("persist=True requested but cache_file is None")
         persist = False
 
     # normalize path
@@ -62,7 +81,7 @@ def init_dataset(
                 pass
 
         if not datasets:
-            print("ERROR? no datasets loaded")
+            _logger.error("no datasets loaded")
             return None, None
 
         ds = PadoDatasetChain(*datasets)
@@ -77,12 +96,11 @@ def init_dataset(
         with diskcache.Cache(str(cache_file)) as store:
             key = str(dataset_paths)  # TODO: revisit...
             if key not in store or ignore_cache:
-                print("loading dataset from disk...", end=" ", flush=True)
+                _logger.info("loading dataset from disk...")
                 dataset, image_map = store[key] = load_dataset(dataset_paths)
             else:
-                print("loading dataset from cache...", end=" ", flush=True)
+                _logger.info("loading dataset from cache...")
                 dataset, image_map = store[key]
-    print("OK")
 
 
 def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
@@ -120,6 +138,7 @@ class _JSONBoolMapping(dict):
 
 
 @lru_cache()
+@log_access
 def get_annotation_map() -> Dict[str, Literal["true", "false"]]:
     ds = get_dataset()
     image_ids = ds.annotations.keys()
@@ -129,6 +148,7 @@ def get_annotation_map() -> Dict[str, Literal["true", "false"]]:
 
 
 @lru_cache()
+@log_access
 def get_prediction_map():
     ds = get_dataset()
 
@@ -150,6 +170,7 @@ def get_prediction_map():
 
 
 @_filter_dict_cache
+@log_access
 def get_metadata(
     filter_dict: Optional[Dict[str, List[str]]] = None,
 ) -> Optional[pd.DataFrame]:
@@ -197,6 +218,7 @@ def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Pat
     return image_map
 
 
+@log_access
 def get_dataset_column_values(column, filter_dict=None) -> List[dict]:
     """get the column selections for the subset"""
 
