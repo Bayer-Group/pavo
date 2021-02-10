@@ -30,7 +30,9 @@ _logger = logging.getLogger(__name__)
 def log_access(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
-        _logger.info(f"{func.__name__}() called with args={args!r} kwargs={kwargs!r}")
+        _args = map(repr, args)
+        _kwargs = (f"{key}={value!r}" for key, value in kwargs.items())
+        _logger.info(f"{func.__name__}({', '.join([*_args, *_kwargs])})")
         t0 = time.monotonic()
         result = func(*args, **kwargs)
         t1 = time.monotonic()
@@ -222,7 +224,6 @@ def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Pat
     return image_map
 
 
-@log_access
 def get_dataset_column_values(column, filter_dict=None) -> List[dict]:
     """get the column selections for the subset"""
 
