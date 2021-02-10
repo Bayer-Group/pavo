@@ -105,8 +105,10 @@ def init_dataset(
 
 def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
     global dataset
-    if abort_if_none and dataset is None:
-        return abort(500, "missing dataset")
+    if dataset is None:
+        if abort_if_none:
+            return abort(500, "missing dataset")
+        _logger.warning("dataset is none but it's being accessed")
     return dataset
 
 
