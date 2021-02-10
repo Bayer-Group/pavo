@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 from dynaconf import FlaskDynaconf, Validator
 
 if TYPE_CHECKING:
+    from dash import Dash
     from flask import Flask
 
 
@@ -24,12 +25,10 @@ def init_config(server: Flask, *, override_config: Optional[dict] = None):
     if override_config is not None:
         dynaconf_config.update(override_config)
 
-    config = FlaskDynaconf(server, **dynaconf_config)
-    import sys
-    print(config.settings.to_dict(), file=sys.stderr)
+    return FlaskDynaconf(server, **dynaconf_config)
 
 
-def init_data(server: Flask):
+def init_data(server: Flask) -> None:
     from pado_visualize.data.dataset import (
         init_dataset,
         get_dataset,
@@ -59,7 +58,7 @@ def init_data(server: Flask):
     server.logger.info("cashes are lukewarm.")
 
 
-def init_dash_app(*, override_config: Optional[dict] = None):
+def init_dash_app(*, override_config: Optional[dict] = None) -> Dash:
     """run everything to return a fully configured plotly dash app
 
     Parameters
@@ -88,7 +87,7 @@ def init_dash_app(*, override_config: Optional[dict] = None):
     return app
 
 
-def init_server():
+def init_server() -> Flask:
     """run everything to return a fully configured flask app"""
     # NOTE: this will be used by the production server, which should be
     #   configured by files only.
