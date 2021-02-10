@@ -34,7 +34,7 @@ def log_access(func):
         t0 = time.monotonic()
         result = func(*args, **kwargs)
         t1 = time.monotonic()
-        _logger.info(f"{func.__name__}() took {t1-t0} seconds")
+        _logger.info(f"{func.__name__}() took {t1-t0:0.5f} seconds")
         return result
     return wrapped
 
