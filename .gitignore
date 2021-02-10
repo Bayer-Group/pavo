@@ -21,6 +21,7 @@ dist
 
 environment.yml
 pado_visualize/_version.py
+*.local.toml
 
 # secrets
 *.secrets.toml

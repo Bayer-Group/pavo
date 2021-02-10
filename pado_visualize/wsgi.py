@@ -89,6 +89,12 @@ def init_dash_app(*, override_config: Optional[dict] = None) -> Dash:
     # register all routes
     init_routes()
 
+    if server.config.REQUIRE_AUTH:
+        from dash_auth import BasicAuth
+        BasicAuth(app, server.config.USER_PASSWORD_MAP)
+    else:
+        server.logger.warning("RUNNING THE APP WITHOUT AUTHENTICATION")
+
     # spawn app
     return app
 
