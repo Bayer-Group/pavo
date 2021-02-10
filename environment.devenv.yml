@@ -39,5 +39,6 @@ dependencies:
   - tqdm
 
   - pip:
+    - dynaconf
     - simplejpeg
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
