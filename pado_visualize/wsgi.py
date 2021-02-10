@@ -64,24 +64,18 @@ def init_data(server: Flask) -> None:
     server.logger.info("cashes are lukewarm.")
 
 
-def init_dash_app(*, override_config: Optional[dict] = None) -> Dash:
-    """run everything to return a fully configured plotly dash app
-
-    Parameters
-    ----------
-    override_config:
-        provide a mapping with settings to override. This is
-        currently only used to provide a commandline interface
-        that allows to easily override defaults
-
-    """
-    from pado_visualize.routes import init_routes
-    from pado_visualize.app import app, server
+def _init_dash_app_config(*, override_config: Optional[dict] = None) -> FlaskDynaconf:
+    from pado_visualize.app import server
 
     # NOTE: after this point we access global config settings
     #   through app.server.config.SETTING, which is why we pass
     #   the app or app.server instance around.
-    init_config(server, override_config=override_config)
+    return init_config(server, override_config=override_config)
+
+
+def _init_dash_app_data() -> Dash:
+    from pado_visualize.app import app, server
+    from pado_visualize.routes import init_routes
 
     # load the dataset
     init_data(server)
@@ -97,6 +91,26 @@ def init_dash_app(*, override_config: Optional[dict] = None) -> Dash:
 
     # spawn app
     return app
+
+
+def init_dash_app(*, override_config: Optional[dict] = None) -> Dash:
+    """run everything to return a fully configured plotly dash app
+
+    Parameters
+    ----------
+    override_config:
+        provide a mapping with settings to override. This is
+        currently only used to provide a commandline interface
+        that allows to easily override defaults
+
+    """
+    from pado_visualize.routes import init_routes
+
+    # initialize config
+    _init_dash_app_config(override_config=override_config)
+
+    # initialize data
+    return _init_dash_app_data()
 
 
 def init_server() -> Flask:
