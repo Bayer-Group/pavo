@@ -141,7 +141,9 @@ class _JSONBoolMapping(dict):
 @log_access
 def get_annotation_map() -> Dict[str, Literal["true", "false"]]:
     ds = get_dataset()
-    image_ids = ds.annotations.keys()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        image_ids = ds.annotations.keys()
     m = _JSONBoolMapping.fromkeys(image_ids, "true")
     # noinspection PyTypeChecker
     return m
