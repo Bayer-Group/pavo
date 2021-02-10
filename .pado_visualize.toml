@@ -1,0 +1,22 @@
+[default]
+DEBUG = true
+SERVER = "127.0.0.1"
+PORT = 8080
+
+CACHE_PATH = "/tmp/pado_visualize_cache"
+CACHE_FORCE_REBUILD = false
+
+REQUIRE_AUTH = true
+DATASET_PATHS = []
+
+
+[development]
+DEBUG = true
+REQUIRE_AUTH = false
+
+[production]
+DEBUG = false
+
+# this should rather live in a uwsgi file,
+# but we'll configure it through here for sake of accessibility
+UWSGI_NUM_PROCESSES = 6
