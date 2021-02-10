@@ -14,18 +14,24 @@ def init_config(server: Flask, *, override_config: Optional[dict] = None):
     """apply configuration to the flask server"""
     dynaconf_config = dict(
         envvar_prefix="PADOVIS",
-        settings_file=[".pado_visualize.toml"],
+        settings_file=[".pado_visualize.toml", ".pado_visualize.secrets.toml"],
         core_loaders=['TOML'],
         preload=[],
         validators=[
             Validator("annotation_search_dirs", is_type_of=(list, tuple, str)),
-        ]
+        ],
+        default_settings_paths=[],
     )
 
     if override_config is not None:
         dynaconf_config.update(override_config)
 
-    return FlaskDynaconf(server, **dynaconf_config)
+    flask_config = FlaskDynaconf(app=None, **dynaconf_config)
+    flask_config.kwargs["ENV_SWITCHER"] = "PADOVIS_ENV"
+    flask_config.kwargs["ENVIRONMENTS"] = True
+    flask_config.kwargs["load_dotenv"] = True
+    flask_config.init_app(server)
+    return flask_config
 
 
 def init_data(server: Flask) -> None:
