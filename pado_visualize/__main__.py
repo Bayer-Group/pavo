@@ -3,8 +3,8 @@ import sys
 import textwrap
 from typing import List, Optional
 
-from pado_visualize.app import app, server
-from pado_visualize.wsgi import init_app, init_data, init_config
+from pado_visualize.app import create_server, create_plain_server
+from pado_visualize.config import initialize_config
 
 
 def _print_config(settings):
@@ -63,7 +63,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         env = 'production'
 
     # acquire the configuration
-    settings = init_config(server=server, override_config=overrides, force_env=env).settings
+    server = create_plain_server()
+    settings = initialize_config(server=server, override_config=overrides, force_env=env).settings
 
     if args.show_config:
         _print_config(settings)
@@ -98,12 +99,11 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if settings.current_env.lower() == "development":
         # run development server
-        init_data(server=server)
-        init_app(app)
-        return app.run_server(
-            host=app.server.config.SERVER,
-            port=app.server.config.PORT,
-            debug=app.server.config.DEBUG
+        server = create_server(server)
+        return server.run(
+            host=server.config.SERVER,
+            port=server.config.PORT,
+            debug=server.config.DEBUG
         )
 
     elif settings.current_env.lower() == "production":

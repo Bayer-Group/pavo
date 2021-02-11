@@ -29,6 +29,8 @@ dependencies:
   - dash-table
   - diskcache
   - flask-caching
+  - werkzeug
+  - pyopenssl
 
   - numpy
   - pandas
@@ -40,5 +42,6 @@ dependencies:
 
   - pip:
     - dynaconf
+    - Flask-JSGlue
     - simplejpeg
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
