@@ -3,7 +3,8 @@ import sys
 import textwrap
 from typing import List, Optional
 
-from pado_visualize.wsgi import _init_dash_app_config, _init_dash_app_data
+from pado_visualize.app import app, server
+from pado_visualize.wsgi import init_app, init_data, init_config
 
 
 def _print_config(settings):
@@ -49,7 +50,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         for key in {'debug', 'cache_force_rebuild', 'cache_path', 'server', 'port', 'require_auth', 'dataset_paths'}
         if getattr(args, key)
     }
-    print(args, overrides)
 
     env = None  # use config
     if args.production:
@@ -59,7 +59,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         env = 'production'
 
     # acquire the configuration
-    settings = _init_dash_app_config(override_config=overrides, force_env=env).settings
+    settings = init_config(server=server, override_config=overrides, force_env=env).settings
 
     if args.show_config:
         _print_config(settings)
@@ -88,16 +88,21 @@ def main(argv: Optional[List[str]] = None) -> int:
     #    _build_qpzip_cache()
     #    return 0
 
-    if settings.current_env == "development":
-        app = _init_dash_app_data()
+    if not settings.DATASET_PATHS:
+        print("no DATASET_PATHS specified! (set via cmdline in dev or file in prod)", file=sys.stderr)
+        return -1
 
+    if settings.current_env.lower() == "development":
+        # run development server
+        init_data(server=server)
+        init_app(app)
         return app.run_server(
             host=app.server.config.SERVER,
             port=app.server.config.PORT,
             debug=app.server.config.DEBUG
         )
 
-    elif settings.current_env == "production":
+    elif settings.current_env.lower() == "production":
         import os
         os.execvp(
             file="uwsgi",

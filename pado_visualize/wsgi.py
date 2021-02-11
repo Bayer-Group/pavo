@@ -10,8 +10,19 @@ if TYPE_CHECKING:
     from flask import Flask
 
 
-def init_config(server: Flask, *, override_config: Optional[dict] = None, force_env: Optional[str] = None):
+def init_config(
+        server: Optional[Flask] = None,
+        *,
+        override_config: Optional[dict] = None,
+        force_env: Optional[str] = None
+) -> FlaskDynaconf:
     """apply configuration to the flask server"""
+
+    if server is None:
+        from pado_visualize.app import server as _server
+        server = _server
+        return init_config(server, override_config=override_config, force_env=force_env)
+
     dynaconf_config = dict(
         envvar_prefix="PADOVIS",
         settings_file=[".pado_visualize.toml", ".pado_visualize.secrets.toml"],
@@ -69,58 +80,35 @@ def init_data(server: Flask) -> None:
     server.logger.info("cashes are lukewarm.")
 
 
-def _init_dash_app_config(*, override_config: Optional[dict] = None, force_env: Optional[str] = None) -> FlaskDynaconf:
-    from pado_visualize.app import server
-
-    # NOTE: after this point we access global config settings
-    #   through app.server.config.SETTING, which is why we pass
-    #   the app or app.server instance around.
-    return init_config(server, override_config=override_config, force_env=force_env)
-
-
-def _init_dash_app_data() -> Dash:
-    from pado_visualize.app import app, server
+def init_app(app: Dash) -> None:
     from pado_visualize.routes import init_routes
-
-    # load the dataset
-    init_data(server)
 
     # register all routes
     init_routes()
 
-    if server.config.REQUIRE_AUTH:
+    # configure basic authentication
+    if app.server.config.REQUIRE_AUTH:
         from dash_auth import BasicAuth
-        BasicAuth(app, server.config.USER_PASSWORD_MAP)
+        BasicAuth(app, app.server.config.USER_PASSWORD_MAP)
     else:
-        server.logger.warning("RUNNING THE APP WITHOUT AUTHENTICATION")
-
-    # spawn app
-    return app
-
-
-def init_dash_app(*, override_config: Optional[dict] = None) -> Dash:
-    """run everything to return a fully configured plotly dash app
-
-    Parameters
-    ----------
-    override_config:
-        provide a mapping with settings to override. This is
-        currently only used to provide a commandline interface
-        that allows to easily override defaults
-
-    """
-    from pado_visualize.routes import init_routes
-
-    # initialize config
-    _init_dash_app_config(override_config=override_config)
-
-    # initialize data
-    return _init_dash_app_data()
+        app.server.logger.warning("RUNNING THE APP WITHOUT AUTHENTICATION")
 
 
 def init_server() -> Flask:
     """run everything to return a fully configured flask app"""
     # NOTE: this will be used by the production server, which should be
     #   configured by files only.
-    server = init_dash_app().server
-    return server
+    from pado_visualize.app import app, server
+
+    # NOTE: after this point we access global config settings
+    #   through app.server.config.SETTING, which is why we pass
+    #   the app or app.server instance around.
+    init_config(server)
+
+    # initialize data
+    init_data(server)
+
+    # finish initializing the app
+    init_app(app)
+
+    return app.server
