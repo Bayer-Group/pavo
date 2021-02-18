@@ -43,6 +43,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="disable basic authentication"
     )
     parser.add_argument("dataset_paths", nargs='*', help="path to a pado dataset")
+
+    if argv is not None:
+        argv = argv[1:]
+
     args = parser.parse_args(argv)
 
     overrides = {
