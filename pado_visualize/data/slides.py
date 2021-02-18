@@ -11,7 +11,7 @@ from xml.etree.ElementTree import ElementTree, Element, SubElement
 import numpy as np
 from PIL import Image, ImageFile
 from tifffile import TiffFile, TiffPage, TiffPageSeries, TIFF
-import palo.deephistopath.wsi.filter as wsi_filter
+from palo.tissue_filter import apply_image_filters
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 PathOrStr = Union[Path, str]
@@ -155,7 +155,7 @@ def get_svs_thumbnail_filtered(filename: PathOrStr) -> bytes:
 
     # horribly slow...
     # todo: this is no place for a ~500ms conversion...
-    filtered_np_img = wsi_filter.apply_image_filters(
+    filtered_np_img = apply_image_filters(
         np_img, display=False, remove_red_pen=False
     )
 
