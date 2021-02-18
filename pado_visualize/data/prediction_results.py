@@ -76,5 +76,48 @@ class SlideScore(UserDict):
             return False
 
 
+class SlidePredictionAnnotations(UserDict):
+
+    def __init__(self, path=None, fmt=None):
+        if path is None:
+            super().__init__()
+            return
+
+        # path provided
+        self._path = Path(path)
+        if fmt is None:
+            raise ValueError("need to provide fmt function for json filename")
+
+        m = {}
+        for p in self._path.glob("*.svs"):
+            if not p.is_dir():
+                continue
+            target = p.joinpath(fmt(p.name))
+            if target.is_file():
+                m[p.name] = target
+
+        super().__init__(m)
+
+    def __getitem__(self, item):
+        # noinspection PyProtectedMember
+        from pado_visualize.routes._route_utils import _image_path_from_image_id
+
+        try:
+            val = super().__getitem__(item)
+            return val
+        except KeyError:
+            pass
+        p = _image_path_from_image_id(image_id=item)
+        if p:
+            file_name = p.name
+            try:
+                val = super().__getitem__(file_name)
+                return val
+            except KeyError:
+                raise KeyError(f"'{item}' --> '{file_name}'")
+        else:
+            raise KeyError(item)
+
+
 if __name__ == "__main__":
     s = SlideScore("./pred_results.csv")

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from typing import List
@@ -7,11 +8,13 @@ from typing import TYPE_CHECKING
 from urllib.parse import unquote
 
 from flask import jsonify, abort
+from shapely.geometry import shape
 
 from pado.annotations import Annotation
 from pado.images import ImageId
 from pado_visualize.app import app
 from pado_visualize.data.dataset import get_dataset
+from pado_visualize.data.dataset import get_pred_anno_map
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
@@ -25,7 +28,7 @@ _svg_style_re = re.compile(
 )
 
 
-def w3c_like_annotation(class_name: str, region: BaseGeometry):
+def w3c_like_annotation(class_name: str, region: BaseGeometry, prefix="anno"):
     """make a w3c annotation like annotation
 
     see: https://www.w3.org/TR/annotation-vocab/#annotation
@@ -36,7 +39,7 @@ def w3c_like_annotation(class_name: str, region: BaseGeometry):
     svg_path = _svg_style_re.sub("", svg_path)
     return {
         "@context": "http://www.w3.org/ns/anno.jsonld",
-        "id": f"#{uuid.uuid4()}",
+        "id": f"{prefix}-{class_name.replace(' ', '').replace(':', '')}-{uuid.uuid4()}",
         "type": "Annotation",
         "body": [{
             "type": "TextualBody",
@@ -62,11 +65,35 @@ def serve_w3c_annotations(image_id):
     try:
         annotations: List[Annotation] = ds.annotations[image_id]['annotations']
     except KeyError:
-        return abort(404, f"No annotations found for {image_id!r}")
+        # return abort(404, f"No annotations found for {image_id!r}")
+        annotations = []
 
     w3c_annotations = [
         w3c_like_annotation(a.class_name, a.roi)
         for a in annotations
     ]
+
+    # predictions
+    pa = get_pred_anno_map()
+    # image_id = ImageId.from_str(unquote(image_id))
+    try:
+        json_path = pa[image_id]
+    except KeyError:
+        # return abort(404, f"No predictions found for {image_id!r}")
+        preds = []
+    else:
+        try:
+            with json_path.open('rb') as f:
+                preds = json.load(f)
+        except json.JSONDecodeError as err:
+            # return abort(403, f"JSONDecodeError('{err}') for predictions for {image_id!r}")
+            preds = []
+
+    # w3c_annotations = []
+    for qpanno in preds:
+        roi = shape(qpanno["geometry"])
+        class_name = qpanno.get("properties", {}).get("classification", {}).get("name", "unknown")
+        w3c_a = w3c_like_annotation(class_name, roi, prefix="pred")
+        w3c_annotations.append(w3c_a)
 
     return jsonify(w3c_annotations)

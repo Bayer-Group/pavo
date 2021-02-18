@@ -16,6 +16,7 @@ from pado.metadata import PadoReserved, PadoColumn
 
 if TYPE_CHECKING:
     from pado_visualize.data.prediction_results import SlideScore
+    from pado_visualize.data.prediction_results import SlidePredictionAnnotations
 
 __all__ = [
     "init_dataset",
@@ -49,6 +50,7 @@ def log_access(func):
 dataset: Optional[PadoDataset] = None
 image_map: Optional[Dict[str, Optional[Path]]] = None
 results_map: Optional[SlideScore] = None
+pred_anno_map: Optional[SlidePredictionAnnotations] = None
 
 # cache_sizes
 LRU_CACHE_MAX_SIZE = 16  # these could be split up, but will do for now
@@ -61,13 +63,15 @@ def init_dataset(
     ignore_cache: bool = False,
     cache_file: Optional[Path] = None,
     predictions_csv_file_path: Optional[Path] = None,
+    predictions_xai_base_path: Optional[Path] = None,
 ) -> None:
     """initialize the pado dataset for the flask instance"""
     # NOTE: this should be done using a better cache system
     #   keep this logic here for now to continue developing the POC,
     #   and be able to refactor easily later
-    global dataset, image_map, results_map
+    global dataset, image_map, results_map, pred_anno_map
     from pado_visualize.data.prediction_results import SlideScore
+    from pado_visualize.data.prediction_results import SlidePredictionAnnotations
 
     if cache_file is None:
         if persist:
@@ -98,10 +102,17 @@ def init_dataset(
         im = {image_id: img.local_path for image_id, img in ds.images.items()}
         return ds, im
 
+    # ducktaped prediction scores
     if predictions_csv_file_path is not None:
         results_map = SlideScore(predictions_csv_file_path)
     else:
         results_map = SlideScore()
+
+    # ducktaped prediction annotations
+    if predictions_xai_base_path is not None:
+        pred_anno_map = SlidePredictionAnnotations(predictions_xai_base_path, fmt="{}-XAI.json".format)
+    else:
+        pred_anno_map = SlidePredictionAnnotations()
 
     if not persist:
         dataset, image_map = load_dataset(dataset_paths)
@@ -133,6 +144,15 @@ def get_results_map(abort_if_none: bool = True) -> Optional[SlideScore]:
             return abort(500, "missing results")
         _logger.warning("results_map is none but it's being accessed")
     return results_map
+
+
+def get_pred_anno_map(abort_if_none: bool = True) -> Optional[SlidePredictionAnnotations]:
+    global pred_anno_map
+    if pred_anno_map is None:
+        if abort_if_none:
+            return abort(500, "missing results")
+        _logger.warning("results_map is none but it's being accessed")
+    return pred_anno_map
 
 
 def _filter_dict_cache(func):

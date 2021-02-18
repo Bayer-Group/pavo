@@ -66,6 +66,7 @@ def init_data(server: Flask) -> None:
         cache_file=server.config.CACHE_PATH,
         ignore_cache=server.config.CACHE_FORCE_REBUILD,
         predictions_csv_file_path=server.config.PREDICTIONS_CSV_FILE,
+        predictions_xai_base_path=server.config.PREDICTIONS_XAI_PATH,
     )
 
     # w = Path(args.wds_path)
