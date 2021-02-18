@@ -325,17 +325,27 @@ def display_selected_study_data(pathname, data):
     image_id = subsection[1]
     df = get_metadata(filter_dict=data)
     metadata = df.loc[df["IMAGE"] == "__".join(image_id)].T
-    raise Exception("")
     if metadata.size == 0:
         metadata = df.loc[df["IMAGE"] == "__".join(ImageId.from_str(image_id))].T
-    out = [
-        RowCol(
+    out = []
+    for label, *value in metadata.itertuples():
+        if label.startswith("_"):
+            continue
+        if not value:
+            continue
+        value, = value
+        if not isinstance(value, (str, float, int)):
+            try:
+                value = " ".join(x for x in value if x is not None)
+            except TypeError:
+                value = str(value)
+        rc = RowCol(
             [
                 html.Label(
                     [
                         label,
                         html.P(
-                            value[0],
+                            value,
                             style={"margin": 0, "font-weight": 300}
                         )
                     ],
@@ -344,6 +354,5 @@ def display_selected_study_data(pathname, data):
             ],
             xs=12
         )
-        for label, *value in metadata.itertuples() if ((not label.startswith("_")) and value)
-    ]
+        out.append(rc)
     return out
