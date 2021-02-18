@@ -64,7 +64,8 @@ def init_data(server: Flask) -> None:
         dataset_paths=list(map(Path, server.config.DATASET_PATHS)),
         persist=True,
         cache_file=server.config.CACHE_PATH,
-        ignore_cache=server.config.CACHE_FORCE_REBUILD
+        ignore_cache=server.config.CACHE_FORCE_REBUILD,
+        predictions_csv_file_path=server.config.PREDICTIONS_CSV_FILE,
     )
 
     # w = Path(args.wds_path)

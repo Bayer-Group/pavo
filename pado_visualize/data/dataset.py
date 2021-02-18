@@ -1,3 +1,4 @@
+from __future__ import annotations
 import collections
 import json
 import logging
@@ -5,13 +6,16 @@ import time
 import warnings
 from functools import lru_cache, wraps
 from pathlib import Path
-from typing import Optional, Dict, Literal, List
+from typing import Optional, Dict, Literal, List, TYPE_CHECKING
 
 import diskcache
 import pandas as pd
 from flask import abort
 from pado.dataset import PadoDataset, PadoDatasetChain
 from pado.metadata import PadoReserved, PadoColumn
+
+if TYPE_CHECKING:
+    from pado_visualize.data.prediction_results import SlideScore
 
 __all__ = [
     "init_dataset",
@@ -44,6 +48,7 @@ def log_access(func):
 # data storage
 dataset: Optional[PadoDataset] = None
 image_map: Optional[Dict[str, Optional[Path]]] = None
+results_map: Optional[SlideScore] = None
 
 # cache_sizes
 LRU_CACHE_MAX_SIZE = 16  # these could be split up, but will do for now
@@ -55,12 +60,14 @@ def init_dataset(
     persist: bool = True,
     ignore_cache: bool = False,
     cache_file: Optional[Path] = None,
+    predictions_csv_file_path: Optional[Path] = None,
 ) -> None:
     """initialize the pado dataset for the flask instance"""
     # NOTE: this should be done using a better cache system
     #   keep this logic here for now to continue developing the POC,
     #   and be able to refactor easily later
-    global dataset, image_map
+    global dataset, image_map, results_map
+    from pado_visualize.data.prediction_results import SlideScore
 
     if cache_file is None:
         if persist:
@@ -91,6 +98,11 @@ def init_dataset(
         im = {image_id: img.local_path for image_id, img in ds.images.items()}
         return ds, im
 
+    if predictions_csv_file_path is not None:
+        results_map = SlideScore(predictions_csv_file_path)
+    else:
+        results_map = SlideScore()
+
     if not persist:
         dataset, image_map = load_dataset(dataset_paths)
 
@@ -112,6 +124,15 @@ def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
             return abort(500, "missing dataset")
         _logger.warning("dataset is none but it's being accessed")
     return dataset
+
+
+def get_results_map(abort_if_none: bool = True) -> Optional[SlideScore]:
+    global results_map
+    if results_map is None:
+        if abort_if_none:
+            return abort(500, "missing results")
+        _logger.warning("results_map is none but it's being accessed")
+    return results_map
 
 
 def _filter_dict_cache(func):
