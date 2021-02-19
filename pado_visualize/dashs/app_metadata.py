@@ -334,9 +334,9 @@ def display_selected_study_data(pathname, data):
         if not value:
             continue
         try:
-            value, = value
-        except ValueError:
-            value = '(server error)'
+            value, = set(value)
+        except (ValueError, TypeError):
+            value = str(value)
         if not isinstance(value, (str, float, int)):
             try:
                 value = " ".join(x for x in value if x is not None)
