@@ -116,6 +116,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "--env", f"PADOVIS_ENV={settings.current_env}",
                 "--manage-script-name",
                 "--mount", "/=pado_visualize.wsgi:init_server()",
+                "--lazy-apps",  # prevent looks due to too aggressive memory sharing
                 "--master",
                 "--processes", f"{settings.UWSGI_NUM_PROCESSES}"
             ],
