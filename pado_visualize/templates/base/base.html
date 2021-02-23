@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>{% block title %}{{ page_title_prefix|default("pado_visualize ::") }}{% endblock title %}</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ url_for_versioned('static', filename='favicon.ico') }}">
+
+  {% block styles %}{% endblock styles %}
+  {% block styles_override %}{% endblock styles_override %}
+  {% block scripts_header %}{% endblock scripts_header %}
+</head>
+<body>
+
+<div id="pado-root">
+  <div id="pado-body" class="pado-background container-fluid">
+    <div class="pado-body row">
+      <div class="pado-sidebar col-lg-3">
+        <div class="page-sidebar">
+          {% block sidebar %}{% endblock sidebar %}
+        </div>
+      </div>
+      <div class="pado-content col-lg-9">
+        <div class="page-content">
+          {% block content %}{% endblock content %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  {% block footer %}{% endblock footer %}
+</footer>
+
+{% block page_scripts %}{% endblock page_scripts %}
+</body>
+</html>

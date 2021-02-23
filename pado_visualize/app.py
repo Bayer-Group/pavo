@@ -21,7 +21,7 @@ def create_plain_server() -> Flask:
     """
     global _server
     if _server is None:
-        _server = Flask(__name__, static_folder='')
+        _server = Flask(__name__, static_folder='static', static_url_path='/static')
     return _server
 
 
