@@ -48,9 +48,13 @@ def configure_logging(server: Optional[Flask] = None):
 
 def register_extensions(server: Flask) -> None:
     """register all extensions on the Flask app"""
-    from pado_visualize.extensions import ImageIdConverter
     # register the image id converter
+    from pado_visualize.extensions import ImageIdConverter
     server.url_map.converters['image_id'] = ImageIdConverter
+
+    # register jinja2 globals
+    from pado_visualize.extensions import url_for_versioned
+    server.jinja_env.globals['url_for_versioned'] = url_for_versioned
 
 
 def register_blueprints(server: Flask) -> None:
