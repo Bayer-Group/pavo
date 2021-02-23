@@ -1,7 +1,9 @@
 from __future__ import annotations
 import collections
+import hashlib
 import json
 import logging
+import os
 import time
 import warnings
 from functools import lru_cache, wraps
@@ -118,9 +120,12 @@ def init_dataset(
         dataset, image_map = load_dataset(dataset_paths)
 
     else:
+        # create the cache directory
         Path(cache_file).mkdir(mode=0o700, exist_ok=True)
-        with diskcache.Cache(str(cache_file)) as store:
-            key = str(dataset_paths)  # TODO: revisit...
+        # make a key
+        key = hashlib.sha256(b":".join(os.fspath(p).encode() for p in dataset_paths)).hexdigest()
+
+        with diskcache.Cache(os.fspath(cache_file)) as store:
             if key not in store or ignore_cache:
                 _logger.info("loading dataset from disk...")
                 dataset, image_map = store[key] = load_dataset(dataset_paths)
