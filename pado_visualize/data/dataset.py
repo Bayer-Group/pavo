@@ -118,6 +118,7 @@ def init_dataset(
         dataset, image_map = load_dataset(dataset_paths)
 
     else:
+        Path(cache_file).mkdir(mode=0o700, exist_ok=True)
         with diskcache.Cache(str(cache_file)) as store:
             key = str(dataset_paths)  # TODO: revisit...
             if key not in store or ignore_cache:
