@@ -259,7 +259,7 @@
 }
 
 .pado-background {
-    background: url(img/background_landing.jpg) no-repeat center center fixed;
+    background: url(../static/img/background_landing.jpg) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
