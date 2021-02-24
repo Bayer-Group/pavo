@@ -11,6 +11,8 @@ from typing import Optional
 from flask import Flask
 
 # flask app instance
+from pado_visualize.data.caches import initialize_caches
+
 _server: Optional[Flask] = None
 
 
@@ -34,7 +36,10 @@ def configure_logging(server: Optional[Flask] = None):
             'level': 'INFO',
         },
     })
-    for logger_name in ['pado_visualize.data.dataset']:
+    for logger_name in [
+        'pado_visualize.data.caches',
+        'pado_visualize.data.dataset',
+    ]:
         logger = logging.getLogger(logger_name)
         backend_handler = logging.StreamHandler(sys.stderr)
         backend_handler.setFormatter(
@@ -96,6 +101,9 @@ def initialize_data(server: Flask) -> None:
     # w = Path(args.wds_path)
     # from pado_visualize.data.webdataset import init_wds
     # init_webdataset(w, persist=True, cache_file=_cache)
+
+    # initialize
+    initialize_caches(server.config.CACHE_PATH)
 
     # warm caches
     server.logger.info("warming caches...")
