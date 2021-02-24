@@ -62,12 +62,12 @@ def slides_openseadragon_viewer(image_id: ImageId):
 def _slide_get_deep_zoom_from_session(image_id: ImageId) -> TifffileDeepZoomGenerator:
     """retrieve the deep zoom generator from the user session"""
     try:
-        _json_dz = session[image_id]
+        _json_dz = session[image_id.to_str()]
     except KeyError:
         # try to get the image
         _image_path = get_image_path(image_id)
         dz = TifffileDeepZoomGenerator(_image_path)
-        session[image_id] = dz.serialize()
+        session[image_id.to_str()] = dz.serialize()
     else:
         dz = TifffileDeepZoomGenerator.deserialize(_json_dz)
     return dz
