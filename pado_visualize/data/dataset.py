@@ -26,6 +26,7 @@ __all__ = [
     "init_dataset",
     "get_dataset",
     "get_image_map",
+    "get_available_image_set",
     "get_image_path",
     "get_metadata",
     "get_annotation_map",
