@@ -10,7 +10,6 @@ from flask import make_response
 
 from pado_visualize.data.caches import thumbnail_cache
 from pado_visualize.data.dataset import get_available_image_set
-from pado_visualize.data.dataset import get_image_map
 from pado_visualize.data.dataset import get_image_path
 from pado_visualize.data.slides import TifffileDeepZoomGenerator, get_svs_thumbnail
 
@@ -31,20 +30,23 @@ def slides_overview():
 @blueprint.route("/thumbnail/<image_id:image_id>_thumbnail.jpg")
 def slides_thumbnail_jpg(image_id: ImageId):
     try:
-        data = thumbnail_cache[image_id]
+        thumb_path: str = thumbnail_cache[image_id]
     except KeyError:
-        # fallback fixme: should do this in a worker...
-        try:
-            p = get_image_path(image_id)
-            data = get_svs_thumbnail(p)
-        except (ValueError, FileNotFoundError, AssertionError) as err:
-            return abort(404, str(err))
+        if image_id in get_available_image_set():
+            # fallback fixme: should do this in a worker...
+            try:
+                p = get_image_path(image_id)
+                thumbnail_cache[image_id] = get_svs_thumbnail(p)
+                thumb_path = thumbnail_cache[image_id]
+            except (ValueError, FileNotFoundError, AssertionError, KeyError) as err:
+                return abort(404, str(err))
+        else:
+            return abort(404, f"{image_id!r} not in available set")
 
     return send_file(
-        io.BytesIO(data),
+        thumb_path,
         mimetype="image/jpeg",
         as_attachment=True,
-        attachment_filename=f"slide_{image_id}.jpg",
     )
 
 
