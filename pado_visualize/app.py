@@ -74,8 +74,17 @@ def register_blueprints(server: Flask) -> None:
 
     for submodule_name in submodule_import_order:
         mod = import_module(f"pado_visualize.{submodule_name}.views")
-        # noinspection PyUnresolvedReferences
-        server.register_blueprint(mod.blueprint)
+        if hasattr(mod, '__blueprints__'):
+            if not mod.__blueprints__:
+                raise ValueError(f"{mod.__name__}.__blueprints__ defined but empty")
+            for blueprint in mod.__blueprints__:
+                server.register_blueprint(blueprint)
+        else:
+            try:
+                # noinspection PyUnresolvedReferences
+                server.register_blueprint(mod.blueprint)
+            except AttributeError:
+                raise ValueError(f"{mod.__name__}.blueprint or .__blueprints__ not defined")
 
 
 def initialize_data(server: Flask) -> None:
