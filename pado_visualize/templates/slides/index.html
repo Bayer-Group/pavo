@@ -1,19 +1,29 @@
 {% extends "base/base.html" %}
 
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides-thumbnails.css') }}">
+{% endblock %}
+
+
 {% block content %}
   <div id="slides-container" class="container">
     <div class="row">
       <div class="col">
         <h1>Images</h1>
-        <ol>
+        <div id="prev-card-container" class="thumbnail-container">
           {% for image_id in image_ids %}
-            <li>
-              <a href="{{ url_for('slides.slides_thumbnail_jpg', image_id=image_id) }}">
-                {{ "/".join(image_id.parts) }}
+            <div class="slide-container">
+              <a href="{{ url_for('slides.slides_openseadragon_viewer', image_id=image_id) }}">
+                <div class="thumbnail-card card">
+                  <img alt="{{ "/".join(image_id.parts) }}"
+                       src="{{ url_for('slides.slides_thumbnail_jpg', image_id=image_id) }}"
+                       class="thumbnail">
+                </div>
               </a>
-            </li>
+            </div>
           {% endfor %}
-        </ol>
+        </div>
       </div>
     </div>
   </div>

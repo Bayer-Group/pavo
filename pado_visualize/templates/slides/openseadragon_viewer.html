@@ -1,10 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>TODO</title>
-</head>
-<body>
+{% extends "base/base.html" %}
 
-</body>
-</html>
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides-openseadragon.css') }}">
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='vendor/openseadragon/css-42-openseadragon-annotorious.min.css') }}">
+{% endblock styles %}
+
+{% block scripts_header %}
+{% endblock scripts_header %}
+
+{% block page_scripts %}
+  <script src="{{ url_for_versioned('static', filename='vendor/openseadragon/40-openseadragon.js') }}"></script>
+  <script src="{{ url_for_versioned('static', filename='vendor/openseadragon/41-openseadragon-svg-overlay.js') }}"></script>
+  <script src="{{ url_for_versioned('static', filename='vendor/openseadragon/42-openseadragon-annotorious.min.js') }}"></script>
+
+  <script type="text/javascript">
+    const SLIDE_URL = "{{ url_for('slides.slide_dzi', image_id=image_id) }}";
+    const SLIDE_ANNOTATIONS = "";
+
+    function ready(fn) {
+      if (document.readyState != 'loading'){
+        fn();
+      } else {
+        document.addEventListener('DOMContentLoaded', fn);
+      }
+    }
+
+    ready(function() {
+      window.osdviewer = new OpenSeadragon({
+          id: "seadragon-container",
+          tileSources: SLIDE_URL,
+          prefixUrl: "{{ url_for('static', filename="vendor/openseadragon/icons/") }}",
+          showNavigator: true,
+          showRotationControl: true,
+          animationTime: 0.5,
+          blendTime: 0.1,
+          constrainDuringPan: true,
+          maxZoomPixelRatio: 2,
+          minZoomLevel: 1,
+          visibilityRatio: 1,
+          zoomPerScroll: 2,
+          timeout: 120000,
+      });
+      window.osdviewer.addHandler("open", function() {
+          // To improve load times, ignore the lowest-resolution Deep Zoom
+          // levels.  This is a hack: we can't configure the minLevel via
+          // OpenSeadragon configuration options when the viewer is created
+          // from DZI XML.
+          window.osdviewer.source.minLevel = 8;
+      });
+      window.osdvieweranno = OpenSeadragon.Annotorious(window.osdviewer);
+      /* anno.loadAnnotations(annotations); */
+
+    });
+
+  </script>
+{% endblock %}
+
+
+{% block content %}
+    <div class="seadragon-container-parent">
+      <div id="seadragon-container" style="position: relative;">
+      </div>
+    </div>
+{% endblock content %}
