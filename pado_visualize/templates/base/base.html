@@ -9,6 +9,9 @@
 
   <link rel="icon" type="image/x-icon" href="{{ url_for_versioned('static', filename='favicon.ico') }}">
 
+  {% block styles_base %}
+    <link rel="stylesheet" href="{{ url_for_versioned('static', filename='vendor/theme/4.5.2/sandstone/bootstrap.min.css') }}">
+  {% endblock styles_base %}
   {% block styles %}{% endblock styles %}
   {% block styles_override %}{% endblock styles_override %}
   {% block scripts_header %}{% endblock scripts_header %}
