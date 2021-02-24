@@ -1,10 +1,14 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
+import json
 import math
+import os
 from collections import defaultdict
 from functools import lru_cache, wraps
 from io import BytesIO
 from pathlib import Path
 from threading import Lock
+from typing import Optional
+from typing import Tuple
 from typing import Union
 from xml.etree.ElementTree import ElementTree, Element, SubElement
 
@@ -114,7 +118,7 @@ def get_svs_tile(filename: PathOrStr, level: int, x: int, y: int) -> bytes:
 
 
 @lru_cache(maxsize=1)
-def get_svs_thumbnail(filename: PathOrStr) -> bytes:
+def get_svs_thumbnail(filename: PathOrStr, *, max_size: Optional[Tuple[int, int]] = None) -> bytes:
     """extract the binary data of a thumbnail from the whole-slide image"""
     series = _get_svs_series(filename, "Thumbnail")
     assert not series.is_pyramidal
@@ -128,6 +132,8 @@ def get_svs_thumbnail(filename: PathOrStr) -> bytes:
 
     with BytesIO() as buffer:
         im = Image.fromarray(arr)
+        if max_size:
+            im.thumbnail(max_size, Image.ANTIALIAS)
         im.save(buffer, format="JPEG")
         return buffer.getvalue()
 
@@ -169,7 +175,7 @@ class TifffileDeepZoomGenerator:
     """Minimal-compute OpenSlide-free Deep Zoom tile generator"""
 
     def __init__(self, svs_filename: PathOrStr):
-        self._fn = Path(svs_filename)
+        self._fn = os.fspath(Path(svs_filename).absolute().resolve())
 
         # Get information from baseline layers
         baseline = _get_svs_series(self._fn, "Baseline")
@@ -269,6 +275,19 @@ class TifffileDeepZoomGenerator:
         with BytesIO() as buffer:
             tree.write(buffer, encoding="UTF-8")
             return buffer.getvalue().decode("UTF-8")
+
+    def serialize(self):
+        json_dict = json.dumps((self.__class__.__name__, vars(self)))
+        return json_dict
+
+    @classmethod
+    def deserialize(cls, serialized):
+        cls_name, inst_dict = json.loads(serialized)
+        assert cls_name == cls.__name__
+        inst_dict['_mapped_levels'] = {int(k): v for k, v in inst_dict['_mapped_levels'].items()}
+        inst = cls.__new__(cls)
+        inst.__dict__ = inst_dict
+        return inst
 
 
 if __name__ == "__main__":

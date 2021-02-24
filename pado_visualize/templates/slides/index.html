@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+  <div id="slides-container" class="container">
+    <div class="row">
+      <div class="col">
+        <h1>Images</h1>
+        <ol>
+          {% for image_id in image_ids %}
+            <li>
+              <a href="{{ url_for('slides.slides_thumbnail_jpg', image_id=image_id) }}">
+                {{ "/".join(image_id.parts) }}
+              </a>
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

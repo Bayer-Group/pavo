@@ -9,11 +9,13 @@ import warnings
 from functools import lru_cache, wraps
 from pathlib import Path
 from typing import Optional, Dict, Literal, List, TYPE_CHECKING
+from typing import Set
 
 import diskcache
 import pandas as pd
 from flask import abort
 from pado.dataset import PadoDataset, PadoDatasetChain
+from pado.images import ImageId
 from pado.metadata import PadoReserved, PadoColumn
 
 if TYPE_CHECKING:
@@ -24,6 +26,7 @@ __all__ = [
     "init_dataset",
     "get_dataset",
     "get_image_map",
+    "get_image_path",
     "get_metadata",
     "get_annotation_map",
     "get_prediction_map",
@@ -50,9 +53,10 @@ def log_access(func):
 
 # data storage
 dataset: Optional[PadoDataset] = None
-image_map: Optional[Dict[str, Optional[Path]]] = None
+image_map: Optional[Dict[ImageId, Optional[Path]]] = None
 results_map: Optional[SlideScore] = None
 pred_anno_map: Optional[SlidePredictionAnnotations] = None
+available_image_set: Optional[Set] = None
 
 # cache_sizes
 LRU_CACHE_MAX_SIZE = 16  # these could be split up, but will do for now
@@ -71,7 +75,7 @@ def init_dataset(
     # NOTE: this should be done using a better cache system
     #   keep this logic here for now to continue developing the POC,
     #   and be able to refactor easily later
-    global dataset, image_map, results_map, pred_anno_map
+    global dataset, image_map, results_map, pred_anno_map, available_image_set
     from pado_visualize.data.prediction_results import SlideScore
     from pado_visualize.data.prediction_results import SlidePredictionAnnotations
 
@@ -101,8 +105,10 @@ def init_dataset(
 
         ds = PadoDatasetChain(*datasets)
         # build image_id:idx map
-        im = {image_id: img.local_path for image_id, img in ds.images.items()}
-        return ds, im
+        im = {image_id: img.local_path for ip in ds.images.maps for image_id, img in ip.items()}
+        #
+        ai = set(image_id for ip in ds.images.maps for (image_id, img) in ip.items() if img.local_path and img.local_path.is_file())
+        return ds, im, ai
 
     # ducktaped prediction scores
     if predictions_csv_file_path is not None:
@@ -117,21 +123,22 @@ def init_dataset(
         pred_anno_map = SlidePredictionAnnotations()
 
     if not persist:
-        dataset, image_map = load_dataset(dataset_paths)
+        dataset, image_map, available_image_set = load_dataset(dataset_paths)
 
     else:
         # create the cache directory
         Path(cache_file).mkdir(mode=0o700, exist_ok=True)
+        x = Path(cache_file).joinpath("pado_dataset")
         # make a key
         key = hashlib.sha256(b":".join(os.fspath(p).encode() for p in dataset_paths)).hexdigest()
 
-        with diskcache.Cache(os.fspath(cache_file)) as store:
+        with diskcache.Cache(os.fspath(x)) as store:
             if key not in store or ignore_cache:
                 _logger.info("loading dataset from disk...")
-                dataset, image_map = store[key] = load_dataset(dataset_paths)
+                dataset, image_map, available_image_set = store[key] = load_dataset(dataset_paths)
             else:
                 _logger.info("loading dataset from cache...")
-                dataset, image_map = store[key]
+                dataset, image_map, available_image_set = store[key]
 
 
 def get_dataset(abort_if_none: bool = True) -> Optional[PadoDataset]:
@@ -159,6 +166,15 @@ def get_pred_anno_map(abort_if_none: bool = True) -> Optional[SlidePredictionAnn
             return abort(500, "missing results")
         _logger.warning("results_map is none but it's being accessed")
     return pred_anno_map
+
+
+def get_available_image_set(abort_if_none: bool = True) -> Optional[Set]:
+    global available_image_set
+    if available_image_set is None:
+        if abort_if_none:
+            return abort(500, "missing results")
+        _logger.warning("available_image_set is none but it's being accessed")
+    return available_image_set
 
 
 def _filter_dict_cache(func):
@@ -238,10 +254,10 @@ def get_metadata(
     df[PadoColumn.FINDING] = df[PadoColumn.FINDING].str.title()
     df.loc[df[PadoColumn.FINDING] == "Unremarkable", PadoColumn.FINDING] = "UNREMARKABLE"
     # df["annotation"] = df[PadoColumn.IMAGE].map(get_annotation_map())
-    amap = collections.defaultdict(lambda: 'false', dict.fromkeys(map("__".join, get_annotation_map()), 'true'))
+    amap = collections.defaultdict(lambda: 'false', dict.fromkeys(map(lambda x: "__".join(x[1:]), get_annotation_map()), 'true'))
     df["annotation"] = df[PadoColumn.IMAGE].map(amap)
     # df["prediction"] = df[PadoColumn.IMAGE].map(get_prediction_map())
-    pmap = collections.defaultdict(lambda: 'false', dict.fromkeys(map("__".join, get_prediction_map()), 'true'))
+    pmap = collections.defaultdict(lambda: 'false', dict.fromkeys(map(lambda x: "__".join(x[1:]), get_prediction_map()), 'true'))
     df["prediction"] = df[PadoColumn.IMAGE].map(pmap)
 
     if filter_dict:
@@ -264,11 +280,26 @@ def get_metadata(
     return df
 
 
-def get_image_map(abort_if_none: bool = True) -> Optional[Dict[str, Optional[Path]]]:
+def get_image_map(abort_if_none: bool = True) -> Optional[Dict[ImageId, Optional[Path]]]:
     global image_map
     if abort_if_none and image_map is None:
         return abort(500, "missing image map")
     return image_map
+
+
+def get_image_path(image_id: ImageId) -> Path:
+    """return the local path to an image"""
+    im = get_image_map()
+    if not im:
+        raise RuntimeError("no image map available")
+    if image_id not in im:
+        raise KeyError(f"image_id '{image_id!r}' not in image_map")
+    path = im[image_id]
+    if not path:
+        raise FileNotFoundError(f"image_id '{image_id!r}' provides no path")
+    elif not path.is_file():
+        raise FileNotFoundError(f"image_id '{image_id!r}' not reachable at {str(path)}")
+    return path
 
 
 def get_dataset_column_values(column, filter_dict=None) -> List[dict]:

@@ -60,7 +60,7 @@ def register_extensions(server: Flask) -> None:
 def register_blueprints(server: Flask) -> None:
     """register all blueprints on the Flask app"""
     submodule_import_order = [
-        'home'
+        'home', 'slides'
     ]
 
     # from pado_visualize.routes import init_routes

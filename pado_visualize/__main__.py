@@ -32,6 +32,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # parser.add_argument("--build-qpzip-cache", action="store_true")
     parser.add_argument("--debug", action="store_const", const=True, help="debug mode")
     parser.add_argument("--cache-force-rebuild", action="store_const", const=True)
+    parser.add_argument("--cache-build-thumbnail", action="store_const", const=True)
     parser.add_argument("--cache-path", type=str, help="cache path for dataset")
     parser.add_argument("--server", type=str, help="server ip or hostname")
     parser.add_argument("--port", type=int, help="override port")
@@ -100,6 +101,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     if settings.current_env.lower() == "development":
         # run development server
         server = create_server(server)
+        if args.cache_build_thumbnail:
+            from pado_visualize.data.caches import populate_thumbnail_cache
+            populate_thumbnail_cache()
+            print("thumbnail cache built. please restart without flag.", file=sys.stderr)
+            return 0
         return server.run(
             host=server.config.SERVER,
             port=server.config.PORT,
