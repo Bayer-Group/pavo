@@ -290,7 +290,7 @@ class TifffileDeepZoomGenerator:
         return inst
 
 
-if __name__ == "__main__":
+def _test_tifffile_timing():
     # build some load stats for a slide
     import random
     import sys
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     else:
         svs_fn = sys.argv[1]
 
-    NUM_SAMPLES = 100
+    num_samples = 100
 
     @contextmanager
     def timer(label: str, samples: int = 1):
@@ -312,7 +312,6 @@ if __name__ == "__main__":
         yield
         avg = (time.time() - t0) / samples
         print(f"{label} took {avg} seconds")
-
 
     with timer("create dz"):
         dz = TifffileDeepZoomGenerator(svs_fn)
@@ -323,8 +322,8 @@ if __name__ == "__main__":
             break
 
         test_idx = range(lvl_size[0] * lvl_size[1])
-        if len(test_idx) > NUM_SAMPLES:
-            test_idx = random.sample(test_idx, NUM_SAMPLES)
+        if len(test_idx) > num_samples:
+            test_idx = random.sample(test_idx, num_samples)
 
         with timer(f"accessing level {test_lvl}", samples=len(test_idx)):
             for flat_idx in test_idx:
@@ -332,3 +331,7 @@ if __name__ == "__main__":
                 dz.get_tile(test_lvl, addr)
 
     print("done.")
+
+
+if __name__ == "__main__":
+    _test_tifffile_timing()
