@@ -18,7 +18,6 @@ channels:
   - sdvillal
   - pytorch
   - conda-forge
-  - defaults
 
 dependencies:
   - python
