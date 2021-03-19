@@ -1,0 +1,46 @@
+{
+  "name": "pado_visualize",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "watch": "parcel pado_visualize/static_src/*.js -d pado_visualize/",
+    "build": "parcel build pado_visualize/static_src/*.js -d pado_visualize/"
+  },
+  "dependencies": {
+    "openseadragon": "^2.4.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-custom-dist-structure": "^1.1.16",
+    "sass": "^1.32.8",
+    "eslint": "^7.22.0",
+    "prettier": "^2.2.1",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-prettier": "^3.3.1"
+  },
+  "customDistStructure": {
+    "config": {
+      "static/css": [
+        ".css",
+        ".css.map"
+      ],
+      "static/js": [
+        ".js",
+        ".js.map"
+      ],
+      "static/images": [
+        ".jpg",
+        ".png"
+      ]
+    },
+    "options": {
+      "development": true
+    }
+  }
+}
