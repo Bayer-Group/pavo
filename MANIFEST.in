@@ -1,4 +1,3 @@
 include pyproject.toml
 
-#
-graft pado_visualize/assets
+graft pado_visualize/static

@@ -7,7 +7,6 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "watch": "parcel watch --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js",
     "build": "parcel build --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js"
   },
   "dependencies": {

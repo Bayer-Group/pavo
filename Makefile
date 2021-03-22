@@ -1,7 +1,7 @@
 # pado_visualize dev helper makefile
 # ----------------------------------
 
-.PHONY: dev watch build
+.PHONY: dev build
 .DEFAULT_GOAL := build
 
 build:
@@ -9,6 +9,3 @@ build:
 
 dev:
 	npm install
-
-watch:
-	npm run watch
