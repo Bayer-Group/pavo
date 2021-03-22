@@ -1,5 +1,7 @@
 
-$fa-font-path: "../webfonts";
+@import "~@fortawesome/fontawesome-free/scss/fontawesome.scss";
+$fa-font-path: "../../../node_modules/@fortawesome/fontawesome-free/webfonts";
+@import "~@fortawesome/fontawesome-free/scss/solid.scss";
 
 /* colors */
 $color-primary-light: #e2aedd;

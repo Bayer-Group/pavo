@@ -7,8 +7,8 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "watch": "parcel watch pado_visualize/static_src/*.js -d pado_visualize/static",
-    "build": "parcel build pado_visualize/static_src/*.js -d pado_visualize/static"
+    "watch": "parcel watch --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js",
+    "build": "parcel build --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js"
   },
   "dependencies": {
     "images": "^3.2.3",
@@ -30,14 +30,6 @@
   "parcel-plugin-structurize": {
     "rules": [
       {
-        "match": "*.{js,js.map}",
-        "folder": "js"
-      },
-      {
-        "match": "*.{css,css.map}",
-        "folder": "css"
-      },
-      {
         "match": "*_{grouphover,hover,pressed,rest}*.png",
         "folder": "images/openseadragon"
       },
@@ -48,6 +40,14 @@
       {
         "match": "fa-*.{eot,svg,ttf,woff,woff2}",
         "folder": "webfonts"
+      },
+      {
+        "match": "*.{js,js.map}",
+        "folder": "js"
+      },
+      {
+        "match": "*.{css,css.map}",
+        "folder": "css"
       }
     ],
     "verbose": true

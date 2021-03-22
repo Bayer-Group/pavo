@@ -1,5 +1,4 @@
 import { documentReady } from "./_common";
-import { staticUrlPrefix } from "./_globals";
 
 import OpenSeadragon from "openseadragon";
 import images from "../../node_modules/openseadragon/build/openseadragon/images/*.png";
@@ -42,7 +41,7 @@ function setupOpenSeadragonViewer(options) {
   })(images);
 
   const defaultOptions = {
-    prefixUrl: staticUrlPrefix,
+    prefixUrl: "",
     navImages: navImages,
     showNavigator: true,
     showRotationControl: true,
