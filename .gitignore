@@ -31,6 +31,9 @@ dist
 .pado_visualize.*cache
 .pado_visualize.*shelve
 
+# static is generated
+pado_visualize/static/**/*
+
 environment.yml
 pado_visualize/_version.py
 *.local.toml
