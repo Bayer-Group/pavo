@@ -39,7 +39,7 @@
       },
       {
         "match": "fa-*.{eot,svg,ttf,woff,woff2}",
-        "folder": "webfonts"
+        "folder": "."
       },
       {
         "match": "*.{js,js.map}",
