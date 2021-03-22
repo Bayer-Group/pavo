@@ -47,12 +47,12 @@
         "folder": "."
       },
       {
-        "match": "*.{js,js.map}",
-        "folder": "js"
-      },
-      {
         "match": "*.{css,css.map}",
         "folder": "css"
+      },
+      {
+        "match": "*.{js,js.map}",
+        "folder": "js"
       }
     ],
     "verbose": true

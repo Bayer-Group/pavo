@@ -1,4 +1,4 @@
-import { documentReady } from "./_common";
+import { documentReady } from "./js/common";
 
 import OpenSeadragon from "openseadragon";
 import images from "../../node_modules/openseadragon/build/openseadragon/images/*.png";
