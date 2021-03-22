@@ -1,7 +1,7 @@
 import { documentReady } from "./_common";
 
 import OpenSeadragon from "openseadragon";
-import images from "./vendor/openseadragon-2.4.2/images/*.png";
+import images from "openseadragon/build/openseadragon/images/*.png";
 
 function setupOpenSeadragonViewer(options) {
   const navImages = (function (imageObj) {

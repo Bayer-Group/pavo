@@ -7,40 +7,45 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "watch": "parcel watch pado_visualize/static_src/*.js -d pado_visualize/",
-    "build": "parcel build pado_visualize/static_src/*.js -d pado_visualize/"
+    "watch": "parcel watch pado_visualize/static_src/*.js -d pado_visualize/static",
+    "build": "parcel build pado_visualize/static_src/*.js -d pado_visualize/static"
   },
   "dependencies": {
+    "images": "^3.2.3",
+    "normalize.css": "^8.0.1",
     "openseadragon": "^2.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",
     "@babel/preset-env": "^7.13.10",
-    "parcel-bundler": "^1.12.4",
-    "parcel-plugin-custom-dist-structure": "^1.1.16",
-    "sass": "^1.32.8",
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "eslint": "^7.22.0",
-    "prettier": "^2.2.1",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-prettier": "^3.3.1"
+    "eslint-plugin-prettier": "^3.3.1",
+    "parcel-bundler": "^1.12.5",
+    "parcel-plugin-structurize": "^2.4.0",
+    "prettier": "^2.2.1",
+    "sass": "^1.32.8"
   },
-  "customDistStructure": {
-    "config": {
-      "static/css": [
-        ".css",
-        ".css.map"
-      ],
-      "static/js": [
-        ".js",
-        ".js.map"
-      ],
-      "static/images": [
-        ".jpg",
-        ".png"
-      ]
-    },
-    "options": {
-      "development": true
-    }
+  "parcel-plugin-structurize": {
+    "rules": [
+      {
+        "match": "*.{js,js.map}",
+        "folder": "js"
+      },
+      {
+        "match": "*.{css,css.map}",
+        "folder": "css"
+      },
+      {
+        "match": "*.{jpg,png}",
+        "folder": "images"
+      },
+      {
+        "match": "fa-*.{eot,svg,ttf,woff,woff2}",
+        "folder": "webfonts"
+      }
+    ],
+    "verbose": true
   }
 }
