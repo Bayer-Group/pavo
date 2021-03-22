@@ -12,8 +12,7 @@
   },
   "dependencies": {
     "images": "^3.2.3",
-    "normalize.css": "^8.0.1",
-    "openseadragon": "^2.4.2"
+    "normalize.css": "^8.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",
@@ -22,6 +21,7 @@
     "eslint": "^7.22.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",
+    "openseadragon": "^2.4.2",
     "parcel-bundler": "^1.12.5",
     "parcel-plugin-structurize": "^2.4.0",
     "prettier": "^2.2.1",
@@ -36,6 +36,10 @@
       {
         "match": "*.{css,css.map}",
         "folder": "css"
+      },
+      {
+        "match": "*_{grouphover,hover,pressed,rest}*.png",
+        "folder": "images/openseadragon"
       },
       {
         "match": "*.{jpg,png}",

@@ -1,7 +1,8 @@
 import { documentReady } from "./_common";
+import { staticUrlPrefix } from "./_globals";
 
 import OpenSeadragon from "openseadragon";
-import images from "openseadragon/build/openseadragon/images/*.png";
+import images from "../../node_modules/openseadragon/build/openseadragon/images/*.png";
 
 function setupOpenSeadragonViewer(options) {
   const navImages = (function (imageObj) {
@@ -41,7 +42,7 @@ function setupOpenSeadragonViewer(options) {
   })(images);
 
   const defaultOptions = {
-    prefixUrl: "",
+    prefixUrl: staticUrlPrefix,
     navImages: navImages,
     showNavigator: true,
     showRotationControl: true,
