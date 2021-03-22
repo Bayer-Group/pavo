@@ -1,9 +1,9 @@
 from __future__ import annotations
-import io
+
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from flask import Blueprint, send_file
-from flask import session
 from flask import render_template
 from flask import abort
 from flask import make_response
@@ -11,7 +11,7 @@ from flask import make_response
 from pado_visualize.data.caches import thumbnail_cache
 from pado_visualize.data.dataset import get_available_image_set
 from pado_visualize.data.dataset import get_image_path
-from pado_visualize.data.slides import TifffileDeepZoomGenerator, get_svs_thumbnail
+from pado_visualize.data.slides import DZG, get_svs_thumbnail
 
 if TYPE_CHECKING:
     from pado.images import ImageId
@@ -22,16 +22,15 @@ blueprint = Blueprint('slides', __name__, url_prefix='/slides')
 
 
 @blueprint.route("/")
-def slides_overview():
+def index():
     available_images = get_available_image_set()
     return render_template("slides/index.html", image_ids=sorted(available_images))
 
 
 @blueprint.route("/thumbnail/<image_id:image_id>_thumbnail.jpg")
 def slides_thumbnail_jpg(image_id: ImageId):
-    try:
-        thumb_path: str = thumbnail_cache[image_id]
-    except KeyError:
+    thumb_path: str = thumbnail_cache.get(image_id, default=None)
+    if thumb_path is None:
         if image_id in get_available_image_set():
             # fallback fixme: should do this in a worker...
             try:
@@ -59,17 +58,11 @@ def slides_openseadragon_viewer(image_id: ImageId):
 
 # --- pyramidal tile server -------------------------------------------
 
-def _slide_get_deep_zoom_from_session(image_id: ImageId) -> TifffileDeepZoomGenerator:
+@lru_cache(maxsize=16)
+def _slide_get_deep_zoom_from_session(image_id: ImageId) -> DZG:
     """retrieve the deep zoom generator from the user session"""
-    try:
-        _json_dz = session[image_id.to_str()]
-    except KeyError:
-        # try to get the image
-        _image_path = get_image_path(image_id)
-        dz = TifffileDeepZoomGenerator(_image_path)
-        session[image_id.to_str()] = dz.serialize()
-    else:
-        dz = TifffileDeepZoomGenerator.deserialize(_json_dz)
+    _image_path = get_image_path(image_id)
+    dz = DZG(_image_path)
     return dz
 
 
@@ -91,7 +84,7 @@ def slide_tile(image_id, level, col, row):
     except (KeyError, FileNotFoundError) as err:
         return abort(404, str(err))
     try:
-        tile = dz.get_tile(level, (col, row))
+        tile = dz.get_tile(level, col, row)
     except (KeyError, IndexError):
         # Unknown slug
         return abort(404, "tile not found")

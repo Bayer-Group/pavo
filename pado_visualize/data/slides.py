@@ -1,7 +1,8 @@
 """Emulate OpenSlide's Deep Zoom image generator with tifffile"""
+import base64
+import copy
 import json
 import math
-import os
 from collections import defaultdict
 from functools import lru_cache, wraps
 from io import BytesIO
@@ -10,11 +11,11 @@ from threading import Lock
 from typing import Optional
 from typing import Tuple
 from typing import Union
-from xml.etree.ElementTree import ElementTree, Element, SubElement
 
 import numpy as np
 from PIL import Image, ImageFile
 from tifffile import TiffFile, TiffPage, TiffPageSeries, TIFF
+from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 from palo.tissue_filter import apply_image_filters
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -171,113 +172,13 @@ def get_svs_thumbnail_filtered(filename: PathOrStr) -> bytes:
         return buffer.getvalue()
 
 
-class TifffileDeepZoomGenerator:
-    """Minimal-compute OpenSlide-free Deep Zoom tile generator"""
-
-    def __init__(self, svs_filename: PathOrStr):
-        self._fn = os.fspath(Path(svs_filename).absolute().resolve())
-
-        # Get information from baseline layers
-        baseline = _get_svs_series(self._fn, "Baseline")
-        assert baseline.keyframe.tilewidth == baseline.keyframe.tilelength
-        self._tile_size = baseline.keyframe.tilewidth
-        self._im_levels = tuple(lvl.shape[1::-1] for lvl in baseline.levels)
-
-        # generate the levels for deep zoom
-        dz_levels = dz_lvl, = [self._im_levels[0]]
-        while dz_lvl[0] > 1 or dz_lvl[1] > 1:
-            dz_lvl = tuple(max(1, int(math.ceil(z / 2))) for z in dz_lvl)
-            dz_levels.append(dz_lvl)
-        self._dz_levels = tuple(reversed(dz_levels))
-
-        self._mapped_levels = {}
-        for im_idx, im_lvl in enumerate(self._im_levels):
-            for dz_idx, dz_lvl in enumerate(self._dz_levels):
-                if abs(im_lvl[0] - dz_lvl[0]) <= 1 and abs(im_lvl[1] - dz_lvl[1]) <= 1:
-                    self._mapped_levels[dz_idx] = im_idx
-
-    @property
-    def level_size(self):
-        """return a dictionary of tile index sizes"""
-        return {
-            idx: tuple(int(math.ceil(z / self._tile_size)) for z in lvl)
-            for idx, lvl in enumerate(self._dz_levels)
-        }
-
-    def get_tile_pil(self, level, address) -> Image:
-        data = self.get_tile(level, address)
-        with BytesIO(data) as fp:
-            return Image.open(fp)
-
-    def get_tile(self, level, address) -> bytes:
-        """return the jpeg tile as bytes"""
-        x, y = address
-
-        if level in self._mapped_levels:
-            # there's a direct mapping to a svs tiled level
-            im_lvl = self._mapped_levels[level]
-            return get_svs_tile(self._fn, level=im_lvl, x=x, y=y)
-
-        elif 8 <= level <= max(self._mapped_levels):
-            # we need to compute new tiles from lower levels
-            dst = Image.new('RGB', (2 * self._tile_size, 2 * self._tile_size))
-
-            out_width = out_height = 0
-            for ix, iy in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                address_1 = 2 * x + ix, 2 * y + iy
-
-                try:
-                    # the recursive call is only really a problem for the small (low magnification)
-                    # deep zoom tile levels, the bigger ones (high magnification) hit after one recursion
-                    data = self.get_tile(level + 1, address_1)
-                except IndexError:
-                    continue
-
-                with BytesIO(data) as buffer:
-                    im = Image.open(buffer)
-                    if ix == 0:
-                        out_height += im.height
-                    if iy == 0:
-                        out_width += im.width
-                    dst.paste(im, (ix * self._tile_size, iy * self._tile_size))
-
-            if out_width == 0 or out_height == 0:
-                raise IndexError(f"tile index ({x}, {y}) at INTERMEDIATE level={level} out of bounds")
-
-            elif (out_width, out_height) != dst.size:
-                dst = dst.crop((0, 0, out_width, out_height))
-                thumb_size = (max(1, out_width // 2), max(1, out_height // 2))
-
-            else:
-                thumb_size = (self._tile_size, self._tile_size)
-
-            dst.thumbnail(thumb_size, Image.ANTIALIAS)
-            with BytesIO() as buffer:
-                dst.save(buffer, format="JPEG")
-                return buffer.getvalue()
-
-        else:
-            raise SlideLevelError("requested level invalid")
-
-    def get_dzi(self):
-        """return the dzi XML metadata"""
-        image = Element(
-            "Image",
-            TileSize=str(self._tile_size),
-            Overlap="0",
-            Format="jpeg",
-            xmlns="http://schemas.microsoft.com/deepzoom/2008"
-        )
-        width, height = self._im_levels[0]
-        SubElement(image, "Size", Width=str(width), Height=str(height))
-        tree = ElementTree(element=image)
-
-        with BytesIO() as buffer:
-            tree.write(buffer, encoding="UTF-8")
-            return buffer.getvalue().decode("UTF-8")
+class DZG(MinimalComputeAperioDZGenerator):
 
     def serialize(self):
-        json_dict = json.dumps((self.__class__.__name__, vars(self)))
+        data = copy.deepcopy(vars(self))
+        for page_info in data['_page_info'].values():
+            page_info['jpeg_header'] = base64.b64encode(page_info['jpeg_header']).decode()
+        json_dict = json.dumps((self.__class__.__name__, data))
         return json_dict
 
     @classmethod
@@ -285,6 +186,9 @@ class TifffileDeepZoomGenerator:
         cls_name, inst_dict = json.loads(serialized)
         assert cls_name == cls.__name__
         inst_dict['_mapped_levels'] = {int(k): v for k, v in inst_dict['_mapped_levels'].items()}
+        inst_dict['_page_info'] = {int(k): v for k, v in inst_dict['_page_info'].items()}
+        for page_info in inst_dict['_page_info'].values():
+            page_info['jpeg_header'] = base64.b64decode(page_info['jpeg_header'].encode())
         inst = cls.__new__(cls)
         inst.__dict__ = inst_dict
         return inst
@@ -314,7 +218,7 @@ def _test_tifffile_timing():
         print(f"{label} took {avg} seconds")
 
     with timer("create dz"):
-        dz = TifffileDeepZoomGenerator(svs_fn)
+        dz = DZG(svs_fn)
 
     for test_lvl, lvl_size in sorted(dz.level_size.items(), key=itemgetter(0), reverse=True):
         if test_lvl < 8:

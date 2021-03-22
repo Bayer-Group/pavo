@@ -3,7 +3,7 @@ import io
 import logging
 import os
 import warnings
-from collections import Mapping
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Dict
 from typing import Iterator
