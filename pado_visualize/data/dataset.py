@@ -109,7 +109,7 @@ def init_dataset(
         if isinstance(ds.images, collections.ChainMap):
             imaps = ds.images.maps
         else:
-            imaps = ds.images
+            imaps = [ds.images]
         im = {image_id: img.local_path for ip in imaps for image_id, img in ip.items()}
         #
         ai = set(image_id for ip in imaps for (image_id, img) in ip.items() if img.local_path and img.local_path.is_file())
