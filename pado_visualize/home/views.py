@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask import render_template
 
 # view blueprint for home endpoints
-blueprint = Blueprint('home', __name__, url_prefix='/')
+blueprint = Blueprint('home', __name__)
 
 
 @blueprint.route("/")

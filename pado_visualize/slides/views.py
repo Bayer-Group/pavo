@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 # view blueprint for slide endpoints
-blueprint = Blueprint('slides', __name__, url_prefix='/slides')
+blueprint = Blueprint('slides', __name__)
 
 
 @blueprint.route("/")

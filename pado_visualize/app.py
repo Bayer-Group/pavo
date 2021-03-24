@@ -64,27 +64,24 @@ def register_extensions(server: Flask) -> None:
 
 def register_blueprints(server: Flask) -> None:
     """register all blueprints on the Flask app"""
-    submodule_import_order = [
-        'home', 'slides'
-    ]
+    from pado_visualize.home.views import blueprint as home_blueprint
+    from pado_visualize.slides.views import blueprint as slides_blueprint
 
-    # from pado_visualize.routes import init_routes
-    # register all routes
-    # init_routes()
+    server.register_blueprint(home_blueprint, url_prefix="/")
+    server.register_blueprint(slides_blueprint, url_prefix="/slides")
 
-    for submodule_name in submodule_import_order:
-        mod = import_module(f"pado_visualize.{submodule_name}.views")
-        if hasattr(mod, '__blueprints__'):
-            if not mod.__blueprints__:
-                raise ValueError(f"{mod.__name__}.__blueprints__ defined but empty")
-            for blueprint in mod.__blueprints__:
-                server.register_blueprint(blueprint)
+    if server.config.OAUTH_PROVIDER:
+        if server.config.OAUTH_PROVIDER == "azure":
+            from flask_dance.contrib.azure import make_azure_blueprint
+            blueprint = make_azure_blueprint(
+                client_id=server.config.OAUTH_AZURE_CLIENT_ID,
+                client_secret=server.config.OAUTH_AZURE_CLIENT_SECRET,
+                scope=server.config.OAUTH_AZURE_SCOPE,
+                tenant=server.config.OAUTH_AZURE_TENANT_ID,
+            )
         else:
-            try:
-                # noinspection PyUnresolvedReferences
-                server.register_blueprint(mod.blueprint)
-            except AttributeError:
-                raise ValueError(f"{mod.__name__}.blueprint or .__blueprints__ not defined")
+            raise ValueError(f"unsupported oauth provider {server.config.OAUTH_PROVIDER!r}")
+        server.register_blueprint(blueprint, url_prefix="/")
 
 
 def initialize_data(server: Flask) -> None:
