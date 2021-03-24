@@ -6,6 +6,7 @@ from flask_dance.contrib.azure import azure
 
 
 def login_required(endpoint):
+    @functools.wraps(endpoint)
     def _endpoint(*args, **kwargs):
         if current_app.config.OAUTH == "azure":
             if not azure.authorized:
