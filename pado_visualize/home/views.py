@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint
 from flask import render_template
 
@@ -13,3 +15,8 @@ blueprint = Blueprint('home', __name__)
 @login_required
 def index():
     return render_template("home/index.html", page_title="Home")
+
+
+@blueprint.route("/health")
+def health():
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
