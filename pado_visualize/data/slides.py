@@ -2,7 +2,6 @@
 import base64
 import copy
 import json
-import math
 from collections import defaultdict
 from functools import lru_cache, wraps
 from io import BytesIO
@@ -12,11 +11,9 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-import numpy as np
 from PIL import Image, ImageFile
 from tifffile import TiffFile, TiffPage, TiffPageSeries, TIFF
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
-from palo.tissue_filter import apply_image_filters
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 PathOrStr = Union[Path, str]
@@ -135,39 +132,6 @@ def get_svs_thumbnail(filename: PathOrStr, *, max_size: Optional[Tuple[int, int]
         im = Image.fromarray(arr)
         if max_size:
             im.thumbnail(max_size, Image.ANTIALIAS)
-        im.save(buffer, format="JPEG")
-        return buffer.getvalue()
-
-
-@lru_cache(maxsize=1)
-def get_svs_thumbnail_filtered(filename: PathOrStr) -> bytes:
-    """extract the binary data of a thumbnail from the whole-slide image"""
-    thumbnail_series = _get_svs_series(filename, "Thumbnail")
-    baseline_series = _get_svs_series(filename, "Thumbnail")
-    assert not thumbnail_series.is_pyramidal
-
-    # this series should have only one page
-    page: TiffPage
-    page, = thumbnail_series.pages
-
-    org_h, org_w, _ = baseline_series.shape
-    scale_factor = 32  # fixme: expose
-    new_w = math.floor(org_w / scale_factor)
-    new_h = math.floor(org_h / scale_factor)
-
-    # get the thumbnail as array
-    arr = page.asarray(maxworkers=1)
-    im = Image.fromarray(arr).resize((new_w, new_h), Image.BILINEAR)
-    np_img = np.array(im)
-
-    # horribly slow...
-    # todo: this is no place for a ~500ms conversion...
-    filtered_np_img = apply_image_filters(
-        np_img, display=False, remove_red_pen=False
-    )
-
-    with BytesIO() as buffer:
-        im = Image.fromarray(filtered_np_img)
         im.save(buffer, format="JPEG")
         return buffer.getvalue()
 
