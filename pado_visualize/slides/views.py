@@ -8,6 +8,7 @@ from flask import render_template
 from flask import abort
 from flask import make_response
 
+from pado_visualize._auth import login_required
 from pado_visualize.data.caches import thumbnail_cache
 from pado_visualize.data.dataset import get_available_image_set
 from pado_visualize.data.dataset import get_image_path
@@ -22,12 +23,14 @@ blueprint = Blueprint('slides', __name__)
 
 
 @blueprint.route("/")
+@login_required
 def index():
     available_images = get_available_image_set()
     return render_template("slides/index.html", image_ids=sorted(available_images))
 
 
 @blueprint.route("/thumbnail/<image_id:image_id>_thumbnail.jpg")
+@login_required
 def slides_thumbnail_jpg(image_id: ImageId):
     thumb_path: str = thumbnail_cache.get(image_id, default=None)
     if thumb_path is None:
@@ -52,6 +55,7 @@ def slides_thumbnail_jpg(image_id: ImageId):
 # --- viewer endpoints ------------------------------------------------
 
 @blueprint.route("/osd/<image_id:image_id>")
+@login_required
 def slides_openseadragon_viewer(image_id: ImageId):
     return render_template("slides/openseadragon_viewer.html", image_id=image_id)
 
@@ -67,6 +71,7 @@ def _slide_get_deep_zoom_from_session(image_id: ImageId) -> DZG:
 
 
 @blueprint.route('/osd/<image_id:image_id>/image.dzi')
+@login_required
 def slide_dzi(image_id: ImageId):
     try:
         dz = _slide_get_deep_zoom_from_session(image_id)
@@ -78,6 +83,7 @@ def slide_dzi(image_id: ImageId):
 
 
 @blueprint.route('/osd/<image_id:image_id>/image_files/<int:level>/<int:col>_<int:row>.jpeg')
+@login_required
 def slide_tile(image_id, level, col, row):
     try:
         dz = _slide_get_deep_zoom_from_session(image_id)
