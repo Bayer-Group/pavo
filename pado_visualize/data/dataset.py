@@ -102,7 +102,7 @@ def init_dataset(
 
         if not datasets:
             _logger.error("no datasets loaded")
-            return None, None
+            return None, None, None
 
         ds = PadoDatasetChain(*datasets)
         # build image_id:idx map
