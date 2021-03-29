@@ -78,6 +78,7 @@ def register_blueprints(server: Flask) -> None:
                 client_secret=server.config.OAUTH_AZURE_CLIENT_SECRET,
                 scope=server.config.OAUTH_AZURE_SCOPE,
                 tenant=server.config.OAUTH_AZURE_TENANT_ID,
+                redirect_to='home.index',
             )
         else:
             raise ValueError(f"unsupported oauth provider {server.config.OAUTH_PROVIDER!r}")
