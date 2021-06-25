@@ -23,10 +23,6 @@ dependencies:
   - python
   - pip
 
-  - dash
-  - dash-auth
-  - dash-bootstrap-components
-  - dash-table
   - diskcache
   - flask-caching
   - werkzeug
@@ -41,6 +37,8 @@ dependencies:
   - tqdm
 
   - pip:
+    - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado
+    - git+https://github.com/bayer-science-for-a-better-life/tiffslide.git#egg=tiffslide
     - dynaconf
     - Flask-JSGlue
     - simplejpeg

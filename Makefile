@@ -25,7 +25,7 @@ js_success_file := pado_visualize/static/.done
 
 environment.docker.yml: environment.devenv.yml
 	@echo "generating environment.docker.yml"
-	conda devenv -f $< --env PADO_VISUALIZE_DEVEL=False --print > $@
+	conda devenv -f $< --env PADO_VISUALIZE_DEVEL= --print > $@
 
 
 ${js_success_file}: $(js_files)
@@ -34,11 +34,13 @@ ${js_success_file}: $(js_files)
 	touch ${js_success_file}
 
 
+
 .image_id: export PKG_VERSION=$(shell python setup.py --version)
-.image_id: export DOCKER_TAG="${DOCKER_IMAGE_TAG}:$(shell python setup.py --version | sed "s/\+/-/")"
-.image_id: environment.docker.yml $(python_files) ${js_success_file}
+.image_id: export DOCKER_TAG=${DOCKER_IMAGE_TAG}:$(shell python setup.py --version | sed "s/\+/-/")
+.image_id: environment.docker.yml $(python_files) ${js_success_file} Dockerfile
 	@echo "building docker image"
-	docker build --build-arg SETUPTOOLS_SCM_PRETEND_VERSION=${PKG_VERSION} --tag="${DOCKER_TAG}" .
+	@test $${SSH_AUTH_SOCK?Please start ssh-agent and ssh-add your keys for GitHub}
+	DOCKER_BUILDKIT=1 docker build --ssh default --progress=plain --build-arg ENV_CREATION_DATE=$(shell date +%s) --build-arg SETUPTOOLS_SCM_PRETEND_VERSION=${PKG_VERSION} --tag="${DOCKER_TAG}" .
 	echo "${DOCKER_TAG}" > .image_id
 
 
@@ -51,3 +53,8 @@ run: .image_id
 	@echo "running docker"
 	docker run "$(shell cat .image_id)"
 .PHONY: run
+
+debug: .image_id
+	@echo "debugging docker"
+	docker run -t -i --rm --entrypoint /bin/bash "$(shell cat .image_id)"
+.PHONY: debug
