@@ -26,6 +26,9 @@ _scratch/
 **/__pycache__
 dist
 
+.git/
+Dockerfile
+
 # pado_visualize
 *.shelve.db
 .pado_visualize.*cache
@@ -34,9 +37,6 @@ dist
 # static is generated
 pado_visualize/static/**/*
 
-.image_id
-environment.yml
-environment.docker.yml
 pado_visualize/_version.py
 *.local.toml
 
