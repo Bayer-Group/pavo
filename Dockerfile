@@ -10,7 +10,7 @@ RUN micromamba install -y -n $ENV_NAME -c conda-forge git openssh \
 RUN mkdir -p -m 0700 /root/.ssh \
     && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
-ARG ENV_CREATION_DATE=not-set
+ARG ENV_HASH=not-set
 
 # create the environment
 COPY environment.docker.yml /root/environment.docker.yml

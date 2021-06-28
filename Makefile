@@ -34,13 +34,17 @@ ${js_success_file}: $(js_files)
 	touch ${js_success_file}
 
 
+.env_hash: environment.docker.yml setup.cfg setup.py pyproject.toml
+	@echo "creating a hash for the python dependencies"
+	cat $^ | md5sum | cut -d ' ' -f 1 > $@
 
 .image_id: export PKG_VERSION=$(shell python setup.py --version)
 .image_id: export DOCKER_TAG=${DOCKER_IMAGE_TAG}:$(shell python setup.py --version | sed "s/\+/-/")
-.image_id: environment.docker.yml $(python_files) ${js_success_file} Dockerfile
+.image_id: $(python_files) ${js_success_file} Dockerfile .env_hash
 	@echo "building docker image"
 	@test $${SSH_AUTH_SOCK?Please start ssh-agent and ssh-add your keys for GitHub}
-	DOCKER_BUILDKIT=1 docker build --ssh default --progress=plain --build-arg ENV_CREATION_DATE=$(shell date +%s) --build-arg SETUPTOOLS_SCM_PRETEND_VERSION=${PKG_VERSION} --tag="${DOCKER_TAG}" .
+	@echo "using SSH_AUTH_SOCK=$${SSH_AUTH_SOCK}"
+	DOCKER_BUILDKIT=1 docker build --ssh default --progress=plain --build-arg ENV_HASH=$(shell cat .env_hash) --build-arg SETUPTOOLS_SCM_PRETEND_VERSION=${PKG_VERSION} --tag="${DOCKER_TAG}" .
 	echo "${DOCKER_TAG}" > .image_id
 
 
