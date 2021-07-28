@@ -35,9 +35,6 @@ Dockerfile
 .pado_visualize.*cache
 .pado_visualize.*shelve
 
-# static is generated
-pado_visualize/static/**/*
-
 pado_visualize/_version.py
 *.local.toml
 

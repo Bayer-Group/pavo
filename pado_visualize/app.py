@@ -25,7 +25,6 @@ def create_plain_server() -> Flask:
     global _server
     if _server is None:
         base_pth = Path(__file__).parent  # fixme: should use importlib resources
-        print(">>>", base_pth)
         _server = Flask(
             __name__,
             static_folder=os.fspath(base_pth.joinpath("static")),
