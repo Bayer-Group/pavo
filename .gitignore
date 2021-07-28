@@ -25,6 +25,7 @@ _scratch/
 **/*.egg-info
 **/__pycache__
 dist
+build
 
 # pado_visualize
 *.shelve.db
