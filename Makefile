@@ -40,7 +40,7 @@ ${js_success_file}: $(js_files)
 
 .image_id: export PKG_VERSION=$(shell python setup.py --version)
 .image_id: export DOCKER_TAG=${DOCKER_IMAGE_TAG}:$(shell python setup.py --version | sed "s/\+/-/")
-.image_id: $(python_files) ${js_success_file} Dockerfile .env_hash
+.image_id: $(python_files) ${js_success_file} Dockerfile .env_hash .pado_visualize.toml
 	@echo "building docker image"
 	@test $${SSH_AUTH_SOCK?Please start ssh-agent and ssh-add your keys for GitHub}
 	@echo "using SSH_AUTH_SOCK=$${SSH_AUTH_SOCK}"
@@ -55,7 +55,7 @@ docker: .image_id
 
 run: .image_id
 	@echo "running docker"
-	docker run "$(shell cat .image_id)"
+	docker run -p 8080:8080 "$(shell cat .image_id)"
 .PHONY: run
 
 debug: .image_id

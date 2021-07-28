@@ -9,6 +9,7 @@ CACHE_FORCE_REBUILD = false
 REQUIRE_AUTH = true
 DATASET_PATHS = []
 
+OAUTH_PROVIDER = false
 
 [development]
 DEBUG = true

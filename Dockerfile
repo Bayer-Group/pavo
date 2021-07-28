@@ -25,4 +25,4 @@ COPY . /app/src
 RUN pip install /app/src
 COPY .pado_visualize.toml /app
 
-CMD python -m pado_visualize
+CMD python -m pado_visualize --debug

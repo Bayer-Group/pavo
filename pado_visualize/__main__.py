@@ -1,6 +1,7 @@
 import argparse
 import sys
 import textwrap
+import warnings
 from typing import List, Optional
 
 from pado_visualize.app import create_server, create_plain_server
@@ -95,8 +96,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     #    return 0
 
     if not settings.DATASET_PATHS:
-        print("no DATASET_PATHS specified! (set via cmdline in dev or file in prod)", file=sys.stderr)
-        return -1
+        warnings.warn("no DATASET_PATHS specified! (set via cmdline in dev or file in prod)")
 
     if settings.current_env.lower() == "development":
         # run development server

@@ -85,7 +85,7 @@ def register_blueprints(server: Flask) -> None:
         server.register_blueprint(blueprint, url_prefix="/")
 
 
-def initialize_data(server: Flask) -> None:
+def initialize_data(server: Flask, *, warm_caches: bool = False) -> None:
     """initialize the dataset"""
     from pado_visualize.data.dataset import (
         init_dataset,
@@ -97,7 +97,7 @@ def initialize_data(server: Flask) -> None:
 
     # dataset
     init_dataset(
-        dataset_paths=list(map(Path, server.config.DATASET_PATHS)),
+        dataset_paths=list(map(Path, server.config.DATASET_PATHS or [])),
         persist=True,
         cache_file=server.config.CACHE_PATH,
         ignore_cache=server.config.CACHE_FORCE_REBUILD,
@@ -113,12 +113,13 @@ def initialize_data(server: Flask) -> None:
     initialize_caches(server.config.CACHE_PATH)
 
     # warm caches
-    server.logger.info("warming caches...")
-    get_dataset()
-    get_image_map()
-    get_metadata(filter_dict={})
-    get_annotation_map()
-    server.logger.info("cashes are lukewarm.")
+    if warm_caches:
+        server.logger.info("warming caches...")
+        get_dataset()
+        get_image_map()
+        get_metadata(filter_dict={})
+        get_annotation_map()
+        server.logger.info("cashes are lukewarm.")
 
 
 def create_server(configured_server: Optional[Flask] = None) -> Flask:

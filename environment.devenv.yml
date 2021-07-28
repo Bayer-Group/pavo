@@ -24,7 +24,9 @@ dependencies:
   - pip
 
   - diskcache
+  - dynaconf
   - flask-caching
+  - flask-dance
   - werkzeug
   - pyopenssl
 
@@ -38,8 +40,7 @@ dependencies:
 
   - pip:
     - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado
-    - git+https://github.com/bayer-science-for-a-better-life/tiffslide.git#egg=tiffslide
-    - dynaconf
     - Flask-JSGlue
+    - tiffslide
     - simplejpeg
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
