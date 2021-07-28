@@ -25,4 +25,6 @@ COPY . /app/src
 RUN pip install /app/src
 COPY .pado_visualize.toml /app
 
-CMD python -m pado_visualize --debug
+EXPOSE 8080
+
+CMD python -m pado_visualize --server 0.0.0.0 --debug

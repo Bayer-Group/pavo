@@ -25,7 +25,7 @@ blueprint = Blueprint('slides', __name__)
 @blueprint.route("/")
 @login_required
 def index():
-    available_images = get_available_image_set()
+    available_images = get_available_image_set(abort_if_none=False) or []
     return render_template("slides/index.html", image_ids=sorted(available_images))
 
 

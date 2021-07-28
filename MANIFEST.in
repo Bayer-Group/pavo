@@ -1,3 +1,4 @@
 include pyproject.toml
 
 graft pado_visualize/static
+graft pado_visualize/templates

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from importlib import import_module
 from logging.config import dictConfig
@@ -23,7 +24,14 @@ def create_plain_server() -> Flask:
     """
     global _server
     if _server is None:
-        _server = Flask(__name__, static_folder='static', static_url_path='/static')
+        base_pth = Path(__file__).parent  # fixme: should use importlib resources
+        print(">>>", base_pth)
+        _server = Flask(
+            __name__,
+            static_folder=os.fspath(base_pth.joinpath("static")),
+            static_url_path='/static',
+            template_folder=os.fspath(base_pth.joinpath("templates")),
+        )
     return _server
 
 

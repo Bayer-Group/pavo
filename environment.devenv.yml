@@ -43,4 +43,12 @@ dependencies:
     - Flask-JSGlue
     - tiffslide
     - simplejpeg
+    # old deps need to get rid of them
+
+    - dash
+    - dash-auth
+    - dash-bootstrap-components
+    - dash-table
+    - plotly
+
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
