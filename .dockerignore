@@ -1,42 +1,29 @@
-coverage/
-dist/*
-!dist/index.html
-node_modules/
-*.log
+.git/
+Dockerfile
+
+# IDE
+.idea/
 
 # OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# dotenv environment variable files
-.env*
-.cache/
-
-# PyCharm
-.idea/
-_scratch/
 
 # python module
 **/*.egg-info
 **/__pycache__
 dist
 build
+coverage
+node_modules/
+*.log
 
-.git/
-Dockerfile
+# docker
+.image_id
+environment.yml
+environment.docker.yml
 
-# pado_visualize
-*.shelve.db
-.pado_visualize.*cache
-.pado_visualize.*shelve
-
-pado_visualize/_version.py
-*.local.toml
-
-# secrets
+# pado_visualize config
+.pado_visualize.local.toml
+.pado_visualize.secrets.toml
 *.secrets.toml
+.env*
+.cache/

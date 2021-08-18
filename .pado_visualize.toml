@@ -3,8 +3,13 @@ DEBUG = true
 SERVER = "127.0.0.1"
 PORT = 8080
 
+CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
+CELERY_BROKER_URL = "redis://localhost:6379/1"
+
 CACHE_PATH = "/tmp/pado_visualize_cache"
 CACHE_FORCE_REBUILD = false
+CACHE_TYPE = "SimpleCache"
+CACHE_DEFAULT_TIMEOUT = 300
 
 REQUIRE_AUTH = true
 DATASET_PATHS = []

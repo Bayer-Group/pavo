@@ -34,6 +34,10 @@ ${js_success_file}: $(js_files)
 	touch ${js_success_file}
 
 
+js: ${js_success_file}
+	@echo "building js"
+.PHONY: js
+
 .env_hash: environment.docker.yml setup.cfg setup.py pyproject.toml
 	@echo "creating a hash for the python dependencies"
 	cat $^ | md5sum | cut -d ' ' -f 1 > $@

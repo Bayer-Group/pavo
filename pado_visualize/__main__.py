@@ -1,119 +1,107 @@
+from __future__ import annotations
+
 import argparse
+import os
+import os.path
 import sys
-import textwrap
 import warnings
-from typing import List, Optional
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
 
-from pado_visualize.app import create_server, create_plain_server
+from flask import Flask
+
+from pado_visualize.app import create_app
 from pado_visualize.config import initialize_config
+from pado_visualize import __version__
+
+if TYPE_CHECKING:
+    from dynaconf import LazySettings
 
 
-def _print_config(settings):
+def print_config(settings: LazySettings) -> None:
     """print the current app config to console"""
     from dynaconf.utils import files as _files
 
     # note: SEARCHTREE is updated after configure
     searchtree: List[str] = getattr(_files, 'SEARCHTREE', [])
-    print("### SEARCHTREE ###")
+
+    settings_files = []
     for location in searchtree:
-        print(f"  {location}")
-    print(f"\n### CONFIGURATION using env '{settings.current_env}' ###")
-    for key, value in settings.as_dict().items():
-        print(f"  {key} = {repr(value)}")
+        files = [
+            file
+            for file in settings.settings_file
+            if os.path.isfile(os.path.join(location, file))
+        ]
+        settings_files.append((location, files))
+
+    output = [
+        "### SEARCHTREE ###",
+        "\n".join(f"{'*' if files else ' '} {loc} {','.join(files)}" for loc, files in settings_files),
+        "",
+        f"### CONFIGURATION using env '{settings.current_env}' ###",
+        "\n".join(f"  {k} = {v!r}" for k, v in settings.as_dict().items()),
+    ]
+    print("\n".join(output))
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    # parse commandline
-    # TODO: I need to rework this and make it more intuitive...
-    #   right now this is just to enable basic cli override support
     parser = argparse.ArgumentParser()
     parser.add_argument("--production", action="store_true", help="run in production")
     parser.add_argument("--show-config", action="store_true", help="print config to console")
-    # parser.add_argument("--build-thumbnail-cache", action="store_true")
-    # parser.add_argument("--build-qpzip-cache", action="store_true")
     parser.add_argument("--debug", action="store_const", const=True, help="debug mode")
-    parser.add_argument("--cache-force-rebuild", action="store_const", const=True)
-    parser.add_argument("--cache-build-thumbnail", action="store_const", const=True)
     parser.add_argument("--cache-path", type=str, help="cache path for dataset")
-    parser.add_argument("--server", type=str, help="server ip or hostname")
+    parser.add_argument("--host", type=str, help="ip or hostname")
     parser.add_argument("--port", type=int, help="override port")
-    parser.add_argument(
-        "--no-auth",
-        dest="require_auth",
-        action="store_const",  # NOTE because dest is inverted, the logic is inverted here
-        const=False,
-        help="disable basic authentication"
-    )
+    parser.add_argument("--version", action="store_true", help="print version")
     parser.add_argument("dataset_paths", nargs='*', help="path to a pado dataset")
 
     if argv is not None:
-        argv = argv[1:]
-
+        argv = argv[1:]  # allow
     args = parser.parse_args(argv)
 
+    if args.version:
+        print(__version__)
+        return 0
+
     overrides = {
-        key.upper(): getattr(args, key)
-        for key in {'debug', 'cache_force_rebuild', 'cache_path', 'server', 'port', 'require_auth', 'dataset_paths'}
+        setting: getattr(args, key)
+        for setting, key in {
+            ('DEBUG', 'debug'),
+            ('CACHE_PATH', 'cache_path'),
+            ('SERVER', 'host'),
+            ('PORT', 'port'),
+            ('DATASET_PATHS', 'dataset_paths'),
+        }
         if getattr(args, key)
     }
 
-    env = None  # use config
-    if args.production:
-        if overrides:
-            print("can't specify overrides in production. please set in config file `.pado_visualize.local.toml`")
-            return -1
-        env = 'production'
+    # selected env config
+    env = 'production' if args.production else None
 
     # acquire the configuration
-    server = create_plain_server()
-    settings = initialize_config(server=server, override_config=overrides, force_env=env).settings
+    app = Flask("pado_visualize")
+    settings = initialize_config(app=app, override_config=overrides, force_env=env).settings
 
     if args.show_config:
-        _print_config(settings)
+        print_config(settings)
         return 0
-
-    if settings.REQUIRE_AUTH and not settings.USER_PASSWORD_MAP:
-        msg = textwrap.dedent("""\
-            ERROR: user authentication requested but no USER_PASSWORD_MAP defined!
-
-            Please create a file called `.pado_visualize.secrets.toml`:
-            ```
-            [default.USER_PASSWORD_MAP]
-            someusername = ThEpAsSWord1
-            anotherone = 12345supersecret
-            ```
-        """)
-        print(msg)
-        return -1
-
-    # if args.build_thumbnail_cache:
-    #    from pado_visualize.routes.thumbnail import _build_thumbnail_cache
-    #    _build_thumbnail_cache()
-    #    return 0
-    # if args.build_qpzip_cache:
-    #    from pado_visualize.routes.qpzip import _build_qpzip_cache
-    #    _build_qpzip_cache()
-    #    return 0
 
     if not settings.DATASET_PATHS:
         warnings.warn("no DATASET_PATHS specified! (set via cmdline in dev or file in prod)")
 
     if settings.current_env.lower() == "development":
-        # run development server
-        server = create_server(server)
-        if args.cache_build_thumbnail:
-            from pado_visualize.data.caches import populate_thumbnail_cache
-            populate_thumbnail_cache()
-            print("thumbnail cache built. please restart without flag.", file=sys.stderr)
-            return 0
-        return server.run(
-            host=server.config.SERVER,
-            port=server.config.PORT,
-            debug=server.config.DEBUG
+        # run development app
+        app = create_app(configured_app=app)
+        app.run(
+            host=app.config.SERVER,
+            port=app.config.PORT,
+            debug=app.config.DEBUG
         )
+        return 0
 
     elif settings.current_env.lower() == "production":
-        import os
+        print("dispatching to uwsgi:")
         os.execvp(
             file="uwsgi",
             args=[
@@ -122,14 +110,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "--env", f"PADOVIS_ENV={settings.current_env}",
                 "--manage-script-name",
                 "--mount", "/=pado_visualize.app:create_app()",
-                "--lazy-apps",  # prevent looks due to too aggressive memory sharing
+                "--lazy-apps",  # prevent locks due to too aggressive memory sharing
                 "--master",
                 "--processes", f"{settings.UWSGI_NUM_PROCESSES}"
             ],
         )
 
     else:
-        print(f"UNSUPPORTED ENVIRONMENT '{settings.current_env}'")
+        print(f"ERROR: unsupported environment '{settings.current_env}'", file=sys.stderr)
         return -1
 
 

@@ -1,6 +1,5 @@
 #
-# Conda devenv environment for palo.
-# Beware, this fat environment might get you in trouble, treat with care.
+# Conda devenv environment for pado_visualize.
 #
 # Create the environment, do not install pado in development mode:
 #   conda devenv
@@ -25,6 +24,7 @@ dependencies:
 
   - diskcache
   - dynaconf
+  - flask>=2
   - flask-caching
   - flask-dance
   - werkzeug
@@ -42,13 +42,5 @@ dependencies:
     - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado
     - Flask-JSGlue
     - tiffslide
-    - simplejpeg
-    # old deps need to get rid of them
-
-    - dash
-    - dash-auth
-    - dash-bootstrap-components
-    - dash-table
-    - plotly
 
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]

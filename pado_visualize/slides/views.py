@@ -1,18 +1,24 @@
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import TYPE_CHECKING
 
-from flask import Blueprint, send_file
-from flask import render_template
+from flask import Blueprint
 from flask import abort
 from flask import make_response
+from flask import render_template
+from flask import request
+from flask import send_file
 
-from pado_visualize._auth import login_required
-from pado_visualize.data.caches import thumbnail_cache
-from pado_visualize.data.dataset import get_available_image_set
-from pado_visualize.data.dataset import get_image_path
-from pado_visualize.data.slides import DZG, get_svs_thumbnail
+from pado.io.files import urlpathlike_to_fsspec
+from pado_visualize.data import DatasetState
+from pado_visualize.data import dataset
+from pado_visualize.extensions import cache
+from pado_visualize.slides.utils import get_paginated_images
+from pado_visualize.slides.utils import thumbnail_path
+from pado_visualize.slides.tasks import slide_make_thumbnail_task
+from pado_visualize.utils import int_ge_0
+from pado_visualize.utils import int_ge_1
+from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
 if TYPE_CHECKING:
     from pado.images import ImageId
@@ -22,56 +28,66 @@ if TYPE_CHECKING:
 blueprint = Blueprint('slides', __name__)
 
 
+@blueprint.before_request
+@dataset.requires_state(DatasetState.READY, abort, 404, "dataset is not initialized")
+def dataset_ready():
+    pass
+
+
 @blueprint.route("/")
-@login_required
 def index():
-    available_images = get_available_image_set(abort_if_none=False) or []
-    return render_template("slides/index.html", image_ids=sorted(available_images))
-
-
-@blueprint.route("/thumbnail/<image_id:image_id>_thumbnail.jpg")
-@login_required
-def slides_thumbnail_jpg(image_id: ImageId):
-    thumb_path: str = thumbnail_cache.get(image_id, default=None)
-    if thumb_path is None:
-        if image_id in get_available_image_set():
-            # fallback fixme: should do this in a worker...
-            try:
-                p = get_image_path(image_id)
-                thumbnail_cache[image_id] = get_svs_thumbnail(p)
-                thumb_path = thumbnail_cache[image_id]
-            except (ValueError, FileNotFoundError, AssertionError, KeyError) as err:
-                return abort(404, str(err))
-        else:
-            return abort(404, f"{image_id!r} not in available set")
-
-    return send_file(
-        thumb_path,
-        mimetype="image/jpeg",
-        as_attachment=True,
+    page = request.args.get("page", 0, type=int_ge_0)
+    page_size = request.args.get("page_size", 40, type=int_ge_1)
+    allowed_page_sizes = {20, 40, 80, 160, 320}
+    if page_size not in allowed_page_sizes:
+        abort(403, f"page_size must be one of {allowed_page_sizes!r}")
+    page_images = get_paginated_images(dataset, page=page, page_size=page_size)
+    return render_template(
+        "slides/index.html",
+        image_id_pairs=page_images.items,
+        page=page_images.page,
+        page_size=page_size,
+        pages=page_images.pages
     )
+
+
+@blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
+@cache.memoize()
+def thumbnail(image_id: ImageId, size: int):
+    if size not in {100, 200}:
+        return abort(403, "thumbnail size not in {100, 200}")
+
+    of = thumbnail_path(image_id, size)
+    try:
+        with of.fs.open(of.path, mode="r") as f:
+            return send_file(
+                f,
+                mimetype='image/jpeg',
+                as_attachment=True,
+                download_name=request.path.split("/")[-1]
+            )
+    except FileNotFoundError:
+        slide_make_thumbnail_task.delay(image_id, size)
+        return abort(404, 'image not available')
 
 
 # --- viewer endpoints ------------------------------------------------
 
-@blueprint.route("/osd/<image_id:image_id>")
-@login_required
-def slides_openseadragon_viewer(image_id: ImageId):
-    return render_template("slides/openseadragon_viewer.html", image_id=image_id)
+@blueprint.route("/viewer/<image_id:image_id>/osd")
+def viewer_openseadragon(image_id: ImageId):
+    return render_template("slides/viewer_openseadragon.html", image_id=image_id)
 
 
 # --- pyramidal tile server -------------------------------------------
 
-@lru_cache(maxsize=16)
-def _slide_get_deep_zoom_from_session(image_id: ImageId) -> DZG:
+@cache.memoize()
+def _slide_get_deep_zoom_from_session(image_id: ImageId) -> MinimalComputeAperioDZGenerator:
     """retrieve the deep zoom generator from the user session"""
-    _image_path = get_image_path(image_id)
-    dz = DZG(_image_path)
-    return dz
+    of = urlpathlike_to_fsspec(dataset.images[image_id].urlpath)
+    return MinimalComputeAperioDZGenerator(of)
 
 
-@blueprint.route('/osd/<image_id:image_id>/image.dzi')
-@login_required
+@blueprint.route('/viewer/<image_id:image_id>/osd/image.dzi')
 def slide_dzi(image_id: ImageId):
     try:
         dz = _slide_get_deep_zoom_from_session(image_id)
@@ -82,8 +98,7 @@ def slide_dzi(image_id: ImageId):
     return resp
 
 
-@blueprint.route('/osd/<image_id:image_id>/image_files/<int:level>/<int:col>_<int:row>.jpeg')
-@login_required
+@blueprint.route('/viewer/<image_id:image_id>/osd/image_files/<int:level>/<int:col>_<int:row>.jpeg')
 def slide_tile(image_id, level, col, row):
     try:
         dz = _slide_get_deep_zoom_from_session(image_id)

@@ -1,37 +1,33 @@
-import hashlib
-from functools import wraps
+"""flask extensions custom to pado_visualize"""
+from celery import Celery
+from flask_caching import Cache
+from flask import Flask
 
-from itsdangerous import base64_decode, base64_encode
-from flask import url_for
-from pado.images import ImageId
-from werkzeug.routing import BaseConverter, ValidationError
+__all__ = [
+    "cache",
+    "celery",
+    "register_extensions",
+]
 
-from pado_visualize._version import version as _pado_visualize_version
+# --- proxies ---
 
-
-class ImageIdConverter(BaseConverter):
-    """a converter for image ids from pado"""
-
-    regex = "[^/]+"
-    weight = 100
-
-    def to_python(self, value) -> ImageId:
-        try:
-            image_id_str = base64_decode(value).decode()
-            return ImageId.from_str(image_id_str)
-        except (ValueError, TypeError):
-            raise ValidationError(value)
-
-    def to_url(self, value):
-        image_id_str = ImageId(value).to_str()
-        return base64_encode(image_id_str.encode()).decode()
+celery = Celery()
+cache = Cache()
 
 
-_version_hash = hashlib.sha256(_pado_visualize_version.encode()).hexdigest()[:8]
+# --- registration ---
 
+def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
+    """register all extensions on the Flask app"""
 
-@wraps(url_for)
-def url_for_versioned(endpoint, **values):
-    assert 'v' not in values
-    values['v'] = _version_hash
-    return url_for(endpoint, **values)
+    celery.config_from_object(app.config)
+    cache.init_app(app)
+
+    if not is_worker:
+        # register the image id converter
+        from pado_visualize.utils import ImageIdConverter
+        app.url_map.converters['image_id'] = ImageIdConverter
+
+        # register jinja2 globals
+        from pado_visualize.utils import url_for_versioned
+        app.jinja_env.globals['url_for_versioned'] = url_for_versioned

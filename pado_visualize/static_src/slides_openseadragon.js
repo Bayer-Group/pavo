@@ -1,3 +1,6 @@
+import "./base";
+import "./css/slides.scss";
+
 import { documentReady } from "./js/common";
 
 import OpenSeadragon from "openseadragon";

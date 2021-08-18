@@ -14,5 +14,13 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col">
+        <p>configured datasets: {{ ", ".join(info['dataset_paths']) }}</p>
+        <p>Images: {{ info['images'] }}</p>
+        <p>Annotations: {{ info['annotations'] }}</p>
+        <p>Metadata: {{ info['metadata'] }}</p>
+      </div>
+    </div>
   </div>
 {% endblock content %}

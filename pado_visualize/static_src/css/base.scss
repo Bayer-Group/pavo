@@ -2,14 +2,7 @@
 @import "~@fortawesome/fontawesome-free/scss/fontawesome.scss";
 $fa-font-path: "../../../node_modules/@fortawesome/fontawesome-free/webfonts";
 @import "~@fortawesome/fontawesome-free/scss/solid.scss";
-
-/* colors */
-$color-primary-light: #e2aedd;
-$color-primary-dark: #252340;
-$color-white: #ffffff;
-$color-black: #0a0a0a;
-$color-success: #b6c649;
-$color-alert: #d81e5b;
+@import "colors";
 
 /* fonts */
 $primary-font: "Lato", sans-serif;

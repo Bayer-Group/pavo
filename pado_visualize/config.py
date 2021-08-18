@@ -1,23 +1,28 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Optional
 
-from dynaconf import FlaskDynaconf, Validator
+from dynaconf import FlaskDynaconf
+from dynaconf import Validator
 from flask import Flask
+
+_module_root = Path(__file__).parent
 
 
 # module layout related settings
 class StaticConfig:
-    MODULE_ROOT = Path(__file__).parent
-    TEMPLATE_FOLDER = MODULE_ROOT / "templates"
-    STATIC_FOLDER = MODULE_ROOT / "static"
+    MODULE_ROOT = os.fspath(_module_root)
+    TEMPLATE_FOLDER = os.fspath(_module_root / "templates")
+    STATIC_FOLDER = os.fspath(_module_root / "static")
 
 
 def initialize_config(
-        server: Flask,
-        *,
-        override_config: Optional[dict] = None,
-        force_env: Optional[str] = None
+    app: Flask,
+    *,
+    override_config: Optional[dict] = None,
+    force_env: Optional[str] = None,
 ) -> FlaskDynaconf:
     """apply configuration to the flask server"""
     dynaconf_config = dict(
@@ -26,7 +31,7 @@ def initialize_config(
         core_loaders=['TOML'],
         preload=[],
         validators=[
-            Validator("annotation_search_dirs", is_type_of=(list, tuple, str)),
+            Validator("dataset_paths", is_type_of=(list, tuple, str)),
         ],
         default_settings_paths=[],
     )
@@ -38,12 +43,12 @@ def initialize_config(
     flask_config.kwargs["ENVIRONMENTS"] = True
     flask_config.kwargs["load_dotenv"] = True
 
-    flask_config.init_app(server)
+    flask_config.init_app(app)
 
     if override_config is not None:
         for key, value in override_config.items():
-            server.config[key] = value
+            app.config[key] = value
 
-    server.config.from_object(StaticConfig)
+    app.config.from_object(StaticConfig)
 
     return flask_config

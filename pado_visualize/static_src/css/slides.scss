@@ -1,16 +1,80 @@
+@import "colors";
 
-.thumbnail-container {
+.container.slide-container {
+
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+
+  a > .card.slide-card {
+    display: flex;
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 2px;
+    border-radius: 5px;
+    color: $color-white;
+    background: $color-primary-dark ;
+    overflow: hidden;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-color: lightgray;
+    border-style: solid;
+
+    .title {
+      position: absolute;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      text-align: center;
+      border-radius: 5px 5px 0 0;
+      box-sizing: border-box;
+      padding: 2px;
+      pointer-events: none;
+    }
+  }
+
+  a > .card.slide-card:hover {
+    border-color: $color-primary-dark;
+    .title {
+      background: $color-primary-light;
+    }
+  }
+
 }
 
-.slide-container {
-  display: flex;
+.thumbnail {
   position: relative;
-  width: 200px;
-  height: 200px;
-  margin: 2px;
+  width: 100%;
+  height: 100%;
+
+  background: #f3f4f5;  /* fixme: make dynamic */
+
+  pointer-events: none;
+
+  img {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+  }
+}
+
+/*
+a:hover > .container.slide-container {
+  border-color: $color-primary-dark;
+  .title {
+    background: $color-primary-light;
+  }
+}
+*/
+
+
+
+/*
+
+.thumbnail-container {
 }
 
 .slide-container > a {
@@ -22,7 +86,6 @@
   display: flex;
   width: 100%;
   height: 100%;
-  background: #f3f4f5;  /* fixme: this should be provided dynamically */
   justify-content: center;
   align-items: center;
   padding: 4px;
@@ -85,7 +148,6 @@
   white-space: nowrap;
 }
 
-/*
 .thumbnail-card:hover .thumbnail {
     display: none;
 }

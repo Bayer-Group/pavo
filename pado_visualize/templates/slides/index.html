@@ -1,33 +1,44 @@
 {% extends "base/base.html" %}
 
+{# the creates one slide card #}
+{% macro slide_card(image_id, image) %}
+  <a href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
+  <div class="card slide-card">
+    <div class="thumbnail">
+      <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
+    </div>
+    <div class="title">{{ image_id.last }}</div>
+    <div class="indicators">
+    </div>
+  </div>
+  </a>
+{% endmacro %}
+
 {% block styles %}
   {{ super() }}
   <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
 {% endblock styles %}
 
-{% block page_scripts %}
-  <script type="text/javascript" src="{{ url_for_versioned('static', filename='js/slides.js') }}"></script>
-{% endblock page_scripts %}
-
 {% block content %}
-  <div id="slides-container" class="container">
-    <div class="row">
-      <div class="col">
-        <h1>Images</h1>
-        <div id="prev-card-container" class="thumbnail-container">
-          {% for image_id in image_ids %}
-            <div class="slide-container">
-              <a href="{{ url_for('slides.slides_openseadragon_viewer', image_id=image_id) }}">
-                <div class="thumbnail-card card">
-                  <img alt="{{ "/".join(image_id.parts) }}"
-                       src="{{ url_for('slides.slides_thumbnail_jpg', image_id=image_id) }}"
-                       class="thumbnail">
-                </div>
-              </a>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
+  <div class="container slide-container">
+    {% for image_id, image in image_id_pairs %}
+      {{ slide_card(image_id, image) }}
+    {% endfor %}
+  </div>
+  <div class="pagination">
+    {% for idx in range(pages) %}
+      <a href="{{ url_for('slides.index', page=idx, page_size=page_size) }}">
+        {% if idx == page %}
+          <strong>{{ idx }}</strong>
+        {% else %}
+          {{ idx }}
+        {% endif %}
+      </a>
+    {% endfor %}
   </div>
 {% endblock content %}
+
+{% block page_scripts %}
+  <script type="text/javascript" src="{{ url_for_versioned('static', filename='js/slides_deckgl.js') }}"></script>
+{% endblock page_scripts %}
+
