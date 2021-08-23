@@ -11,11 +11,13 @@ from typing import Optional
 from typing import Sequence
 
 from flask import Flask
+from flask import current_app
 
 from pado import PadoDataset
 from pado.annotations import AnnotationProvider
 from pado.images import ImageId
 from pado.images import ImageProvider
+from pado.io.files import urlpathlike_to_fsspec
 from pado.metadata import MetadataProvider
 
 __all__ = [
@@ -59,6 +61,15 @@ class DatasetProxy:
         if self.urlpath:
             self._ds = PadoDataset(self.urlpath, mode="r")
             self.state = DatasetState.READY
+
+    @classmethod
+    def new_for_worker_access(cls):
+        worker_ds = cls()
+        worker_ds.init_app(current_app)
+        # clear the fsspec instances
+        of = urlpathlike_to_fsspec(worker_ds.urlpath)
+        type(of.fs).clear_instance_cache()
+        return worker_ds
 
     def requires_state(self, state: DatasetState, failure: Callable[[...], NoReturn], *args, **kwargs):
         """use as a decorator: calls failure in case of wrong state"""

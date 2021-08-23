@@ -1,28 +1,34 @@
+# pado_visualize config
+# =====================
+#
+# todo: we should ship the defaults in the module
+#
 [default]
-DEBUG = true
 SERVER = "127.0.0.1"
-PORT = 8080
+PORT = 8000
 
-CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
-CELERY_BROKER_URL = "redis://localhost:6379/1"
+# celery workers
+broker_url = "redis://localhost:6379/0"
+broker_connection_max_retry = 3  # note: https://github.com/celery/celery/issues/4556
+result_backend = "redis://localhost:6379/1"
 
+# flask-caching
 CACHE_PATH = "/tmp/pado_visualize_cache"
-CACHE_FORCE_REBUILD = false
 CACHE_TYPE = "SimpleCache"
 CACHE_DEFAULT_TIMEOUT = 300
 
-REQUIRE_AUTH = true
+# no auth. tyvm.
+OAUTH_PROVIDER = "none"
+
+# the datasets
 DATASET_PATHS = []
 
-OAUTH_PROVIDER = false
 
 [development]
 DEBUG = true
-REQUIRE_AUTH = false
 
 [production]
 DEBUG = false
 
-# this should rather live in a uwsgi file,
-# but we'll configure it through here for sake of accessibility
+# todo: uwsgi config should live in its own file
 UWSGI_NUM_PROCESSES = 6

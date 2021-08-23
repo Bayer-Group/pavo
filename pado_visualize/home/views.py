@@ -1,10 +1,11 @@
 import json
-import sys
 
+from celery.result import AsyncResult
 from flask import Blueprint
 from flask import current_app
-from flask import make_response
+from flask import jsonify
 from flask import render_template
+from flask import url_for
 
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
@@ -40,10 +41,21 @@ def health():
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 
-@blueprint.route("/ping_worker")
+@blueprint.route("/worker/ping")
 def ping_worker():
-    print("...", file=sys.stderr)
-    print(celery.conf)
-    ping_worker_task.delay()
-    print("???", file=sys.stderr)
-    return make_response(200, "all good")
+    result: AsyncResult = ping_worker_task.apply_async()
+    return jsonify({
+        'status': 200,
+        'id': result.id,
+        'link': url_for('home.pong_worker', task_id=result.id)
+    })
+
+
+@blueprint.route("/worker/<string:task_id>/pong")
+def pong_worker(task_id):
+    result = AsyncResult(task_id, app=celery)
+    return jsonify({
+        'id': task_id,
+        'status': result.state,
+        'info': str(result.info),
+    })
