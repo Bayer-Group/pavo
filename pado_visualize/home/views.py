@@ -33,7 +33,7 @@ def index():
         info["annotations"] = len(dataset.annotations.df)
         info["metadata"] = len(dataset.metadata.df)
 
-    return render_template("home/index.html", info=info, page_title="Home")
+    return render_template("index.html", info=info, page_title="Home")
 
 
 @blueprint.route("/health")
