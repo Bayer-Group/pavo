@@ -7,6 +7,7 @@ __all__ = [
     "cache",
     "celery",
     "register_extensions",
+    "TaskState",
 ]
 
 # --- proxies ---
@@ -31,3 +32,33 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
         # register jinja2 globals
         from pado_visualize.utils import url_for_versioned
         app.jinja_env.globals['url_for_versioned'] = url_for_versioned
+
+
+# --- constants ---
+
+class TaskState:
+    SUCCESS = states.SUCCESS
+    FAILURE = states.FAILURE
+    PROGRESS = "PROGRESS"
+    REVOKED = states.REVOKED
+    STARTED = states.STARTED
+    RECEIVED = states.RECEIVED
+    REJECTED = states.REJECTED
+    RETRY = states.RETRY
+    PENDING = states.PENDING
+
+    @classmethod
+    def is_unready(cls, state):
+        return state in states.UNREADY_STATES
+
+    @classmethod
+    def is_ready(cls, state):
+        return state in states.READY_STATES
+
+    @classmethod
+    def is_exception(cls, state):
+        return state in states.EXCEPTION_STATES
+
+    @classmethod
+    def is_propagated(cls, state):
+        return state in states.PROPAGATE_STATES
