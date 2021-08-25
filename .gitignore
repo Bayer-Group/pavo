@@ -32,4 +32,7 @@ environment.docker.yml
 .pado_visualize.secrets.toml
 *.secrets.toml
 .env
+
+# dev environment
+supervisord.pid
 celerybeat-schedule.db
