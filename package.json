@@ -7,31 +7,37 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "build": "parcel build --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js"
+    "build": "parcel build --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js",
+    "watch": "parcel watch --public-url /static -d pado_visualize/static pado_visualize/static_src/*.js",
+    "favicons": "node scripts/favicons.js"
   },
   "dependencies": {
     "core-js": "^3.15.2",
     "deck.gl": "^8.5.0",
     "images": "^3.2.3",
     "normalize.css": "^8.0.1",
+    "openseadragon": "^2.4.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "regenerator-runtime": "^0.13.9"
+    "regenerator-runtime": "^0.13.9",
+    "vue": "^2.6.12",
+    "vue-hot-reload-api": "^2.3.4"
   },
   "devDependencies": {
     "@babel/core": "^7.14.8",
     "@babel/preset-env": "^7.14.8",
     "@babel/preset-react": "^7.14.5",
     "@fortawesome/fontawesome-free": "^5.15.3",
+    "@vue/component-compiler-utils": "^3.2.0",
     "eslint": "^7.22.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",
-    "openseadragon": "^2.4.2",
     "parcel-bundler": "^1.10.3",
     "parcel-plugin-static-files-copy": "^2.6.0",
     "parcel-plugin-structurize": "^2.4.0",
     "prettier": "^2.2.1",
-    "sass": "^1.32.8"
+    "sass": "^1.32.8",
+    "vue-template-compiler": "^2.6.12"
   },
   "staticFiles": {
     "staticPath": "pado_visualize/static_src",
