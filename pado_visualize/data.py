@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from enum import Enum
 from enum import auto
-from functools import cached_property
 from functools import wraps
 from typing import Callable
 from typing import NoReturn
@@ -11,13 +10,11 @@ from typing import Optional
 from typing import Sequence
 
 from flask import Flask
-from flask import current_app
 
 from pado import PadoDataset
 from pado.annotations import AnnotationProvider
 from pado.images import ImageId
 from pado.images import ImageProvider
-from pado.io.files import urlpathlike_to_fsspec
 from pado.metadata import MetadataProvider
 
 __all__ = [
@@ -27,6 +24,20 @@ __all__ = [
     "DatasetState",
     "initialize_dataset",
 ]
+
+
+# noinspection PyPep8Naming
+class lockless_cached_property:
+    # https://bugs.python.org/issue43468
+    def __init__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+
+    def __get__(self, instance, cls=None):
+        if instance is None:
+            return self
+        val = instance.__dict__[self.func.__name__] = self.func(instance)
+        return val
 
 
 class DatasetState(Enum):
@@ -62,15 +73,6 @@ class DatasetProxy:
             self._ds = PadoDataset(self.urlpath, mode="r")
             self.state = DatasetState.READY
 
-    @classmethod
-    def new_for_worker_access(cls):
-        worker_ds = cls()
-        worker_ds.init_app(current_app)
-        # clear the fsspec instances
-        of = urlpathlike_to_fsspec(worker_ds.urlpath)
-        type(of.fs).clear_instance_cache()
-        return worker_ds
-
     def requires_state(self, state: DatasetState, failure: Callable[[...], NoReturn], *args, **kwargs):
         """use as a decorator: calls failure in case of wrong state"""
         if not isinstance(state, DatasetState):
@@ -87,25 +89,25 @@ class DatasetProxy:
             return wrapper
         return decorator
 
-    @cached_property
+    @lockless_cached_property
     def index(self) -> Sequence[ImageId]:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return list(self._ds.index)
 
-    @cached_property
+    @lockless_cached_property
     def metadata(self) -> MetadataProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.metadata
 
-    @cached_property
+    @lockless_cached_property
     def images(self) -> ImageProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.images
 
-    @cached_property
+    @lockless_cached_property
     def annotations(self) -> AnnotationProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
