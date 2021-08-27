@@ -36,7 +36,6 @@ def get_paginated_images(ds: DatasetProxy, page: int, page_size: int) -> Paginat
     ds_index = ds.index
     ds_images = ds.images
     image_ids = ds_index[idx_start:idx_end]
-    print(image_ids, idx_start, idx_end)
     return PaginatedItems(
         page=page,
         pages=math.ceil(len(ds_images) / page_size),
