@@ -22,9 +22,24 @@ def initialize_celery(app: Optional[Flask] = None) -> Celery:
         from pado_visualize.app import create_app
         app = create_app(is_worker=True)
 
+    # noinspection PyAbstractClass
     class ContextTask(Task):
         def __call__(self, *args, **kwargs):
+            """run celery tasks
+
+            Notes
+            -----
+            - run within the flask app context and
+            - clear the fsspec loop and thread refs
+
+            """
             with app.app_context():
+                import fsspec.asyn
+                # Clear reference to the loop and thread.
+                # See https://github.com/dask/gcsfs/issues/379#issuecomment-839929801
+                # Only relevant for fsspec >= 0.9.0
+                fsspec.asyn.iothread[0] = None
+                fsspec.asyn.loop[0] = None
                 return self.run(*args, **kwargs)
 
     c = Celery(
