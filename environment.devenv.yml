@@ -30,6 +30,7 @@ dependencies:
 
   # webapp related
   - celery
+  - click
   - diskcache
   - dynaconf
   - flask>=2
