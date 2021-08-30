@@ -1,3 +1,4 @@
+import concurrent.futures
 import os
 
 import click
@@ -5,8 +6,11 @@ import redis
 from flask import current_app
 from flask.cli import FlaskGroup
 from flask.cli import with_appcontext
+from tqdm import tqdm
 
 from pado_visualize.app import create_app
+from pado_visualize.data import dataset
+from pado_visualize.slides.utils import thumbnail_image
 
 
 @click.group(cls=FlaskGroup, create_app=create_app)
@@ -33,6 +37,21 @@ def clear_redis():
 def tasks_list():
     """launch the celery task monitor"""
     os.execvpe("python", ["python", "-m", "celery", "-A", "pado_visualize.worker", "events"], os.environ)
+
+
+@cli.command()
+@click.option("--threads", default=6, type=int, show_default=True)
+@with_appcontext
+def create_thumbnails(threads):
+    """precompute all thumbnail images"""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+        ip = dataset.images
+        futures = [
+            executor.submit(thumbnail_image, image_id, image, base_path=current_app.config["CACHE_PATH"])
+            for image_id, image in tqdm(ip.items(), desc="dispatch", total=len(ip))
+        ]
+        for f in tqdm(concurrent.futures.as_completed(futures), desc="thumbnail", total=len(ip)):
+            f.result()
 
 
 if __name__ == "__main__":

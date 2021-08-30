@@ -1,18 +1,26 @@
 from __future__ import annotations
 
+import hashlib
+import io
 import math
 import os
 from typing import List
 from typing import NamedTuple
+from typing import Optional
+from typing import Sequence
 from typing import TYPE_CHECKING
+from typing import Tuple
 
+import fsspec
 from flask import current_app
-from fsspec.core import OpenFile
+from PIL import Image as PILImage
 
 from pado.images import ImageId
 from pado.images import Image
-from pado.io.files import urlpathlike_to_fsspec
+from pado.io.files import fsopen
+from pado.io.files import urlpathlike_to_fs_and_path
 from pado.types import OpenFileLike
+from pado.types import UrlpathLike
 
 if TYPE_CHECKING:
     from pado_visualize.data import DatasetProxy
@@ -43,9 +51,58 @@ def get_paginated_images(ds: DatasetProxy, page: int, page_size: int) -> Paginat
     )
 
 
-def thumbnail_path(image_id: ImageId, size: int) -> OpenFileLike:
-    """return a path to the thumbnail image"""
-    pc = urlpathlike_to_fsspec(current_app.config["CACHE_PATH"])
+def thumbnail_fs_and_path(image_id: ImageId, size: int, fmt: str = 'png', *, base_path: Optional[UrlpathLike] = None) -> Tuple[fsspec.AbstractFileSystem, str]:
+    """return a filesystem and path to the thumbnail image"""
+    fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
     urlhash = image_id.to_url_hash(full=True)
-    path = f"thumbnails/{size:d}/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/{urlhash}.jpg"
-    return OpenFile(path=os.path.join(pc.path, path), fs=pc.fs)
+    path = f"thumbnails/{size:d}/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/{urlhash}.{fmt}"
+    return fs, os.path.join(cache_path, path)
+
+
+def thumbnail_image(
+    image_id: ImageId,
+    image: Image,
+    *,
+    sizes: Sequence[int] = (200, 100, 32),
+    force: bool = False,
+    base_path: Optional[UrlpathLike] = None
+) -> None:
+    """return the thumbnail image file object - create if it does not exist"""
+    fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
+    urlhash = image_id.to_url_hash(full=True)
+    sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
+
+    def mkpth(s):
+        path = f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{s[0]:d}x{s[1]:d}.png"
+        return os.path.join(cache_path, path)
+
+    _sizes = sorted(zip(sizes, sizes), reverse=True)
+    p = mkpth(_sizes[-1])
+    if fs.isfile(p) and not force:
+        return
+
+    with image:
+        base_thumb = image.get_thumbnail(_sizes[0])
+    for size in _sizes:
+        img = base_thumb.copy()
+        img.thumbnail(size)
+
+        square = PILImage.new('RGBA', size, (255, 255, 255, 0))
+        square.paste(img, ((size[0] - img.size[0]) // 2, (size[1] - img.size[1]) // 2))
+
+        with io.BytesIO() as f:
+            square.save(f, format="png", optimize=True, compress_level=9)
+            data = f.getvalue()
+
+        path = mkpth(size)
+        parent = os.path.dirname(path)
+        if not fs.isdir(parent):
+            fs.mkdirs(parent, exist_ok=True)
+
+        try:
+            with fsopen(fs, path, mode="wb") as f:
+                f.write(data)
+        except Exception as err:
+            print("error3 error", str(err), repr(err))
+            fs.rm_file(path)
+            raise
