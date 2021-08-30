@@ -59,11 +59,14 @@ def thumbnail_fs_and_path(image_id: ImageId, size: int, fmt: str = 'png', *, bas
     return fs, os.path.join(cache_path, path)
 
 
+THUMBNAIL_SIZES = (200, 100, 32)
+
+
 def thumbnail_image(
     image_id: ImageId,
     image: Image,
     *,
-    sizes: Sequence[int] = (200, 100, 32),
+    sizes: Sequence[int] = THUMBNAIL_SIZES,
     force: bool = False,
     base_path: Optional[UrlpathLike] = None
 ) -> None:
