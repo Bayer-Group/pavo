@@ -19,12 +19,13 @@ from pado.images import ImageId
 from pado.images import Image
 from pado.io.files import fsopen
 from pado.io.files import urlpathlike_to_fs_and_path
-from pado.types import OpenFileLike
 from pado.types import UrlpathLike
 
 if TYPE_CHECKING:
     from pado_visualize.data import DatasetProxy
 
+
+# --- pagination --------------------------------------------------------------
 
 class ImageIdImagePair(NamedTuple):
     id: ImageId
@@ -51,15 +52,25 @@ def get_paginated_images(ds: DatasetProxy, page: int, page_size: int) -> Paginat
     )
 
 
-def thumbnail_fs_and_path(image_id: ImageId, size: int, fmt: str = 'png', *, base_path: Optional[UrlpathLike] = None) -> Tuple[fsspec.AbstractFileSystem, str]:
+# --- thumbnails --------------------------------------------------------------
+
+THUMBNAIL_SIZES = (200, 100, 32)
+
+
+def thumbnail_fs_and_path(
+    image_id: ImageId,
+    size: int,
+    *,
+    sizes: Sequence[int] = THUMBNAIL_SIZES,
+    fmt: str = 'png',
+    base_path: Optional[UrlpathLike] = None
+) -> Tuple[fsspec.AbstractFileSystem, str]:
     """return a filesystem and path to the thumbnail image"""
     fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
     urlhash = image_id.to_url_hash(full=True)
-    path = f"thumbnails/{size:d}/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/{urlhash}.{fmt}"
+    sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
+    path = f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{size:d}x{size:d}.{fmt}"
     return fs, os.path.join(cache_path, path)
-
-
-THUMBNAIL_SIZES = (200, 100, 32)
 
 
 def thumbnail_image(
@@ -70,7 +81,7 @@ def thumbnail_image(
     force: bool = False,
     base_path: Optional[UrlpathLike] = None
 ) -> None:
-    """return the thumbnail image file object - create if it does not exist"""
+    """thumbnail the image"""
     fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
     urlhash = image_id.to_url_hash(full=True)
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
