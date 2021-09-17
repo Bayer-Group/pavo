@@ -77,9 +77,11 @@ def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
 
     # --- views ---
     from pado_visualize.home.views import blueprint as home_blueprint
+    from pado_visualize.metadata.views import blueprint as metadata_blueprint
     from pado_visualize.slides.views import blueprint as slides_blueprint
 
     app.register_blueprint(home_blueprint, url_prefix="/")
+    app.register_blueprint(metadata_blueprint, url_prefix="/metadata")
     app.register_blueprint(slides_blueprint, url_prefix="/slides")
 
     # --- oauth ---
