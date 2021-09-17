@@ -8,6 +8,7 @@
 # dotenv environment variable files
 .env*
 .cache/
+.parcel-cache
 
 # python module
 **/*.egg-info

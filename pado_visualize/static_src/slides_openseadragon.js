@@ -1,10 +1,13 @@
-import "./base";
-import "./css/slides.scss";
+import "normalize.css";
+import "./css/base.scss";
+import "regenerator-runtime/runtime";
+import "core-js/stable";
+import "./css/slides_openseadragon.scss";
 
 import { documentReady } from "./js/common";
 
 import OpenSeadragon from "openseadragon";
-import images from "../../node_modules/openseadragon/build/openseadragon/images/*.png";
+import images from "url:../../node_modules/openseadragon/build/openseadragon/images/*.png";
 
 function setupOpenSeadragonViewer(options) {
   const navImages = (function (imageObj) {
@@ -68,7 +71,7 @@ function setupOpenSeadragonViewer(options) {
         // levels.  This is a hack: we can't configure the minLevel via
         // OpenSeadragon configuration options when the viewer is created
         // from DZI XML.
-        window.osdviewer.source.minLevel = 8;
+        osdviewer.source.minLevel = 8;
       });
 
       resolve(osdviewer);
