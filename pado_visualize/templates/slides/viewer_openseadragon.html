@@ -1,4 +1,4 @@
-{% extends "base/base.html" %}
+{% extends "layout.html" %}
 
 {% block styles %}
   {{ super() }}
@@ -17,7 +17,7 @@
 {% endblock content %}
 
 {% block page_scripts %}
-  <script src="{{ url_for_versioned('static', filename='js/slides_viewer.js') }}"></script>
+  <script src="{{ url_for_versioned('static', filename='js/slides_openseadragon.js') }}"></script>
   <script type="text/javascript">
       setupOpenSeadragonViewer({
           id: "seadragon-container",
