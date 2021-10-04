@@ -14,7 +14,7 @@ from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
 from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
-from pado_visualize.slides.utils import thumbnail_path
+from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.tasks import slide_make_thumbnail_task
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
@@ -57,9 +57,9 @@ def thumbnail(image_id: ImageId, size: int):
     if size not in {100, 200}:
         return abort(403, "thumbnail size not in {100, 200}")
 
-    of = thumbnail_path(image_id, size)
+    fs, path = thumbnail_fs_and_path(image_id, size)
     try:
-        with of.fs.open(of.path, mode="r") as f:
+        with fs.open(path, mode="r") as f:
             return send_file(
                 f,
                 mimetype='image/jpeg',
