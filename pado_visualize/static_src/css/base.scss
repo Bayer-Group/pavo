@@ -194,3 +194,7 @@ $menu-text-color-subtle: #bbb;
 .pado footer {
   grid-column: 1 / 3;
 }
+.pado th, td {
+  padding: 4px;
+}
+.pado tr:nth-child(odd) {background-color: #f2f2f2;}
