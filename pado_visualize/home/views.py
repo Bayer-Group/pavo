@@ -22,18 +22,15 @@ blueprint = Blueprint('home', __name__)
 @blueprint.route("/index.html")
 @login_required
 def index():
-    info = {
-        "dataset_paths": current_app.config["DATASET_PATHS"],
-        "images": 0,
-        "annotations": 0,
-        "metadata": 0,
+    description = {
+        "path": current_app.config["DATASET_PATHS"],
+        "num_images": 0,
+        "num_annotations": 0,
     }
     if dataset.state == DatasetState.READY:
-        info["images"] = len(dataset.images)
-        info["annotations"] = len(dataset.annotations.df)
-        info["metadata"] = len(dataset.metadata.df)
+        description = dataset.describe(output_format='json')
 
-    return render_template("home/index.html", info=info, page_title="Home")
+    return render_template("home/index.html", info=description, page_title="Home")
 
 
 @blueprint.route("/health")

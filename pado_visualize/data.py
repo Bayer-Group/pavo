@@ -113,6 +113,11 @@ class DatasetProxy:
             raise DatasetNotReadyException(self.state)
         return self._ds.annotations
 
+    def describe(self, output_format: str) -> str:
+        if self.state != DatasetState.READY:
+            raise DatasetNotReadyException(self.state)
+        return self._ds.describe(output_format)
+
 
 # interface used throughout the app
 dataset = DatasetProxy()
