@@ -10,21 +10,39 @@
     <h1>Dataset Overview</h1>
     <div class="row">
       <div class="col">
-        <table>
-          {% for key in info %}
-          <tr>
-            <td>
-              {{ key | replace("_", " ") | capitalize }}
-            </td>
-            <td>
-              {% if info[key] is float %}
-              {{ info[key] | round(3, 'floor') }}
-              {% else %}
-                {{ info[key] }}
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
+        <table class="overview-table">
+          <thead>
+            <tr>
+                <th>Dataset Attribute</th>
+                <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in info %}
+            <tr>
+              <td>
+                {{ key |
+                  replace("_", " ") |
+                  replace("num", "number of") |
+                  replace("std", "standard deviation of") |
+                  capitalize }}
+              </td>
+              <td>
+                {% if info[key] is string %} 
+                  {{ info[key] }}
+                {% elif info[key] is float %}
+                  {{ info[key] | round(3, 'floor') }}
+                {% elif info[key] is iterable %} 
+                  {% for entry in info[key] %} 
+                    <div>{{ entry }}</div>
+                  {% endfor %}
+                {% else %}
+                  {{ info[key] }}
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
         </table>
       </div>
     </div>
