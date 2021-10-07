@@ -11,8 +11,12 @@
       {% for item in data %}
       <tr>
         {% if item is iterable %} 
-          {% for x in item %} 
-            <td>{{x}}</td>
+          {% for x in item %}
+            {% if x is number %}
+              <td>{{ x | round(3, 'floor') }}</td>
+            {% else %}
+              <td>{{ x }}</td>
+            {% endif %}
           {% endfor %}
         {% endif %}
       </tr>
@@ -41,8 +45,12 @@
         </td>
         {% if data[key] is string %} 
           <td>{{ data[key] }}</td>
-        {% elif data[key] is float %}
-          <td>{{ data[key] | round(3, 'floor') }}</td>
+        {% elif data[key] is number %}
+          {% if "size" in key %}
+            <td>{{ data[key] | filesizeformat }}</td>
+          {% else %}
+            <td>{{ data[key] | round(3, 'floor') }}</td>
+          {% endif %}
         {% elif data[key] is iterable %} 
           <td style="padding: 0px;;">
             {{ pado_nested_dict_table(data[key]) }}
