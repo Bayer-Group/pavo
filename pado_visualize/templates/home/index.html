@@ -5,45 +5,63 @@
   <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/home.scss') }}">
 {% endblock styles %}
 
+{% macro pado_nested_dict_table(data) -%}
+  <table class="nested-table">
+    <tbody>
+      {% for item in data %}
+      <tr>
+        {% if item is iterable %} 
+          {% for x in item %} 
+            <td>{{x}}</td>
+          {% endfor %}
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{%- endmacro %}
+
+{% macro pado_dict_table(data) -%}
+    <table class="overview-table">
+    <thead>
+      <tr>
+          <th>Dataset Attribute</th>
+          <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key in data %}
+      <tr>
+        <td>
+          {{ key |
+            replace("_", " ") |
+            replace("num", "number of") |
+            replace("std", "standard deviation of") |
+            capitalize }}
+        </td>
+        {% if data[key] is string %} 
+          <td>{{ data[key] }}</td>
+        {% elif data[key] is float %}
+          <td>{{ data[key] | round(3, 'floor') }}</td>
+        {% elif data[key] is iterable %} 
+          <td style="padding: 0px;;">
+            {{ pado_nested_dict_table(data[key]) }}
+          </td>
+        {% else %}
+          <td>{{ data[key] }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{%- endmacro %}
+
 {% block content %}
   <div id="landing-container" class="container">
     <h1>Dataset Overview</h1>
     <div class="row">
       <div class="col">
-        <table class="overview-table">
-          <thead>
-            <tr>
-                <th>Dataset Attribute</th>
-                <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for key in info %}
-            <tr>
-              <td>
-                {{ key |
-                  replace("_", " ") |
-                  replace("num", "number of") |
-                  replace("std", "standard deviation of") |
-                  capitalize }}
-              </td>
-              <td>
-                {% if info[key] is string %} 
-                  {{ info[key] }}
-                {% elif info[key] is float %}
-                  {{ info[key] | round(3, 'floor') }}
-                {% elif info[key] is iterable %} 
-                  {% for entry in info[key] %} 
-                    <div>{{ entry }}</div>
-                  {% endfor %}
-                {% else %}
-                  {{ info[key] }}
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        {{ pado_dict_table(info) }}
       </div>
     </div>
   </div>
