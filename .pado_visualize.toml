@@ -21,7 +21,7 @@ CACHE_DEFAULT_TIMEOUT = 300
 OAUTH_PROVIDER = "none"
 
 # the datasets
-DATASET_PATHS = []
+DATASET_PATHS = ['../tggates']
 
 
 [development]

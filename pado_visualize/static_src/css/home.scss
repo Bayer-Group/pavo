@@ -1,4 +1,48 @@
+@import "colors";
 
 #landing-container {
     margin-left: 10px;
+}
+
+.overview-table {
+    border-collapse: collapse;
+    margin: 16px 0;
+    min-width: 800px;
+}
+
+.overview-table thead tr {
+    background-color: $color-primary-light;
+    color: $color-black;
+    text-align: left;
+    border-bottom: 2px solid $color-primary-dark;
+}
+
+.overview-table th, td {
+    padding: 12px 15px ;
+}
+
+.overview-table tbody tr {
+    border-bottom: 1px solid $color-primary-dark;
+}
+
+.overview-table tbody tr:nth-of-type(even) {
+    background-color: #f2f2f2;
+}
+.overview-table tbody tr:nth-of-type(odd) {
+    background-color: #ffffff;
+}
+
+
+.overview-table tbody tr:last-of-type {
+    border-bottom: 2px solid $color-primary-dark;
+}
+
+.nested-table {
+    width: 100%;
+}
+
+.nested-table tbody td {
+    padding: 4px 4px;
+    width: 50%;
+    padding-left: 12px;
 }
