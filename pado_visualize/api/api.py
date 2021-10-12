@@ -1,7 +1,6 @@
 from flask import request, Blueprint
-from itsdangerous import base64_decode
 
-from pado.images import ImageId
+from pado.annotations import Annotation
 
 from pado_visualize.data import dataset
 
@@ -15,6 +14,7 @@ def sanity_check(var):
 
 @blueprint.route("/<image_id:image_id>/predictions", methods=['GET', 'POST'])
 def manage_predictions(image_id):
+    """endpoint to manipulate image predictions"""
 
     if request.method == 'POST':
         """inserts an annotation into a dataset"""
@@ -23,17 +23,25 @@ def manage_predictions(image_id):
         try:
             prediction_type = payload['prediction_type']
             assert prediction_type in prediction_types, 'Invalid prediction type.'
+
             prediction_record = payload['prediction']
+
         except KeyError as e:
-            return f'{e}', 400
+            return f'KeyError on {e}', 400
         except AssertionError as e:
             return f'{e}', 400
+
+        a = Annotation.from_obj(prediction_record)
+
+        print(len(dataset.annotations[image_id].df))
+        dataset.annotations[image_id].insert(index=0, value=a)
+        print(len(dataset.annotations[image_id].df))
 
         return f'', 200
     
     elif request.method == 'GET':
         """return all predictions for an image"""
 
-        print(dataset.annotations[image_id])
-
-        return '', 200
+        # TODO: figure out how to filter annotations by annotator.type=='model'
+        # TODO: further filter by predictions by prediction types
+        return str(dataset.annotations[image_id]), 200
