@@ -14,7 +14,7 @@ def write_dataset(urlpath: UrlpathLike) -> PadoDataset:
     """store the dataset at a location"""
     ip = make_image_provider()
     mp = make_metadata_provider()
-    ds = PadoDataset(urlpath, mode="r+")
+    ds = PadoDataset(urlpath, mode="w")
 
     iids = list(ip.keys())
 
