@@ -7,7 +7,7 @@ from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
 from pado_visualize.oauth import login_required
 
-# view blueprint for home endpoints
+# view blueprint for metadata endpoints
 blueprint = Blueprint('metadata', __name__)
 
 
