@@ -12,19 +12,15 @@ from flask import send_file
 from fsspec.implementations.cached import CachingFileSystem
 
 from pado.io.files import urlpathlike_to_fs_and_path
-from pado.io.files import urlpathlike_to_fsspec
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
 from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.utils import thumbnail_image
-from pado_visualize.slides.tasks import slide_make_thumbnail_task
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
-
-
 
 if TYPE_CHECKING:
     from pado.images import ImageId
@@ -58,7 +54,6 @@ def index():
 
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
-# @cache.memoize()
 def thumbnail(image_id: ImageId, size: int):
     if size not in {100, 200}:
         return abort(403, "thumbnail size not in {100, 200}")
@@ -81,8 +76,6 @@ def thumbnail(image_id: ImageId, size: int):
             as_attachment=True,
             download_name=request.path.split("/")[-1]
         )
-        # slide_make_thumbnail_task.delay(image_id, size)
-        # return abort(404, 'image not available')
 
 
 # --- viewer endpoints ------------------------------------------------
