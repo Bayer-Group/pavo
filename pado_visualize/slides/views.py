@@ -4,11 +4,14 @@ from typing import TYPE_CHECKING
 
 from flask import Blueprint
 from flask import abort
+from flask import current_app
 from flask import make_response
 from flask import render_template
 from flask import request
 from flask import send_file
+from fsspec.implementations.cached import CachingFileSystem
 
+from pado.io.files import urlpathlike_to_fs_and_path
 from pado.io.files import urlpathlike_to_fsspec
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
@@ -89,14 +92,19 @@ def viewer_openseadragon(image_id: ImageId):
     return render_template("slides/viewer_openseadragon.html", image_id=image_id)
 
 
-
-
 # --- pyramidal tile server -------------------------------------------
 
 @cache.memoize()
 def _slide_get_deep_zoom_from_session(image_id: ImageId) -> MinimalComputeAperioDZGenerator:
     """retrieve the deep zoom generator from the user session"""
-    of = urlpathlike_to_fsspec(dataset.images[image_id].urlpath)
+    fs, path = urlpathlike_to_fs_and_path(dataset.images[image_id].urlpath)
+    cached_fs = CachingFileSystem(
+        cache_storage=current_app.config["CACHE_PATH"],
+        cache_check=1200,
+        expiry_time=604800,
+        fs=fs,
+    )
+    of = cached_fs.open(path, mode='rb')
     return MinimalComputeAperioDZGenerator(of)
 
 
