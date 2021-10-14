@@ -15,10 +15,13 @@ from pado_visualize.data import dataset
 from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
+from pado_visualize.slides.utils import thumbnail_image
 from pado_visualize.slides.tasks import slide_make_thumbnail_task
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
+
+
 
 if TYPE_CHECKING:
     from pado.images import ImageId
@@ -52,23 +55,31 @@ def index():
 
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
-@cache.memoize()
+# @cache.memoize()
 def thumbnail(image_id: ImageId, size: int):
     if size not in {100, 200}:
         return abort(403, "thumbnail size not in {100, 200}")
 
     fs, path = thumbnail_fs_and_path(image_id, size)
+    print(fs, path)
+    assert fs.protocol == "file", "we assume local cache for now"    
     try:
-        with fs.open(path, mode="r") as f:
-            return send_file(
-                f,
-                mimetype='image/jpeg',
-                as_attachment=True,
-                download_name=request.path.split("/")[-1]
-            )
+        return send_file(
+            path,
+            mimetype='image/jpeg',
+            as_attachment=True,
+            download_name=request.path.split("/")[-1]
+        )
     except FileNotFoundError:
-        slide_make_thumbnail_task.delay(image_id, size)
-        return abort(404, 'image not available')
+        thumbnail_image(image_id, dataset.images[image_id])
+        return send_file(
+            path,
+            mimetype='image/jpeg',
+            as_attachment=True,
+            download_name=request.path.split("/")[-1]
+        )
+        # slide_make_thumbnail_task.delay(image_id, size)
+        # return abort(404, 'image not available')
 
 
 # --- viewer endpoints ------------------------------------------------
@@ -76,6 +87,8 @@ def thumbnail(image_id: ImageId, size: int):
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     return render_template("slides/viewer_openseadragon.html", image_id=image_id)
+
+
 
 
 # --- pyramidal tile server -------------------------------------------

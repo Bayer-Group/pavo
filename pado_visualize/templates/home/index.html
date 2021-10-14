@@ -49,7 +49,7 @@
           {% if "size" in key %}
             <td>{{ data[key] | filesizeformat }}</td>
           {% else %}
-            <td>{{ data[key] | round(3, 'floor') }}</td>
+            <td>{{ data[key] or 0.0 | round(3, 'floor') }}</td>
           {% endif %}
         {% elif data[key] is iterable %} 
           <td style="padding: 0px;;">

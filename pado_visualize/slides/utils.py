@@ -67,7 +67,8 @@ def thumbnail_fs_and_path(
 ) -> Tuple[fsspec.AbstractFileSystem, str]:
     """return a filesystem and path to the thumbnail image"""
     fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
-    urlhash = image_id.to_url_hash(full=True)
+    # 
+    urlhash = image_id.to_url_id()
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
     path = f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{size:d}x{size:d}.{fmt}"
     return fs, os.path.join(cache_path, path)
@@ -83,7 +84,8 @@ def thumbnail_image(
 ) -> None:
     """thumbnail the image"""
     fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
-    urlhash = image_id.to_url_hash(full=True)
+    # 
+    urlhash = image_id.to_url_id()
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
 
     def mkpth(s):
