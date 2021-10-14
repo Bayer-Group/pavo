@@ -54,5 +54,14 @@ def create_thumbnails(threads):
             f.result()
 
 
+@cli.command()
+@click.option("--image-id", type=str)
+@click.option("--output", default=None, type=str)
+@with_appcontext
+def create_deepzoom(image_id, output):
+    """create a deepzoom image on disk at the output location"""
+    raise NotImplementedError("todo")
+
+
 if __name__ == "__main__":
     cli()
