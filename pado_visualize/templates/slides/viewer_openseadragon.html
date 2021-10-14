@@ -16,7 +16,7 @@
 {% endblock content %}
 
 {% block page_scripts %}
-  <script type="text/javascript" src="static/temporary/openseadragon-2.4.2/openseadragon.js">
+  <script type="text/javascript" src="{{ url_for('static', filename='temporary/openseadragon-2.4.2/openseadragon.js') }}"></script>
   <script type="text/javascript">
       function documentReady(fn) {
           if (document.readyState !== "loading") {
@@ -27,45 +27,8 @@
       }
 
       function setupOpenSeadragonViewer(options) {
-          const navImages = (function (imageObj) {
-              /* to make parcel aware of the image assets we need
-               * to explicitly reference them in a js module here */
-              const _mapToKey = (filename) => {
-                  let name = filename.split("_")[0];
-                  if (name === "zoomin") {
-                      name = "zoomIn";
-                  } else if (name === "zoomout") {
-                      name = "zoomOut";
-                  }
-                  return name;
-              };
-              const _mapToAction = (action) => {
-                  if (action === "grouphover") {
-                      return "GROUP";
-                  } else if (action === "pressed") {
-                      return "DOWN";
-                  } else {
-                      return action.toUpperCase();
-                  }
-              };
-
-              let out = {};
-              for (let [sourceFilename, targetFilename] of Object.entries(imageObj)) {
-                  // eslint-disable-next-line no-unused-vars
-                  let [name, action, _ext] = sourceFilename.split(/[_.]/);
-                  name = _mapToKey(name);
-                  action = _mapToAction(action);
-                  if (!Object.prototype.hasOwnProperty.call(out, name)) {
-                      out[name] = {};
-                  }
-                  out[name][action] = targetFilename;
-              }
-              return out;
-          })(images);
-
           const defaultOptions = {
-              prefixUrl: "",
-              navImages: navImages,
+              prefixUrl: "{{ url_for('static', filename='temporary/openseadragon-2.4.2/images/') }}",
               showNavigator: true,
               showRotationControl: true,
               animationTime: 0.5,
