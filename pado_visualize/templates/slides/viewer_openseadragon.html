@@ -24,6 +24,8 @@
     src="{{ url_for('static', filename='temporary/openseadragon-2.4.2/openseadragon.js') }}"></script>
 <script type="text/javascript"
     src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/openseadragon-annotorious.min.js') }}"></script>
+<script type="text/javascript"
+    src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/annotorious-selector-pack.min.js') }}"></script>
 <script type="text/javascript">
     function documentReady(fn) {
         if (document.readyState !== "loading") {
@@ -68,6 +70,8 @@
                         formatter: formatter,
                     }
                 );
+                // add selectorpack to fix click errors
+                Annotorious.SelectorPack(anno);
 
                 // Load annotations in W3C WebAnnotation format
                 const annotation_url = "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}";
