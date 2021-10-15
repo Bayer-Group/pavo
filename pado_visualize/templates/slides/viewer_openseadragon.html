@@ -3,6 +3,7 @@
 {% block styles %}
   {{ super() }}
   <!-- link rel="stylesheet" href="{{ url_for_versioned('static', filename='images/openseadragon/css-42-openseadragon-annotorious.min.css') }}"-->
+  <link rel="stylesheet" href="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/annotorious.min.css') }}">
 {% endblock styles %}
 
 {% block scripts_header %}
@@ -16,7 +17,9 @@
 {% endblock content %}
 
 {% block page_scripts %}
+  <script type="text/javascript" src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/recogito-polyfill.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='temporary/openseadragon-2.4.2/openseadragon.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/openseadragon-annotorious.min.js') }}"></script>
   <script type="text/javascript">
       function documentReady(fn) {
           if (document.readyState !== "loading") {
@@ -54,9 +57,20 @@
                       osdviewer.source.minLevel = 8;
                   });
 
+                  // Initialize the Annotorious plugin
+                  let anno = OpenSeadragon.Annotorious(osdviewer);
+
+                  // Load annotations in W3C WebAnnotation format
+                  const annotation_url = "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}";
+                  anno.loadAnnotations(annotation_url);
+
+                  // Attach handlers to listen to events
+                  anno.on('createAnnotation', function(a) {
+                      // Do something
+                      console.log("created annotation");
+                  });
+
                   resolve(osdviewer);
-                  // osdvieweranno = OpenSeadragon.Annotorious(window.osdviewer);
-                  /* anno.loadAnnotations(annotations); */
               });
           });
       }

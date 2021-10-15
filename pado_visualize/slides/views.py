@@ -140,6 +140,7 @@ def slide_tile(image_id, level, col, row):
     resp.mimetype = 'image/jpeg'
     return resp
 
+
 # --- annotation viewer -------------------------------------------
 @blueprint.route('/viewer/<image_id:image_id>/annotations.json')
 def serve_w3c_annotations(image_id):
