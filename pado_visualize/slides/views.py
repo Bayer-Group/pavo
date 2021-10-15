@@ -162,7 +162,8 @@ def w3c_like_annotation(annotation: Annotation, prefix="anno"):
     """
 
     region = annotation.geometry
-    class_name = annotation.classification 
+    class_name = annotation.classification
+    safe_class_name = re.sub('[^A-Za-z0-9]+', '', class_name)
 
     # remove style information from svg for w3c annotation
     _svg_style_re = re.compile(
@@ -174,13 +175,14 @@ def w3c_like_annotation(annotation: Annotation, prefix="anno"):
     svg_path = region.svg()
     # strip all style information
     svg_path = _svg_style_re.sub("", svg_path)
+
     return {
         "@context": "http://www.w3.org/ns/anno.jsonld",
         "id": f"{prefix}-{class_name.replace(' ', '').replace(':', '')}-{uuid.uuid4()}",
         "type": "Annotation",
         "body": [{
             "type": "TextualBody",
-            "value": class_name,
+            "value": safe_class_name,
         }],
         "motivation": "classifying",
         "creator": None,

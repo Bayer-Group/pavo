@@ -1,83 +1,128 @@
 {% extends "layout.html" %}
 
 {% block styles %}
-  {{ super() }}
-  <!-- link rel="stylesheet" href="{{ url_for_versioned('static', filename='images/openseadragon/css-42-openseadragon-annotorious.min.css') }}"-->
-  <link rel="stylesheet" href="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/annotorious.min.css') }}">
+{{ super() }}
+<!-- link rel="stylesheet" href="{{ url_for_versioned('static', filename='images/openseadragon/css-42-openseadragon-annotorious.min.css') }}"-->
+<link rel="stylesheet"
+    href="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/annotorious.min.css') }}">
 {% endblock styles %}
 
 {% block scripts_header %}
 {% endblock scripts_header %}
 
 {% block content %}
-    <div class="seadragon-container-parent">
-      <div id="seadragon-container" style="position: relative;">
-      </div>
+<div class="seadragon-container-parent">
+    <div id="seadragon-container" style="position: relative;">
     </div>
+</div>
 {% endblock content %}
 
 {% block page_scripts %}
-  <script type="text/javascript" src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/recogito-polyfill.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='temporary/openseadragon-2.4.2/openseadragon.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/openseadragon-annotorious.min.js') }}"></script>
-  <script type="text/javascript">
-      function documentReady(fn) {
-          if (document.readyState !== "loading") {
-              fn();
-          } else {
-              document.addEventListener("DOMContentLoaded", fn);
-          }
-      }
+<script type="text/javascript"
+    src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/recogito-polyfill.js') }}"></script>
+<script type="text/javascript"
+    src="{{ url_for('static', filename='temporary/openseadragon-2.4.2/openseadragon.js') }}"></script>
+<script type="text/javascript"
+    src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/openseadragon-annotorious.min.js') }}"></script>
+<script type="text/javascript">
+    function documentReady(fn) {
+        if (document.readyState !== "loading") {
+            fn();
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+        }
+    }
 
-      function setupOpenSeadragonViewer(options) {
-          const defaultOptions = {
-              prefixUrl: "{{ url_for('static', filename='temporary/openseadragon-2.4.2/images/') }}",
-              showNavigator: true,
-              showRotationControl: true,
-              animationTime: 0.5,
-              blendTime: 0.1,
-              constrainDuringPan: true,
-              maxZoomPixelRatio: 2,
-              minZoomLevel: 1,
-              visibilityRatio: 1,
-              zoomPerScroll: 2,
-              timeout: 120000,
-          };
+    function setupOpenSeadragonViewer(options) {
+        const defaultOptions = {
+            prefixUrl: "{{ url_for('static', filename='temporary/openseadragon-2.4.2/images/') }}",
+            showNavigator: true,
+            showRotationControl: true,
+            animationTime: 0.5,
+            blendTime: 0.1,
+            constrainDuringPan: true,
+            maxZoomPixelRatio: 2,
+            minZoomLevel: 1,
+            visibilityRatio: 1,
+            zoomPerScroll: 2,
+            timeout: 120000,
+        };
 
-          return new Promise((resolve) => {
-              documentReady(function () {
-                  let osdOptions = Object.assign({}, options, defaultOptions);
+        return new Promise((resolve) => {
+            documentReady(function () {
+                let osdOptions = Object.assign({}, options, defaultOptions);
 
-                  let osdviewer = new OpenSeadragon(osdOptions);
-                  osdviewer.addHandler("open", function () {
-                      // To improve load times, ignore the lowest-resolution Deep Zoom
-                      // levels.  This is a hack: we can't configure the minLevel via
-                      // OpenSeadragon configuration options when the viewer is created
-                      // from DZI XML.
-                      osdviewer.source.minLevel = 8;
-                  });
+                let osdviewer = new OpenSeadragon(osdOptions);
+                osdviewer.addHandler("open", function () {
+                    // To improve load times, ignore the lowest-resolution Deep Zoom
+                    // levels.  This is a hack: we can't configure the minLevel via
+                    // OpenSeadragon configuration options when the viewer is created
+                    // from DZI XML.
+                    osdviewer.source.minLevel = 8;
+                });
 
-                  // Initialize the Annotorious plugin
-                  let anno = OpenSeadragon.Annotorious(osdviewer);
+                // Initialize the Annotorious plugin
+                let anno = OpenSeadragon.Annotorious(
+                    viewer = osdviewer,
+                    config = {
+                        formatter: formatter,
+                    }
+                );
 
-                  // Load annotations in W3C WebAnnotation format
-                  const annotation_url = "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}";
-                  anno.loadAnnotations(annotation_url);
+                // Load annotations in W3C WebAnnotation format
+                const annotation_url = "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}";
+                anno.loadAnnotations(annotation_url);
 
-                  // Attach handlers to listen to events
-                  anno.on('createAnnotation', function(a) {
-                      // Do something
-                      console.log("created annotation");
-                  });
+                // Attach handlers to listen to events
+                anno.on('createAnnotation', function (a) {
+                    // Do something
+                    console.log("created annotation");
+                });
 
-                  resolve(osdviewer);
-              });
-          });
-      }
+                resolve(osdviewer);
+            });
+        });
+    }
 
-      setupOpenSeadragonViewer({
-          id: "seadragon-container",
-          tileSources: "{{ url_for('slides.slide_dzi', image_id=image_id) }}"
-      });
-  </script>
+    var formatter = function (annotation) {
+        if (annotation.body.length > 0){
+            var colour = stringToColour(annotation.body[0].value);
+            return {
+                style: `stroke: ${colour}; fill: ${hexToRgbA(colour)}`,
+            }
+        }
+    }
+
+    var stringToColour = function (str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#';
+        for (var i = 0; i < 3; i++) {
+            var value = (hash >> (i * 8)) & 0xFF;
+            colour += ('00' + value.toString(16)).substr(-2);
+        }
+        return colour;
+    }
+
+    var hexToRgbA = function (hex) {
+        var c;
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+            c = hex.substring(1).split('');
+            if (c.length == 3) {
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c = '0x' + c.join('');
+            return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',0.3)';
+        }
+        throw new Error('Bad Hex');
+    }
+
+    setupOpenSeadragonViewer({
+        id: "seadragon-container",
+        tileSources: "{{ url_for('slides.slide_dzi', image_id=image_id) }}"
+    });
+
+</script>
 {% endblock %}
