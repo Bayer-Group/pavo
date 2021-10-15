@@ -70,8 +70,14 @@
                         formatter: formatter,
                     }
                 );
+
                 // add selectorpack to fix click errors
                 Annotorious.SelectorPack(anno);
+
+                anno.on('clickAnnotation', function (a) {
+                    console.log(a);
+                    anno.fitBounds(a, immediately=false); 
+                });
 
                 // Load annotations in W3C WebAnnotation format
                 const annotation_url = "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}";

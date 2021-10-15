@@ -172,11 +172,12 @@ def w3c_like_annotation(annotation: Annotation, prefix="anno"):
 
     return {
         "@context": "http://www.w3.org/ns/anno.jsonld",
-        "id": f"{prefix}-{class_name.replace(' ', '').replace(':', '')}-{uuid.uuid4()}",
+        "id": f"{prefix}-{safe_class_name.replace(' ', '').replace(':', '')}-{uuid.uuid4()}",
         "type": "Annotation",
         "body": [{
             "type": "TextualBody",
             "value": safe_class_name,
+            "purpose": "tagging",
         }],
         "motivation": "classifying",
         "creator": None,
@@ -184,7 +185,7 @@ def w3c_like_annotation(annotation: Annotation, prefix="anno"):
         "target": {
             "selector": {
                 "type": "SvgSelector",
-                # https://www.w3.org/TR/annotation-model/#svg-selector
+                "conformsTo" : "https://www.w3.org/TR/annotation-model/#svg-selector",
                 "value": f"<svg>{svg_path}</svg>",
             }
         }
