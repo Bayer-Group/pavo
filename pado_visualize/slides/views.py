@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import re
+import uuid
+
 from typing import TYPE_CHECKING
+from typing import List
 
 from flask import Blueprint
 from flask import abort
@@ -8,7 +12,10 @@ from flask import make_response
 from flask import render_template
 from flask import request
 from flask import send_file
+from flask import jsonify
+from fsspec.implementations.cached import CachingFileSystem
 
+from pado.annotations import Annotation, Annotations
 from pado.io.files import urlpathlike_to_fsspec
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
@@ -16,12 +23,9 @@ from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.utils import thumbnail_image
-from pado_visualize.slides.tasks import slide_make_thumbnail_task
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
-
-
 
 if TYPE_CHECKING:
     from pado.images import ImageId
@@ -55,7 +59,6 @@ def index():
 
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
-# @cache.memoize()
 def thumbnail(image_id: ImageId, size: int):
     if size not in {100, 200}:
         return abort(403, "thumbnail size not in {100, 200}")
@@ -78,8 +81,6 @@ def thumbnail(image_id: ImageId, size: int):
             as_attachment=True,
             download_name=request.path.split("/")[-1]
         )
-        # slide_make_thumbnail_task.delay(image_id, size)
-        # return abort(404, 'image not available')
 
 
 # --- viewer endpoints ------------------------------------------------
@@ -132,3 +133,60 @@ def slide_tile(image_id, level, col, row):
     resp = make_response(tile)
     resp.mimetype = 'image/jpeg'
     return resp
+
+
+# --- annotation viewer -------------------------------------------
+@blueprint.route('/viewer/<image_id:image_id>/annotations.json')
+def serve_w3c_annotations(image_id):
+
+    try:
+        annotations: Annotations = dataset.annotations[image_id]
+    except KeyError:
+        return abort(404, f"No annotations found for {image_id!r}")
+
+    w3c_annotations = [w3c_like_annotation(annotation) for annotation in annotations] 
+    return jsonify(w3c_annotations), 200
+
+
+def w3c_like_annotation(annotation: Annotation, prefix="anno"):
+    """make a w3c annotation like annotation
+
+    see: https://www.w3.org/TR/annotation-vocab/#annotation
+
+    """
+
+    region = annotation.geometry
+    class_name = annotation.classification
+    safe_class_name = re.sub('[^A-Za-z0-9]+', '', class_name)
+
+    # remove style information from svg for w3c annotation
+    _svg_style_re = re.compile(
+        r'(fill|stroke)="#[0-9a-f]{6}" ?'
+        r'|fill-rule="evenodd" ?'
+        r'|(stroke-width|opacity)="[0-9]*([.][0-9]*)?" ?'
+    )
+
+    svg_path = region.svg()
+    # strip all style information
+    svg_path = _svg_style_re.sub("", svg_path)
+
+    return {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": f"{prefix}-{safe_class_name.replace(' ', '').replace(':', '')}-{uuid.uuid4()}",
+        "type": "Annotation",
+        "body": [{
+            "type": "TextualBody",
+            "value": safe_class_name,
+            "purpose": "tagging",
+        }],
+        "motivation": "classifying",
+        "creator": None,
+        "created": None,
+        "target": {
+            "selector": {
+                "type": "SvgSelector",
+                "conformsTo" : "https://www.w3.org/TR/annotation-model/#svg-selector",
+                "value": f"<svg>{svg_path}</svg>",
+            }
+        }
+    }
