@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import re
+import uuid
+
 from typing import TYPE_CHECKING
+from typing import List
 
 from flask import Blueprint
 from flask import abort
@@ -9,8 +13,10 @@ from flask import make_response
 from flask import render_template
 from flask import request
 from flask import send_file
+from flask import jsonify
 from fsspec.implementations.cached import CachingFileSystem
 
+from pado.annotations import Annotation, Annotations
 from pado.io.files import urlpathlike_to_fs_and_path
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
@@ -133,3 +139,56 @@ def slide_tile(image_id, level, col, row):
     resp = make_response(tile)
     resp.mimetype = 'image/jpeg'
     return resp
+
+# --- annotation viewer -------------------------------------------
+@blueprint.route('/viewer/<image_id:image_id>/annotations.json')
+def serve_w3c_annotations(image_id):
+
+    try:
+        annotations: Annotations = dataset.annotations[image_id]
+    except KeyError:
+        return abort(404, f"No annotations found for {image_id!r}")
+
+    w3c_annotations = [w3c_like_annotation(annotation) for annotation in annotations] 
+    return jsonify(w3c_annotations), 200
+
+
+def w3c_like_annotation(annotation: Annotation, prefix="anno"):
+    """make a w3c annotation like annotation
+
+    see: https://www.w3.org/TR/annotation-vocab/#annotation
+
+    """
+
+    region = annotation.geometry
+    class_name = annotation.classification 
+
+    # remove style information from svg for w3c annotation
+    _svg_style_re = re.compile(
+        r'(fill|stroke)="#[0-9a-f]{6}" ?'
+        r'|fill-rule="evenodd" ?'
+        r'|(stroke-width|opacity)="[0-9]*([.][0-9]*)?" ?'
+    )
+
+    svg_path = region.svg()
+    # strip all style information
+    svg_path = _svg_style_re.sub("", svg_path)
+    return {
+        "@context": "http://www.w3.org/ns/anno.jsonld",
+        "id": f"{prefix}-{class_name.replace(' ', '').replace(':', '')}-{uuid.uuid4()}",
+        "type": "Annotation",
+        "body": [{
+            "type": "TextualBody",
+            "value": class_name,
+        }],
+        "motivation": "classifying",
+        "creator": None,
+        "created": None,
+        "target": {
+            "selector": {
+                "type": "SvgSelector",
+                # https://www.w3.org/TR/annotation-model/#svg-selector
+                "value": f"<svg>{svg_path}</svg>",
+            }
+        }
+    }
