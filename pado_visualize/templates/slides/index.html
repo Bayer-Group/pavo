@@ -15,7 +15,15 @@
 {% endmacro %}
 
 {% macro search_bar() %}
-  <h2>Search:</h2>
+  
+  <div class='search-bar'>
+    <h2>Filter by:</h2>
+    <select>
+      {% for option in filter_options %}
+        <option value="{{ option }}">{{ option }}</option>
+      {% endfor %}
+    </select>
+  </div>
 {% endmacro %}
 
 {% block styles %}

@@ -4,6 +4,7 @@ import hashlib
 import io
 import math
 import os
+import pandas as pd
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -36,7 +37,6 @@ class PaginatedItems(NamedTuple):
     page: int
     pages: int
     items: List[ImageIdImagePair]
-
 
 def get_paginated_images(ds: DatasetProxy, page: int, page_size: int) -> PaginatedItems:
     """return paginated Images"""

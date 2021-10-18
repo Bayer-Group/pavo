@@ -6,6 +6,9 @@ from pado.images import ImageId, image
 from pado.annotations import Annotation
 
 from pado_visualize.data import dataset
+from pado_visualize.api.utils import get_filtered_images
+from pado_visualize.api.utils import get_valid_metadata_attribute_options
+from pado_visualize.api.utils import get_valid_metadata_attributes
 
 
 blueprint = Blueprint('api', __name__)
@@ -77,39 +80,53 @@ def _insert_image_prediction():
 
 # ---- general api queries -----------------------------------------------------
 @blueprint.route("/image_ids", methods=['GET'])
-def filter_by_image_id():
-    """filtering"""
+def filter_by():
+    """return image_ids which match some filter"""
 
-    filename = request.args.get('filename', None)
-    metadata_key = request.args.get('metadata_key', None)
-    metadata_value = request.args.get('metadata_value', None)
+    filter = request.args
 
-    if request.args == {}:
-        image_id_strings = list(dataset.images.df.index)
-        image_ids = [ImageId.from_str(id_string) for id_string in image_id_strings]
-        return jsonify([image_id.to_url_id() for image_id in image_ids]), 200
-    elif filename:
-        # TODO: more fuzzy matching (regex maybe)
-        image_id_strings = list(dataset.images.df.index)
-        image_ids = [ImageId.from_str(id_string) for id_string in image_id_strings]
-        matched = [image_id.to_url_id() for image_id in image_ids if image_id.last == filename]
-        return jsonify(matched), 200
-    elif metadata_key and metadata_value:
-        try:
-            image_id_strings = (dataset.metadata.df[metadata_key] == metadata_value).index.unique()
-        except:
-            # TODO make this error better
-            return '', 400
+    image_ids = get_filtered_images(filter)
+
+    return jsonify([image_id.to_url_id() for image_id in image_ids]), 200
+
+    # filename = request.args.get('filename', None)
+    # metadata_key = request.args.get('metadata_key', None)
+    # metadata_value = request.args.get('metadata_value', None)
+
+    # if request.args == {}:
+    #     image_id_strings = list(dataset.images.df.index)
+    #     image_ids = [ImageId.from_str(id_string) for id_string in image_id_strings]
+    #     return jsonify([image_id.to_url_id() for image_id in image_ids]), 200
+    # elif filename:
+    #     # TODO: more fuzzy matching (regex maybe)
+    #     image_id_strings = list(dataset.images.df.index)
+    #     image_ids = [ImageId.from_str(id_string) for id_string in image_id_strings]
+    #     matched = [image_id.to_url_id() for image_id in image_ids if image_id.last == filename]
+    #     return jsonify(matched), 200
+    # elif metadata_key and metadata_value:
+    #     try:
+    #         image_id_strings = (dataset.metadata.df[metadata_key] == metadata_value).index.unique()
+    #     except:
+    #         # TODO make this error better
+    #         return '', 400
         
-        image_ids = [ImageId.from_str(id_string) for id_string in image_id_strings]
-        matched = [image_id.to_url_id() for image_id in image_ids]
-        return jsonify(matched), 200
+    #     image_ids = [ImageId.from_str(id_string) for id_string in image_id_strings]
+    #     matched = [image_id.to_url_id() for image_id in image_ids]
+    #     return jsonify(matched), 200
+
+@blueprint.route("/metadata/attributes", methods=['GET'])
+def metadata_attributes():
+    """returns columns of the metadata dataframe"""
+    return jsonify(get_valid_metadata_attributes()), 200
 
 
-@blueprint.route("/metadata/finding_types", methods=['GET'])
-def request_metadata_finding_types():
-
-    return jsonify(dataset.metadata.df['finding_type'].apply(pd.Series).stack().reset_index(drop=True).unique().tolist()), 200
+@blueprint.route("/metadata/<attribute>/valid_attributes", methods=['GET'])
+def valid_metadata_options(attribute):
+    """returns a set of unique options for a single metadata attribute in the dataframe"""
+    try:
+        return jsonify(get_valid_metadata_attribute_options(attribute)), 200
+    except Exception as e:
+        return f'Error: {e}', 400
 
 
 
@@ -128,7 +145,6 @@ def request_metadata_finding_types():
 #         return 'Did not provide site', 400
     
 #     image_ids = []
-#     # TODO: this is terrible but it currently not easy to check ImageId equality
 #     for image_id_string in list(dataset.images.df.index):
 #         image_id = ImageId.from_str(image_id_string)
 #         image_identifier = (image_id.last, image_id.site)

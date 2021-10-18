@@ -54,7 +54,8 @@ def index():
         image_id_pairs=page_images.items,
         page=page_images.page,
         page_size=page_size,
-        pages=page_images.pages
+        pages=page_images.pages,
+        filter_options=['Metadata', 'Filename']
     )
 
 
