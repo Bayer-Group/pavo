@@ -23,6 +23,8 @@ from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.utils import thumbnail_image
+from pado_visualize.api.utils import get_valid_metadata_attributes
+from pado_visualize.api.utils import get_valid_metadata_attribute_options
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
@@ -48,14 +50,25 @@ def index():
     allowed_page_sizes = {20, 40, 80, 160, 320}
     if page_size not in allowed_page_sizes:
         abort(403, f"page_size must be one of {allowed_page_sizes!r}")
-    page_images = get_paginated_images(dataset, page=page, page_size=page_size)
+    
+    filter = {}
+
+    print('HERE WE GO', request.form)
+    
+    page_images = get_paginated_images(
+        dataset, 
+        page=page, 
+        page_size=page_size,
+        filter=filter
+    )
     return render_template(
         "slides/index.html",
         image_id_pairs=page_images.items,
         page=page_images.page,
         page_size=page_size,
         pages=page_images.pages,
-        filter_options=['Metadata', 'Filename']
+        filter_options=['Metadata', 'Filename'],
+        metadata_attributes=get_valid_metadata_attributes(),
     )
 
 
@@ -89,8 +102,6 @@ def thumbnail(image_id: ImageId, size: int):
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     return render_template("slides/viewer_openseadragon.html", image_id=image_id)
-
-
 
 
 # --- pyramidal tile server -------------------------------------------

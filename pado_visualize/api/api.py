@@ -58,9 +58,17 @@ def manage_predictions(image_id):
 # ---- filter dataset endpoints -----------------------------------------------
 @blueprint.route("/image_ids", methods=['GET'])
 def filter_by():
-    """return image_ids which match some filter"""
+    """return image_ids which match some filter
+    
+    The filter object must be passed as a json object in the request body.
+    Currently, the following key value pairs are supported:
+    - "filename": str,
+    - "metadata_key": str,
+    - "metadata_values": List[str]
+    """
 
-    filter = request.args
+    filter = request.get_json()
+
     try:
         image_ids = get_filtered_images(filter)
     except Exception as e:

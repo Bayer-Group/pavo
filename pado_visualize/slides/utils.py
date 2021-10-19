@@ -22,6 +22,8 @@ from pado.io.files import fsopen
 from pado.io.files import urlpathlike_to_fs_and_path
 from pado.types import UrlpathLike
 
+from pado_visualize.api.utils import get_filtered_images
+
 if TYPE_CHECKING:
     from pado_visualize.data import DatasetProxy
 
@@ -38,11 +40,11 @@ class PaginatedItems(NamedTuple):
     pages: int
     items: List[ImageIdImagePair]
 
-def get_paginated_images(ds: DatasetProxy, page: int, page_size: int) -> PaginatedItems:
-    """return paginated Images"""
+def get_paginated_images(ds: DatasetProxy, page: int, page_size: int, filter: dict = {}) -> PaginatedItems:
+    """return filtered and paginated Images"""
     idx_start = page * page_size
     idx_end = page * page_size + page_size
-    ds_index = ds.index
+    ds_index = get_filtered_images(filter, ds)
     ds_images = ds.images
     image_ids = ds_index[idx_start:idx_end]
     return PaginatedItems(

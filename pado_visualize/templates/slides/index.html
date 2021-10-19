@@ -16,13 +16,25 @@
 
 {% macro search_bar() %}
   
-  <div class='search-bar'>
+  <div>
     <h2>Filter by:</h2>
-    <select>
+    <form action="" method="get">
       {% for option in filter_options %}
-        <option value="{{ option }}">{{ option }}</option>
+        <input type="checkbox" name="filter" value={{option}}>
+        <label for={{option}}>{{option}}</label>
+      {% endfor %}      
+      <p><input type=submit value=Next></p>
+    </form>
+    <select>
+      {% for attribute in metadata_attributes %}
+        <option value="{{ attribute }}">{{ attribute }}</option>
       {% endfor %}
     </select>
+    <!-- <select>
+      {% for option in metadata_attribute_options %}
+        <option value="{{ option }}">{{ option }}</option>
+      {% endfor %}
+    </select> -->
   </div>
 {% endmacro %}
 

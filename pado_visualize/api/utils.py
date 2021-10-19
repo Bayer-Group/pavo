@@ -1,5 +1,3 @@
-import pandas as pd
-
 from typing import List
 from typing import Set
 
@@ -19,17 +17,17 @@ def get_filtered_images(filter: dict, ds: DatasetProxy = dataset) -> List[ImageI
     
     filtered_ids = set(ds.index)
     
-    filename = filter.get('filename', None)
-    metadata_key = filter.get('metadata_key', None)
-    metadata_value = filter.get('metadata_value', None)
+    filename: str = filter.get('filename', None)
+    metadata_key: str = filter.get('metadata_key', None)
+    metadata_values: List[str] = filter.get('metadata_values', None)
 
     # TODO: for efficiency, apply filters in succession without the set conversions
     try:
         if filename:
             filtered_ids = filtered_ids & filter_by_filename(filename, ds)
-        if metadata_key or metadata_value:
-            if metadata_key and metadata_value:
-                filtered_ids = filtered_ids & filter_by_metadata(metadata_key, metadata_value)
+        if metadata_key or metadata_values:
+            if metadata_key and metadata_values:
+                filtered_ids = filtered_ids & filter_by_metadata(metadata_key, metadata_values)
             else:
                 raise InvalidFilterParameters('Must specify a metadata_key and metadata_value.')
     except Exception as e:
@@ -42,14 +40,17 @@ def get_filtered_images(filter: dict, ds: DatasetProxy = dataset) -> List[ImageI
 def filter_by_filename(filename: str, ds: DatasetProxy = dataset) -> Set[ImageId]:
     return set([id for id in ds.index if id.last == filename])
 
-def filter_by_metadata(metadata_key, metadata_value, ds: DatasetProxy = dataset) -> Set[ImageId]:
+def filter_by_metadata(metadata_key: str, metadata_values: List[str], ds: DatasetProxy = dataset) -> Set[ImageId]:
     try: 
         assert metadata_key in get_valid_metadata_attributes(), 'Invalid metadata attribute.'
-        assert metadata_value in get_valid_metadata_attribute_options(metadata_key), 'Invalid metadata attribute value.'
+        valid_options = get_valid_metadata_attribute_options(metadata_key)
+        for metadata_value in metadata_values:
+            print(valid_options)
+            assert metadata_value in valid_options, f'{metadata_value} is an invalid metadata attribute value.'
     except AssertionError as e:
         raise AssertionError(e)
 
-    image_id_strings = ds.metadata.df[ds.metadata.df[metadata_key] == metadata_value].index.unique()
+    image_id_strings = ds.metadata.df[ds.metadata.df[metadata_key].isin(metadata_values)].index.unique()
     return set([ImageId.from_str(id) for id in image_id_strings])
 
 def get_valid_metadata_attributes(ds: DatasetProxy = dataset) -> List[str]:
