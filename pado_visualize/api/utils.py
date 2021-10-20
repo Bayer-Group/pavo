@@ -6,6 +6,8 @@ from pado.annotations import Annotation
 
 from pado_visualize.data import DatasetProxy
 from pado_visualize.data import dataset
+from pado_visualize.metadata.utils import get_valid_metadata_attributes
+from pado_visualize.metadata.utils import get_valid_metadata_attribute_options
 
 
 # --- filtering ---------------------------------------------------------------
@@ -20,8 +22,10 @@ def get_filtered_images(filter: dict, ds: DatasetProxy = dataset) -> List[ImageI
     filename: str = filter.get('filename', None)
     metadata_key: str = filter.get('metadata_key', None)
     metadata_values: List[str] = filter.get('metadata_values', None)
+    if metadata_values and not isinstance(metadata_values, list):
+        metadata_values = [metadata_values]
 
-    # TODO: for efficiency, apply filters in succession without the set conversions
+    # TODO: for efficiency, combine filters without needing set<->list conversions
     try:
         if filename:
             filtered_ids = filtered_ids & filter_by_filename(filename, ds)
@@ -44,25 +48,18 @@ def filter_by_metadata(metadata_key: str, metadata_values: List[str], ds: Datase
     try: 
         assert metadata_key in get_valid_metadata_attributes(), 'Invalid metadata attribute.'
         valid_options = get_valid_metadata_attribute_options(metadata_key)
-        for metadata_value in metadata_values:
-            print(valid_options)
-            assert metadata_value in valid_options, f'{metadata_value} is an invalid metadata attribute value.'
+        for idx, metadata_value in enumerate(metadata_values):
+            # TODO is there a better way to handle type conversions when the url parameters are always passed as strings from the frontend?
+            if metadata_value.isnumeric():
+                metadata_values[idx] = int(metadata_value)
+            assert metadata_values[idx] in valid_options, (
+                f'{metadata_values[idx]} of type {type(metadata_value[idx])} '
+                'is an invalid metadata attribute value.')
     except AssertionError as e:
         raise AssertionError(e)
 
     image_id_strings = ds.metadata.df[ds.metadata.df[metadata_key].isin(metadata_values)].index.unique()
     return set([ImageId.from_str(id) for id in image_id_strings])
-
-def get_valid_metadata_attributes(ds: DatasetProxy = dataset) -> List[str]:
-    """return all the attributes present in the metadata provider"""
-    return list(ds.metadata.df.columns)
-
-def get_valid_metadata_attribute_options(metadata_attribute: str, ds: DatasetProxy = dataset) -> List[str]:
-    """return all the options given for a single attribute present in the metadata provider"""
-    try:
-        return list(dataset.metadata.df[metadata_attribute].unique())
-    except KeyError as e:
-        raise KeyError(f'Invalid metadata attribute {e} caused a key error.')
 
 
 # ---- prediction api helper functions ----------------------------------------

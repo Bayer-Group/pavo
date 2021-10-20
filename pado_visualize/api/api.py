@@ -5,8 +5,6 @@ from werkzeug.exceptions import BadRequest
 
 from pado_visualize.data import dataset
 from pado_visualize.api.utils import get_filtered_images
-from pado_visualize.api.utils import get_valid_metadata_attribute_options
-from pado_visualize.api.utils import get_valid_metadata_attributes
 from pado_visualize.api.utils import insert_annotation_prediction
 from pado_visualize.api.utils import insert_image_prediction
 
@@ -77,18 +75,5 @@ def filter_by():
     return jsonify([image_id.to_url_id() for image_id in image_ids]), 200
 
 
-# ---- metadata endpoints -----------------------------------------------------
 
-@blueprint.route("/metadata/attributes", methods=['GET'])
-def metadata_attributes():
-    """returns columns of the metadata dataframe"""
-    return jsonify(get_valid_metadata_attributes()), 200
-
-@blueprint.route("/metadata/<attribute>/valid_attributes", methods=['GET'])
-def valid_metadata_options(attribute):
-    """returns a set of unique options for a single metadata attribute in the dataframe"""
-    try:
-        return jsonify(get_valid_metadata_attribute_options(attribute)), 200
-    except Exception as e:
-        return f'Error: {e}', 400
 

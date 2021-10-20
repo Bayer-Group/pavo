@@ -4,8 +4,8 @@ import hashlib
 import io
 import math
 import os
-import pandas as pd
 from typing import List
+from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
 from typing import Sequence
@@ -21,8 +21,11 @@ from pado.images import Image
 from pado.io.files import fsopen
 from pado.io.files import urlpathlike_to_fs_and_path
 from pado.types import UrlpathLike
+from werkzeug.datastructures import ImmutableMultiDict
 
 from pado_visualize.api.utils import get_filtered_images
+from pado_visualize.api.utils import get_valid_metadata_attributes
+from pado_visualize.api.utils import get_valid_metadata_attribute_options
 
 if TYPE_CHECKING:
     from pado_visualize.data import DatasetProxy
@@ -124,3 +127,11 @@ def thumbnail_image(
             print("error3 error", str(err), repr(err))
             fs.rm_file(path)
             raise
+
+
+# --- filtering ---------------------------------------------------------------
+
+
+def formdata_to_filter(formdata: ImmutableMultiDict) -> Mapping[str, str]:
+    """converts form data into a filter dictionary"""
+    pass

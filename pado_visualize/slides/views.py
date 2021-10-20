@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
+import json
 
 from typing import TYPE_CHECKING
 from typing import List
@@ -23,8 +24,8 @@ from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.utils import thumbnail_image
-from pado_visualize.api.utils import get_valid_metadata_attributes
-from pado_visualize.api.utils import get_valid_metadata_attribute_options
+from pado_visualize.metadata.utils import get_valid_metadata_attributes
+from pado_visualize.metadata.utils import get_all_metadata_attribute_options
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
@@ -51,10 +52,8 @@ def index():
     if page_size not in allowed_page_sizes:
         abort(403, f"page_size must be one of {allowed_page_sizes!r}")
     
-    filter = {}
+    filter = request.args
 
-    print('HERE WE GO', request.form)
-    
     page_images = get_paginated_images(
         dataset, 
         page=page, 
@@ -67,9 +66,13 @@ def index():
         page=page_images.page,
         page_size=page_size,
         pages=page_images.pages,
-        filter_options=['Metadata', 'Filename'],
-        metadata_attributes=get_valid_metadata_attributes(),
+        metadata_attributes=get_all_metadata_attribute_options(),
     )
+
+@blueprint.route("/thumbnails", methods=['GET'])
+def thumbnails():
+    """reload thumbnails after filtering"""
+    pass
 
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
@@ -78,7 +81,6 @@ def thumbnail(image_id: ImageId, size: int):
         return abort(403, "thumbnail size not in {100, 200}")
 
     fs, path = thumbnail_fs_and_path(image_id, size)
-    print(fs, path)
     assert fs.protocol == "file", "we assume local cache for now"    
     try:
         return send_file(
