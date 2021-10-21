@@ -22,7 +22,6 @@ def get_filtered_images(filter: dict, ds: DatasetProxy = dataset) -> List[ImageI
     filename: str = filter.get('filename', None)
     metadata_key: str = filter.get('metadata_key', None)
     metadata_values: List[str] = filter.get('metadata_values', None)
-    print('*'*20, '\n', metadata_values)
     if metadata_values and not isinstance(metadata_values, list):
         metadata_values = [metadata_values]
 
