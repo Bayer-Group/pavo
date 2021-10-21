@@ -1,19 +1,5 @@
 {% extends "layout.html" %}
 
-{# the creates one slide card #}
-{% macro slide_card(image_id, image) %}
-  <a href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
-  <div class="card slide-card">
-    <div class="thumbnail">
-      <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
-    </div>
-    <div class="title">{{ image_id.last }}</div>
-    <div class="indicators">
-    </div>
-  </div>
-  </a>
-{% endmacro %}
-
 
 {% block styles %}
   {{ super() }}
@@ -25,7 +11,7 @@
     <div>
       <fieldset>
         <legend>Filter by:</legend>
-        <form action="" method="get">
+        <form action="thumbnails" method="get">
           <li>
             <label for="filename_filter_checkbox"></label>
             <input 
@@ -80,9 +66,22 @@
   {% endblock filter_bar %}
 
   {% block thumbnails %}
-    {% include "./slides/thumbnails.html" %}
+    {% include "slides/thumbnails.html" %}
   {% endblock thumbnails %}
 
+  {% block pages %}
+  <div class="pagination">
+    {% for idx in range(pages) %}
+      <a href="{{ url_for('slides.index', page=idx, page_size=page_size) }}">
+        {% if idx == page %}
+          <strong>{{ idx }}</strong>
+        {% else %}
+          {{ idx }}
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+  {% endblock pages %}
 {% endblock content %}
 
 {% block page_scripts %}
