@@ -1,11 +1,5 @@
 @import "colors";
 
-.search-bar {
-  border-radius: 5px;
-  width: 200px;
-  background-color: black ;
-}
-
 
 .container.slide-container {
 
@@ -167,3 +161,66 @@ a:hover > .container.slide-container {
 .thumbnail-card > img {
   image-rendering: optimizeSpeed;
 }
+
+span.filter-label {
+  display: inline-block;
+  min-width: 10em;
+  padding: 0.5em;
+}
+
+li.filter-form-list {
+  list-style-type: none;
+}
+
+.filter-widget-container {
+  display: inline-block;
+  width: 20em;
+
+  select {
+    width: 49%;
+    margin: 0px;
+  }
+
+  input {
+    width: 100%;
+    padding: 0px;
+  }
+}
+
+
+.filter-bar {
+  border-radius: 5px;
+  width: 100%;
+}
+
+.filter-bar legend {
+  background-color: white;
+  padding: 8px;
+  border: thin solid grey;
+  // border-width: thin;
+  border-radius: 5px;
+}
+
+.filter-bar legend h2 {
+  margin: 0px ;
+}
+
+.container.filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  padding: 2em;
+}
+
+.filter-button {
+  background-color: $color-primary-light;
+  padding: 8px;
+  min-width: 10em;
+  border: thin solid white;
+  border-radius: 5px;
+}
+.filter-button:hover {
+  background-color: $color-primary-light;
+  border-color: $color-primary-dark;
+}
+

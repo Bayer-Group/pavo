@@ -6,67 +6,91 @@
   <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
 {% endblock styles %}
 
+{% macro slide_card(image_id, image) %}
+  <a href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
+  <div class="card slide-card">
+    <div class="thumbnail">
+      <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
+    </div>
+    <div class="title">{{ image_id.last }}</div>
+    <div class="indicators">
+    </div>
+  </div>
+  </a>
+{% endmacro %}
+
 {% block content %}
   {% block filter_bar %}
-    <div>
-      <fieldset>
-        <legend>Filter by:</legend>
-        <form action="thumbnails" method="get">
-          <li>
+    <div class="container filter">
+      <fieldset class="filter-bar">
+        <legend> <h2>Filter by:</h2> </legend>
+        <form action="" method="get" >
+          <li class="filter-form-list">
             <label for="filename_filter_checkbox"></label>
             <input 
               id = "filename_filter_checkbox" 
               type="checkbox" 
               onclick="EnableFilter(this)"
+              class="filter-checkbox"
             >
-            <span>
+            <span class="filter-label">
               Filename:
+            </span>
+            <div class='filter-widget-container'>
               <input 
                 type="text" 
                 id="filename_filter_widget" 
                 name="filename" 
-                disabled="disabled" 
+                disabled="disabled"
+                value="{{ filter['filename'] }}"
               />
-            </span>
+            </div>
           </li>
-          <li>
+          <li class="filter-form-list">
             <label for="metadata_filter_checkbox"></label>
             <input 
               id = "metadata_filter_checkbox" 
               type="checkbox" 
               onclick="EnableFilter(this)"
             >
-            <span>
+            <span class="filter-label">
               Metadata:
             </span>
-            <select 
-              id="metadata_filter_widget" 
-              name="metadata_key" 
-              disabled="disabled" 
-              onclick="EnableMetadataOptions(this)"
-            >
-              {% for attribute in metadata_attributes.keys() %}
-                <option value="{{ attribute }}">{{ attribute }}</option>
-              {% endfor %}
-            </select>
-            <select 
-              id="metadata_filter_widget_options" 
-              name="metadata_values" 
-              disabled="disabled"
-            >
-              {% for option in selected_metadata_attribute_options %}
-                <option value="{{ option }}">{{ option }}</option>
-              {% endfor %}
-            </select>
+            <div class="filter-widget-container">
+              <select 
+                id="metadata_filter_widget" 
+                name="metadata_key" 
+                disabled="disabled" 
+                onclick="EnableMetadataOptions(this)"
+                value="{{ filter['metadata_key'] }}"
+              >
+                {% for attribute in metadata_attributes.keys() %}
+                  <option value="{{ attribute }}">{{ attribute }}</option>
+                {% endfor %}
+              </select>
+              <select 
+                id="metadata_filter_widget_options" 
+                name="metadata_values" 
+                disabled="disabled"
+              >
+                {% for option in selected_metadata_attribute_options %}
+                  <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </li>
-          <p><input type="submit" value="Filter"></p>
+          <p><input type="submit" value="Apply" class="filter-button"></p>
         </form>
       </fieldset>
     </div>
   {% endblock filter_bar %}
 
   {% block thumbnails %}
-    {% include "slides/thumbnails.html" %}
+    <div class="container slide-container">
+      {% for image_id, image in image_id_pairs %}
+        {{ slide_card(image_id, image) }}
+      {% endfor %}
+    </div>
   {% endblock thumbnails %}
 
   {% block pages %}
@@ -95,20 +119,23 @@
         filter_widget.focus();
       }
     }
-    function EnableMetadataOptions(metadata_selection) {
-      // TODO: try find a smarter way of implementing a dependent dropdown list
-      const metadata_attributes = {{ metadata_attributes | tojson }};
-
+    function PopulateMetadataDropdown(metadata_attribute_options) {
       const secondselect = document.getElementById('metadata_filter_widget_options');
       secondselect.innerHTML = null;
       secondselect.disabled = false;
-      
-      for (const value of metadata_attributes[metadata_selection.value]) {
+
+      for (const value of metadata_attribute_options) {
         const option = document.createElement('option');
         option.value = value;
         option.innerHTML = value;
         secondselect.appendChild(option);
       }
+    }
+    function EnableMetadataOptions(metadata_selection) {
+      // TODO: try find a smarter way of implementing a dependent dropdown list
+      const metadata_attributes = {{ metadata_attributes | tojson }};
+      const metadata_attribute_options = metadata_attributes[metadata_selection.value];
+      PopulateMetadataDropdown(metadata_attribute_options)
     }
   </script>
 {% endblock page_scripts %}
