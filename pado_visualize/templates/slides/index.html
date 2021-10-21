@@ -72,6 +72,8 @@
                 id="metadata_filter_widget_options" 
                 name="metadata_values" 
                 disabled="disabled"
+                class="custom-multiselect"
+                multiple
               >
                 {% for option in selected_metadata_attribute_options %}
                   <option value="{{ option }}">{{ option }}</option>
@@ -111,6 +113,48 @@
 {% block page_scripts %}
   <script type="text/javascript" src="{{ url_for_versioned('static', filename='js/slides_deckgl.js') }}"></script>
   <script>
+
+    class CustomSelect {
+      constructor(originalSelect) {
+        this.originalSelect = originalSelect;
+        this.customSelect = document.createElement("div");
+        this.customSelect.id = "multiselect_region"
+        this.customSelect.classList.add("multiselect");
+
+        this.originalSelect.querySelectorAll("option").forEach(optionElement => {
+          const itemElement= document.createElement("div");
+          itemElement.classList.add("multiselect-item");
+          itemElement.textContent = optionElement.textContent;
+          this.customSelect.appendChild(itemElement);
+          if (optionElement.selected) {
+            this._select(itemElement);
+          }
+          itemElement.addEventListener("click", () => {
+            if (itemElement.classList.contains("multiselect-item--selected")) {
+              this._deselect(itemElement);
+            } else {
+              this._select(itemElement);
+            }
+          })
+
+        })
+        this.originalSelect.insertAdjacentElement("beforebegin", this.customSelect);
+        this.originalSelect.style.display = "none";
+      }
+
+      _select(itemElement){
+        const idx = Array.from(this.customSelect.children).indexOf(itemElement);
+        this.originalSelect.querySelectorAll("option")[idx].selected = true;
+        itemElement.classList.add("multiselect-item--selected");
+      }
+
+      _deselect(itemElement){
+        const idx = Array.from(this.customSelect.children).indexOf(itemElement);
+        this.originalSelect.querySelectorAll("option")[idx].selected = false;
+        itemElement.classList.remove("multiselect-item--selected");
+      }
+    }
+
     function EnableFilter(checkbox) {
       filter_widget_id = checkbox.id.replace('checkbox', 'widget');
       var filter_widget = document.getElementById(filter_widget_id);
@@ -119,18 +163,29 @@
         filter_widget.focus();
       }
     }
+
     function PopulateMetadataDropdown(metadata_attribute_options) {
       const secondselect = document.getElementById('metadata_filter_widget_options');
       secondselect.innerHTML = null;
       secondselect.disabled = false;
 
+      // clear the actual select and add the relevant options
       for (const value of metadata_attribute_options) {
         const option = document.createElement('option');
         option.value = value;
         option.innerHTML = value;
         secondselect.appendChild(option);
       }
+      // clear out the old select options
+      document.querySelectorAll(".multiselect").forEach(customSelect => {
+        customSelect.parentNode.removeChild(customSelect);
+      })
+      // add new custom select elements
+      document.querySelectorAll(".custom-multiselect").forEach(selectElement => {
+        new CustomSelect(selectElement);
+      })
     }
+
     function EnableMetadataOptions(metadata_selection) {
       // TODO: try find a smarter way of implementing a dependent dropdown list
       const metadata_attributes = {{ metadata_attributes | tojson }};

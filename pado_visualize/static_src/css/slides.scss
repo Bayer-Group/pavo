@@ -162,31 +162,13 @@ a:hover > .container.slide-container {
   image-rendering: optimizeSpeed;
 }
 
-span.filter-label {
-  display: inline-block;
-  min-width: 10em;
-  padding: 0.5em;
+// ---- filter bar styling
+.container.filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  padding: 2em;
 }
-
-li.filter-form-list {
-  list-style-type: none;
-}
-
-.filter-widget-container {
-  display: inline-block;
-  width: 20em;
-
-  select {
-    width: 49%;
-    margin: 0px;
-  }
-
-  input {
-    width: 100%;
-    padding: 0px;
-  }
-}
-
 
 .filter-bar {
   border-radius: 5px;
@@ -197,19 +179,35 @@ li.filter-form-list {
   background-color: white;
   padding: 8px;
   border: thin solid grey;
-  // border-width: thin;
   border-radius: 5px;
+  h2 {
+    margin: 0px ;
+  }
 }
 
-.filter-bar legend h2 {
-  margin: 0px ;
+li.filter-form-list {
+  list-style-type: none;
 }
 
-.container.filter {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: left;
-  padding: 2em;
+span.filter-label {
+  display: inline-block;
+  min-width: 10em;
+  padding: 0.5em;
+}
+
+.filter-widget-container {
+  display: inline-block;
+  width: 40em;
+  display: grid;
+
+  select {
+    border-radius: 5px;
+  }
+
+  input {
+    border-radius: 5px;
+    z-index: 2;
+  }
 }
 
 .filter-button {
@@ -218,8 +216,49 @@ li.filter-form-list {
   min-width: 10em;
   border: thin solid white;
   border-radius: 5px;
+  cursor: pointer;
 }
 .filter-button:hover {
+  background-color: $color-primary-light;
+  border-color: $color-primary-dark;
+}
+
+// ---- Custom multiselect styling
+.custom-multiselect {
+  height: 128px;
+  border: thin grey solid;
+  border-radius: 5px;
+  margin-top: 8px;
+}
+
+.multiselect{
+  display: flex-wrap;
+  max-width: 100%;
+  height: 128px;
+  border: thin grey solid;
+  border-radius: 5px;
+  margin-top: 8px;
+  background-color: rgb(235, 235, 235);
+}
+
+.multiselect-item {
+  padding: 4px 16px 4px;
+  margin: 4px;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 10px;
+  border: thin solid grey;
+  transition: background 0.1s;
+  background-color: white;
+  display: inline-block;
+}
+
+.multiselect-item:hover {
+  z-index: 1;
+  border-color: black;
+}
+
+.multiselect-item--selected {
   background-color: $color-primary-light;
   border-color: $color-primary-dark;
 }

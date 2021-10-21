@@ -56,7 +56,7 @@ def index():
     filter = {
         'filename': request.args.get('filename', None),
         'metadata_key': request.args.get('metadata_key', None),
-        'metadata_values': request.args.get('metadata_values', None),
+        'metadata_values': request.args.getlist('metadata_values', None),
     }
 
     page_images = get_paginated_images(
@@ -76,28 +76,6 @@ def index():
         filter=filter,
         metadata_attributes=get_all_metadata_attribute_options(),
     )
-
-# @blueprint.route("/thumbnails", methods=['GET'])
-# def thumbnails():
-#     """reload thumbnails after filtering"""
-#     page = request.args.get("page", 0, type=int_ge_0)
-#     page_size = request.args.get("page_size", 40, type=int_ge_1)
-#     allowed_page_sizes = {20, 40, 80, 160, 320}
-#     if page_size not in allowed_page_sizes:
-#         abort(403, f"page_size must be one of {allowed_page_sizes!r}")
-    
-#     filter = request.args
-
-#     page_images = get_paginated_images(
-#         dataset, 
-#         page=page, 
-#         page_size=page_size,
-#         filter=filter
-#     )
-#     slide_card_macro = get_template_attribute("slides/thumbnails.html", 'slide_cards')
-#     return slide_card_macro(page_images.items)
-
-
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
 def thumbnail(image_id: ImageId, size: int):
