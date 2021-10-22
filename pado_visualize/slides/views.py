@@ -80,6 +80,38 @@ def index():
         metadata_attributes=get_all_metadata_attribute_options(),
     )
 
+@blueprint.route("/thumbnails", methods=['GET'])
+def thumbnails():
+    page = request.args.get("page", 0, type=int_ge_0)
+    page_size = request.args.get("page_size", 40, type=int_ge_1)
+    allowed_page_sizes = {20, 40, 80, 160, 320}
+    if page_size not in allowed_page_sizes:
+        abort(403, f"page_size must be one of {allowed_page_sizes!r}")
+
+    filter = {
+        'filename': request.args.get('filename', None),
+        'metadata_key': request.args.get('metadata_key', None),
+        'metadata_values': check_numeric_list(request.args.getlist('metadata_values', None)),
+    }
+
+    page_images = get_paginated_images(
+        dataset, 
+        page=page, 
+        page_size=page_size,
+        filter=filter
+    )
+
+    # TODO: do not reload the entire page every time
+    return render_template(
+        "slides/thumbnails.html",
+        image_id_pairs=page_images.items,
+        page=page_images.page,
+        page_size=page_size,
+        pages=page_images.pages,
+        filter=filter,
+        metadata_attributes=get_all_metadata_attribute_options(),
+    )
+
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
 def thumbnail(image_id: ImageId, size: int):
     if size not in {100, 200}:

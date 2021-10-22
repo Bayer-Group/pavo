@@ -263,3 +263,8 @@ span.filter-label {
   border-color: $color-primary-dark;
 }
 
+iframe {
+  border: none; 
+  width: 100%;
+  // min-height: 416px;
+}

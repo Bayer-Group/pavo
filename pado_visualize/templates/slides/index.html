@@ -24,7 +24,7 @@
     <div class="container filter">
       <fieldset class="filter-bar">
         <legend> <h2>Filter by:</h2> </legend>
-        <form action="" method="get" >
+        <form id='filter_form' >
           <li class="filter-form-list">
             <label for="filename_filter_checkbox"></label>
             <input 
@@ -81,38 +81,41 @@
               </select>
             </div>
           </li>
-          <p><input type="submit" value="Apply" class="filter-button"></p>
+          <!-- <p><input type="submit" value="Apply" class="filter-button"></p> -->
         </form>
+        <button class="filter-button" onclick="applyFilter()">Apply</button>
       </fieldset>
     </div>
   {% endblock filter_bar %}
 
   {% block thumbnails %}
-    <div class="container slide-container">
-      {% for image_id, image in image_id_pairs %}
-        {{ slide_card(image_id, image) }}
-      {% endfor %}
-    </div>
+    <iframe 
+      src="thumbnails" 
+      scrolling="auto" 
+      onload="resizeIframe(this);" 
+      id="thumbnails"></iframe>
   {% endblock thumbnails %}
 
-  {% block pages %}
-  <div class="pagination">
-    {% for idx in range(pages) %}
-      <a href="{{ url_for('slides.index', page=idx, page_size=page_size) }}">
-        {% if idx == page %}
-          <strong>{{ idx }}</strong>
-        {% else %}
-          {{ idx }}
-        {% endif %}
-      </a>
-    {% endfor %}
-  </div>
-  {% endblock pages %}
 {% endblock content %}
 
 {% block page_scripts %}
   <script type="text/javascript" src="{{ url_for_versioned('static', filename='js/slides_deckgl.js') }}"></script>
   <script>
+
+    function resizeIframe(obj) {
+      obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
+    }
+
+    function applyFilter() {
+      let form = document.querySelector('#filter_form');
+      let data = new FormData(form);
+      const current_url = new URL(window.location.href + 'thumbnails');
+      for (let [key, value] of data) {
+        current_url.searchParams.append(key, value);
+      }
+      const thumbnail_frame = document.querySelector('#thumbnails');
+      thumbnail_frame.src = current_url;
+    }
 
     class CustomSelect {
       constructor(originalSelect) {
