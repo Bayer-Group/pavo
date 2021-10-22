@@ -49,8 +49,10 @@ def filter_by_metadata(metadata_key: str, metadata_values: List[str], ds: Datase
         assert metadata_key in get_valid_metadata_attributes(), 'Invalid metadata attribute.'
         valid_options = get_valid_metadata_attribute_options(metadata_key)
         for idx, metadata_value in enumerate(metadata_values):
+            print(type(metadata_value))
             # TODO is there a better way to handle type conversions when the url parameters are always passed as strings from the frontend?
-            if metadata_value.isnumeric():
+            if metadata_value.isnumeric() and metadata_value[0] != '0':
+                print("was numeric", type(metadata_value))
                 metadata_values[idx] = int(metadata_value)
             assert metadata_values[idx] in valid_options, (
                 f'{metadata_values[idx]} of type {type(metadata_value[idx])} '

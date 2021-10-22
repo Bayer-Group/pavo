@@ -15,18 +15,8 @@ def get_valid_metadata_attributes(ds: DatasetProxy = dataset) -> List[str]:
 def get_valid_metadata_attribute_options(metadata_attribute: str, ds: DatasetProxy = dataset) -> List[str]:
     """return all the options given for a single attribute present in the metadata provider"""
 
-    def _make_jsonisable(option_list):
-        """some types cannot be serialised to json"""
-        # TODO: please please plase find a non brute force method to force the df to return safe types (no numpy.int64)
-        for idx, option in enumerate(option_list):
-            if isinstance(option, np.int64):
-                option_list[idx] = int(option)
-            if isinstance(option, np.bool_):
-                option_list[idx] = bool(option)
-        return option_list
-
     try:
-        return _make_jsonisable(list(dataset.metadata.df[metadata_attribute].unique()))
+        return list(dataset.metadata.df[metadata_attribute].unique())
     except KeyError as e:
         raise KeyError(f'Invalid metadata attribute {e} caused a key error.')
 
