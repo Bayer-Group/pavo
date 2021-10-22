@@ -19,6 +19,7 @@ from fsspec.implementations.cached import CachingFileSystem
 
 from pado.annotations import Annotation, Annotations
 from pado.io.files import urlpathlike_to_fsspec
+import pado_visualize
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
 from pado_visualize.extensions import cache
@@ -29,6 +30,7 @@ from pado_visualize.metadata.utils import get_valid_metadata_attributes
 from pado_visualize.metadata.utils import get_all_metadata_attribute_options
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
+from pado_visualize.utils import check_numeric_list
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
 if TYPE_CHECKING:
@@ -45,6 +47,7 @@ def dataset_ready():
     pass
 
 
+
 @blueprint.route("/")
 def index():
     page = request.args.get("page", 0, type=int_ge_0)
@@ -56,7 +59,7 @@ def index():
     filter = {
         'filename': request.args.get('filename', None),
         'metadata_key': request.args.get('metadata_key', None),
-        'metadata_values': request.args.getlist('metadata_values', None),
+        'metadata_values': check_numeric_list(request.args.getlist('metadata_values', None)),
     }
 
     page_images = get_paginated_images(

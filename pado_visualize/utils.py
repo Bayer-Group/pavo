@@ -7,6 +7,8 @@ from typing import Any
 from typing import Callable
 from typing import Type
 from typing import TypeVar
+from typing import List
+from typing import Union
 
 from flask import url_for
 from itsdangerous import base64_decode
@@ -84,3 +86,13 @@ def ranged_type(
 
 int_ge_0 = ranged_type(int, ge=0)
 int_ge_1 = ranged_type(int, ge=1)
+
+def check_numeric_list(l: Union[list, None]) -> List[Any]:
+    # TODO is there a better way to handle type conversions when the url parameters are always passed as strings from the frontend?
+    if l is None:
+        return None
+
+    for idx, val in enumerate(l):
+        if val.isnumeric() and val[0] != '0':
+            l[idx] = int(val)
+    return l

@@ -109,6 +109,7 @@ class ORJSONDecoder:
         self.options = kwargs
 
     def decode(self, obj):
+        print('im decoding!', obj)
         return orjson.loads(obj)
 
 
@@ -119,5 +120,4 @@ class ORJSONEncoder:
         self.options = kwargs
 
     def encode(self, obj):
-        # decode back to str, as orjson returns bytes
         return orjson.dumps(obj, option=orjson.OPT_SERIALIZE_NUMPY).decode('utf-8')
