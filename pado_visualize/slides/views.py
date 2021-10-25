@@ -46,22 +46,24 @@ blueprint = Blueprint('slides', __name__)
 def dataset_ready():
     pass
 
-
-
-@blueprint.route("/")
-def index():
+def _unpack_filter_params(request):
     page = request.args.get("page", 0, type=int_ge_0)
-    page_size = request.args.get("page_size", 40, type=int_ge_1)
-    allowed_page_sizes = {20, 40, 80, 160, 320}
+    page_size = request.args.get("page_size", 20, type=int_ge_1)
+    allowed_page_sizes = {1, 5, 20, 40, 80, 160, 320}
     if page_size not in allowed_page_sizes:
         abort(403, f"page_size must be one of {allowed_page_sizes!r}")
-    
     filter = {
         'filename': request.args.get('filename', None),
         'metadata_key': request.args.get('metadata_key', None),
         'metadata_values': check_numeric_list(request.args.getlist('metadata_values', None)),
     }
 
+    return page, page_size, filter
+
+
+@blueprint.route("/")
+def index():
+    page, page_size, filter = _unpack_filter_params(request)
     page_images = get_paginated_images(
         dataset, 
         page=page, 
@@ -69,7 +71,6 @@ def index():
         filter=filter
     )
 
-    # TODO: do not reload the entire page every time
     return render_template(
         "slides/index.html",
         image_id_pairs=page_images.items,
@@ -82,18 +83,7 @@ def index():
 
 @blueprint.route("/thumbnails", methods=['GET'])
 def thumbnails():
-    page = request.args.get("page", 0, type=int_ge_0)
-    page_size = request.args.get("page_size", 40, type=int_ge_1)
-    allowed_page_sizes = {20, 40, 80, 160, 320}
-    if page_size not in allowed_page_sizes:
-        abort(403, f"page_size must be one of {allowed_page_sizes!r}")
-
-    filter = {
-        'filename': request.args.get('filename', None),
-        'metadata_key': request.args.get('metadata_key', None),
-        'metadata_values': check_numeric_list(request.args.getlist('metadata_values', None)),
-    }
-
+    page, page_size, filter = _unpack_filter_params(request)
     page_images = get_paginated_images(
         dataset, 
         page=page, 
@@ -101,7 +91,6 @@ def thumbnails():
         filter=filter
     )
 
-    # TODO: do not reload the entire page every time
     return render_template(
         "slides/thumbnails.html",
         image_id_pairs=page_images.items,

@@ -5,7 +5,7 @@
 
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: left;
 
   a > .card.slide-card {
     display: flex;
@@ -61,6 +61,33 @@
     margin: auto;
   }
 }
+
+
+.container-thumbnails {
+  padding: 2em;
+}
+
+.pagination {
+  display: inline-block;
+  padding-top: 2em;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  border: thin solid lightgray;
+}
+
+.pagination a.active {
+  background-color: $color-primary-dark;
+  color: white;
+  font-weight: 700;
+  border: thin solid $color-primary-dark;
+}
+
+.pagination a:hover:not(.active) {background-color: #ddd;}
 
 /*
 a:hover > .container.slide-container {
@@ -212,7 +239,9 @@ span.filter-label {
 
 .filter-button {
   background-color: $color-primary-light;
+  border-color: $color-primary-light;
   padding: 8px;
+  margin-top: 16px;
   min-width: 10em;
   border: thin solid white;
   border-radius: 5px;
