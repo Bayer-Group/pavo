@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
+  <link href="https://unpkg.com/lineupjs/build/LineUpJS.css" rel="stylesheet">
+{% endblock styles %}
+
+{% block content %}
+    <div id="lineup" style="height: 100vh;">
+      
+    </div>
+{% endblock content %}
+
+{% block page_scripts %}
+  <script src="https://unpkg.com/lineupjs/build/LineUpJS.js"></script>
+  <script>
+    const arr = [];
+    const cats = ['c1', 'c2', 'c3'];
+    for (let i = 0; i < 100; ++i) {
+    arr.push({
+      a: Math.random() * 10,
+      d: 'Row ' + i,
+      cat: cats[Math.floor(Math.random() * 3)],
+      cat2: cats[Math.floor(Math.random() * 3)]
+    })
+    }
+    const lineup = LineUpJS.asLineUp(document.getElementById('lineup'), arr);
+    console.log('here');
+
+  </script>
+{% endblock page_scripts %}
