@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 
-{# the creates one slide card #}
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
+{% endblock styles %}
+
 {% macro slide_card(image_id, image) %}
   <a href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
   <div class="card slide-card">
@@ -14,31 +19,182 @@
   </a>
 {% endmacro %}
 
-{% block styles %}
-  {{ super() }}
-  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
-{% endblock styles %}
-
 {% block content %}
-  <div class="container slide-container">
-    {% for image_id, image in image_id_pairs %}
-      {{ slide_card(image_id, image) }}
-    {% endfor %}
-  </div>
-  <div class="pagination">
-    {% for idx in range(pages) %}
-      <a href="{{ url_for('slides.index', page=idx, page_size=page_size) }}">
-        {% if idx == page %}
-          <strong>{{ idx }}</strong>
-        {% else %}
-          {{ idx }}
-        {% endif %}
-      </a>
-    {% endfor %}
-  </div>
+  {% block filter_bar %}
+    <div class="container filter">
+      <fieldset class="filter-bar">
+        <legend> <h2>Filter by:</h2> </legend>
+        <form id='filter_form' >
+          <li class="filter-form-list">
+            <label for="filename_filter_checkbox"></label>
+            <input 
+              id = "filename_filter_checkbox" 
+              type="checkbox" 
+              onclick="EnableFilter(this)"
+              class="filter-checkbox"
+            >
+            <span class="filter-label">
+              Filename:
+            </span>
+            <div class='filter-widget-container'>
+              <input 
+                type="text" 
+                id="filename_filter_widget" 
+                name="filename" 
+                disabled="disabled"
+                value="{{ filter['filename'] }}"
+              />
+            </div>
+          </li>
+          <li class="filter-form-list">
+            <label for="metadata_filter_checkbox"></label>
+            <input 
+              id = "metadata_filter_checkbox" 
+              type="checkbox" 
+              onclick="EnableFilter(this)"
+            >
+            <span class="filter-label">
+              Metadata:
+            </span>
+            <div class="filter-widget-container">
+              <select 
+                id="metadata_filter_widget" 
+                name="metadata_key" 
+                disabled="disabled" 
+                onclick="EnableMetadataOptions(this)"
+                value="{{ filter['metadata_key'] }}"
+              >
+                {% for attribute in metadata_attributes.keys() %}
+                  <option value="{{ attribute }}">{{ attribute }}</option>
+                {% endfor %}
+              </select>
+              <select 
+                id="metadata_filter_widget_options" 
+                name="metadata_values" 
+                disabled="disabled"
+                class="custom-multiselect"
+                multiple
+              >
+                {% for option in selected_metadata_attribute_options %}
+                  <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </li>
+          <!-- <p><input type="submit" value="Apply" class="filter-button"></p> -->
+        </form>
+        <button class="filter-button" onclick="applyFilter()">Apply</button>
+      </fieldset>
+    </div>
+  {% endblock filter_bar %}
+
+  {% block thumbnails %}
+    <iframe 
+      src="thumbnails" 
+      scrolling="auto" 
+      onload="resizeIframe(this);" 
+      id="thumbnails"></iframe>
+  {% endblock thumbnails %}
+
 {% endblock content %}
 
 {% block page_scripts %}
   <script type="text/javascript" src="{{ url_for_versioned('static', filename='js/slides_deckgl.js') }}"></script>
+  <script>
+
+    function resizeIframe(obj) {
+      obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
+    }
+
+    function applyFilter() {
+      let form = document.querySelector('#filter_form');
+      let data = new FormData(form);
+      const current_url = new URL(window.location.href + 'thumbnails');
+      for (let [key, value] of data) {
+        current_url.searchParams.append(key, value);
+      }
+      const thumbnail_frame = document.querySelector('#thumbnails');
+      thumbnail_frame.src = current_url;
+    }
+
+    class CustomSelect {
+      constructor(originalSelect) {
+        this.originalSelect = originalSelect;
+        this.customSelect = document.createElement("div");
+        this.customSelect.id = "multiselect_region"
+        this.customSelect.classList.add("multiselect");
+
+        this.originalSelect.querySelectorAll("option").forEach(optionElement => {
+          const itemElement= document.createElement("div");
+          itemElement.classList.add("multiselect-item");
+          itemElement.textContent = optionElement.textContent;
+          this.customSelect.appendChild(itemElement);
+          if (optionElement.selected) {
+            this._select(itemElement);
+          }
+          itemElement.addEventListener("click", () => {
+            if (itemElement.classList.contains("multiselect-item--selected")) {
+              this._deselect(itemElement);
+            } else {
+              this._select(itemElement);
+            }
+          })
+
+        })
+        this.originalSelect.insertAdjacentElement("beforebegin", this.customSelect);
+        this.originalSelect.style.display = "none";
+      }
+
+      _select(itemElement){
+        const idx = Array.from(this.customSelect.children).indexOf(itemElement);
+        this.originalSelect.querySelectorAll("option")[idx].selected = true;
+        itemElement.classList.add("multiselect-item--selected");
+      }
+
+      _deselect(itemElement){
+        const idx = Array.from(this.customSelect.children).indexOf(itemElement);
+        this.originalSelect.querySelectorAll("option")[idx].selected = false;
+        itemElement.classList.remove("multiselect-item--selected");
+      }
+    }
+
+    function EnableFilter(checkbox) {
+      filter_widget_id = checkbox.id.replace('checkbox', 'widget');
+      var filter_widget = document.getElementById(filter_widget_id);
+      filter_widget.disabled = checkbox.checked ? false : true;
+      if (!filter_widget.disabled) {
+        filter_widget.focus();
+      }
+    }
+
+    function PopulateMetadataDropdown(metadata_attribute_options) {
+      const secondselect = document.getElementById('metadata_filter_widget_options');
+      secondselect.innerHTML = null;
+      secondselect.disabled = false;
+
+      // clear the actual select and add the relevant options
+      for (const value of metadata_attribute_options) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.innerHTML = value;
+        secondselect.appendChild(option);
+      }
+      // clear out the old select options
+      document.querySelectorAll(".multiselect").forEach(customSelect => {
+        customSelect.parentNode.removeChild(customSelect);
+      })
+      // add new custom select elements
+      document.querySelectorAll(".custom-multiselect").forEach(selectElement => {
+        new CustomSelect(selectElement);
+      })
+    }
+
+    function EnableMetadataOptions(metadata_selection) {
+      // TODO: try find a smarter way of implementing a dependent dropdown list
+      const metadata_attributes = {{ metadata_attributes | tojson }};
+      const metadata_attribute_options = metadata_attributes[metadata_selection.value];
+      PopulateMetadataDropdown(metadata_attribute_options)
+    }
+  </script>
 {% endblock page_scripts %}
 

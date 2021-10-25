@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
+import json
 
 from typing import TYPE_CHECKING
 from typing import List
@@ -13,18 +14,23 @@ from flask import render_template
 from flask import request
 from flask import send_file
 from flask import jsonify
+from flask import get_template_attribute
 from fsspec.implementations.cached import CachingFileSystem
 
 from pado.annotations import Annotation, Annotations
 from pado.io.files import urlpathlike_to_fsspec
+import pado_visualize
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
 from pado_visualize.extensions import cache
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.utils import thumbnail_image
+from pado_visualize.metadata.utils import get_valid_metadata_attributes
+from pado_visualize.metadata.utils import get_all_metadata_attribute_options
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
+from pado_visualize.utils import check_numeric_list
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
 if TYPE_CHECKING:
@@ -41,6 +47,7 @@ def dataset_ready():
     pass
 
 
+
 @blueprint.route("/")
 def index():
     page = request.args.get("page", 0, type=int_ge_0)
@@ -48,15 +55,62 @@ def index():
     allowed_page_sizes = {20, 40, 80, 160, 320}
     if page_size not in allowed_page_sizes:
         abort(403, f"page_size must be one of {allowed_page_sizes!r}")
-    page_images = get_paginated_images(dataset, page=page, page_size=page_size)
+    
+    filter = {
+        'filename': request.args.get('filename', None),
+        'metadata_key': request.args.get('metadata_key', None),
+        'metadata_values': check_numeric_list(request.args.getlist('metadata_values', None)),
+    }
+
+    page_images = get_paginated_images(
+        dataset, 
+        page=page, 
+        page_size=page_size,
+        filter=filter
+    )
+
+    # TODO: do not reload the entire page every time
     return render_template(
         "slides/index.html",
         image_id_pairs=page_images.items,
         page=page_images.page,
         page_size=page_size,
-        pages=page_images.pages
+        pages=page_images.pages,
+        filter=filter,
+        metadata_attributes=get_all_metadata_attribute_options(),
     )
 
+@blueprint.route("/thumbnails", methods=['GET'])
+def thumbnails():
+    page = request.args.get("page", 0, type=int_ge_0)
+    page_size = request.args.get("page_size", 40, type=int_ge_1)
+    allowed_page_sizes = {20, 40, 80, 160, 320}
+    if page_size not in allowed_page_sizes:
+        abort(403, f"page_size must be one of {allowed_page_sizes!r}")
+
+    filter = {
+        'filename': request.args.get('filename', None),
+        'metadata_key': request.args.get('metadata_key', None),
+        'metadata_values': check_numeric_list(request.args.getlist('metadata_values', None)),
+    }
+
+    page_images = get_paginated_images(
+        dataset, 
+        page=page, 
+        page_size=page_size,
+        filter=filter
+    )
+
+    # TODO: do not reload the entire page every time
+    return render_template(
+        "slides/thumbnails.html",
+        image_id_pairs=page_images.items,
+        page=page_images.page,
+        page_size=page_size,
+        pages=page_images.pages,
+        filter=filter,
+        metadata_attributes=get_all_metadata_attribute_options(),
+    )
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
 def thumbnail(image_id: ImageId, size: int):
@@ -64,7 +118,6 @@ def thumbnail(image_id: ImageId, size: int):
         return abort(403, "thumbnail size not in {100, 200}")
 
     fs, path = thumbnail_fs_and_path(image_id, size)
-    print(fs, path)
     assert fs.protocol == "file", "we assume local cache for now"    
     try:
         return send_file(
@@ -88,8 +141,6 @@ def thumbnail(image_id: ImageId, size: int):
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     return render_template("slides/viewer_openseadragon.html", image_id=image_id)
-
-
 
 
 # --- pyramidal tile server -------------------------------------------

@@ -1,16 +1,21 @@
-from flask import request, Blueprint, jsonify
-
-from pado.images import ImageId
-from pado.annotations import Annotation
+from flask import Blueprint 
+from flask import jsonify
+from flask import request 
+from werkzeug.exceptions import BadRequest
 
 from pado_visualize.data import dataset
+from pado_visualize.api.utils import get_filtered_images
+from pado_visualize.api.utils import insert_annotation_prediction
+from pado_visualize.api.utils import insert_image_prediction
 
 
 blueprint = Blueprint('api', __name__)
 
+# ---- prediction endpoints ---------------------------------------------------
 
 # TODO: implement tests for this endpoint
 # TODO: add authorisation
+# TODO: allow filtering by annotation type in get request
 @blueprint.route("/<image_id:image_id>/predictions", methods=['GET', 'POST'])
 def manage_predictions(image_id):
     """endpoint to manipulate image predictions"""
@@ -29,9 +34,9 @@ def manage_predictions(image_id):
             return f'Prediction type "{prediction_type}" is invalid.', 400
         
         if prediction_type == "annotation":
-            return _insert_annotation_prediction(prediction_record, image_id)
+            return insert_annotation_prediction(prediction_record, image_id)
         else:
-            return _insert_image_prediction()
+            return insert_image_prediction()
     
     elif request.method == 'GET':
         """return all predictions for an image
@@ -39,8 +44,6 @@ def manage_predictions(image_id):
         Note: currently only annotation style predictions have been implemented.
         Once image style predictions are supported this endpoint should be able
         to return a collection of one/both prediction types.
-        
-        # TODO: allow filtering by annotation type
         """
 
         annotations_df = dataset.annotations[image_id].df
@@ -49,23 +52,28 @@ def manage_predictions(image_id):
 
         return jsonify(predictions_df.to_dict(orient='records')), 200
 
-# ---- helper functions --------------------------------------------------------
-def _insert_annotation_prediction(prediction_record: dict, image_id: ImageId):
-    """inserts an annotation style prediction into an image's list of annotations"""
 
-    if prediction_record['annotator']['type'] != 'model':
-        return f'Annotator type for predictions must be "model"', 400 
+# ---- filter dataset endpoints -----------------------------------------------
+@blueprint.route("/image_ids", methods=['GET'])
+def filter_by():
+    """return image_ids which match some filter
+    
+    The filter object must be passed as a json object in the request body.
+    Currently, the following key value pairs are supported:
+    - "filename": str,
+    - "metadata_key": str,
+    - "metadata_values": List[str]
+    """
+
+    filter = request.get_json()
 
     try:
-        dataset.annotations[image_id].insert(
-            index=0, 
-            value=Annotation.from_obj(prediction_record)
-        )
+        image_ids = get_filtered_images(filter)
     except Exception as e:
-        return f'Could not insert prediction for {image_id} due to {e}', 500
+        raise BadRequest(f'{e}')
 
-    return '', 200
+    return jsonify([image_id.to_url_id() for image_id in image_ids]), 200
 
-def _insert_image_prediction():
-    # TODO: upload a large image style prediction here
-    return 'not implemented', 200
+
+
+

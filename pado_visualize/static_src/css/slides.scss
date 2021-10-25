@@ -1,5 +1,6 @@
 @import "colors";
 
+
 .container.slide-container {
 
   display: flex;
@@ -159,4 +160,111 @@ a:hover > .container.slide-container {
 
 .thumbnail-card > img {
   image-rendering: optimizeSpeed;
+}
+
+// ---- filter bar styling
+.container.filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  padding: 2em;
+}
+
+.filter-bar {
+  border-radius: 5px;
+  width: 100%;
+}
+
+.filter-bar legend {
+  background-color: white;
+  padding: 8px;
+  border: thin solid grey;
+  border-radius: 5px;
+  h2 {
+    margin: 0px ;
+  }
+}
+
+li.filter-form-list {
+  list-style-type: none;
+}
+
+span.filter-label {
+  display: inline-block;
+  min-width: 10em;
+  padding: 0.5em;
+}
+
+.filter-widget-container {
+  display: inline-block;
+  width: 40em;
+  display: grid;
+
+  select {
+    border-radius: 5px;
+  }
+
+  input {
+    border-radius: 5px;
+    z-index: 2;
+  }
+}
+
+.filter-button {
+  background-color: $color-primary-light;
+  padding: 8px;
+  min-width: 10em;
+  border: thin solid white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.filter-button:hover {
+  background-color: $color-primary-light;
+  border-color: $color-primary-dark;
+}
+
+// ---- Custom multiselect styling
+.custom-multiselect {
+  height: 128px;
+  border: thin grey solid;
+  border-radius: 5px;
+  margin-top: 8px;
+}
+
+.multiselect{
+  display: flex-wrap;
+  max-width: 100%;
+  height: 128px;
+  border: thin grey solid;
+  border-radius: 5px;
+  margin-top: 8px;
+  background-color: rgb(235, 235, 235);
+}
+
+.multiselect-item {
+  padding: 4px 16px 4px;
+  margin: 4px;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 10px;
+  border: thin solid grey;
+  transition: background 0.1s;
+  background-color: white;
+  display: inline-block;
+}
+
+.multiselect-item:hover {
+  z-index: 1;
+  border-color: black;
+}
+
+.multiselect-item--selected {
+  background-color: $color-primary-light;
+  border-color: $color-primary-dark;
+}
+
+iframe {
+  border: none; 
+  width: 100%;
+  // min-height: 416px;
 }

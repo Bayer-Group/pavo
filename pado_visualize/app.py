@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import orjson
 from logging.config import dictConfig
 from typing import Optional
 
@@ -40,6 +41,9 @@ def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = Fals
 
     register_extensions(app, is_worker=is_worker)
     register_blueprints(app, is_worker=is_worker)
+
+    app.json_encoder = ORJSONEncoder
+    app.json_decoder = ORJSONDecoder
 
     return app
 
@@ -96,3 +100,24 @@ def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
 
     # --- plugins ---
     ...  # todo...
+
+
+class ORJSONDecoder:
+
+    def __init__(self, **kwargs):
+        # eventually take into consideration when deserializing
+        self.options = kwargs
+
+    def decode(self, obj):
+        print('im decoding!', obj)
+        return orjson.loads(obj)
+
+
+class ORJSONEncoder:
+
+    def __init__(self, **kwargs):
+        # eventually take into consideration when serializing
+        self.options = kwargs
+
+    def encode(self, obj):
+        return orjson.dumps(obj, option=orjson.OPT_SERIALIZE_NUMPY).decode('utf-8')

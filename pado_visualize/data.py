@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from enum import Enum
 from enum import auto
-from functools import wraps
+from functools import lru_cache, wraps
 from typing import Callable
 from typing import NoReturn
 from typing import Optional
@@ -113,6 +113,7 @@ class DatasetProxy:
             raise DatasetNotReadyException(self.state)
         return self._ds.annotations
 
+    @lru_cache
     def describe(self, output_format: str) -> str:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
