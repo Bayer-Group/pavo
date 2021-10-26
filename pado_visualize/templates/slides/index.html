@@ -194,7 +194,7 @@
 
     function EnableMetadataOptions(metadata_selection) {
       // TODO: try find a smarter way of implementing a dependent dropdown list
-      const metadata_attributes = {{ metadata_attributes | tojson }};
+      const metadata_attributes = JSON.parse('{{ metadata_attributes | tojson | safe}}' );
       const metadata_attribute_options = metadata_attributes[metadata_selection.value];
       PopulateMetadataDropdown(metadata_attribute_options)
     }
