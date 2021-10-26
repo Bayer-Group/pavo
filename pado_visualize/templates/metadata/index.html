@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
+  <link href="https://unpkg.com/lineupjs/build/LineUpJS.css" rel="stylesheet">
+{% endblock styles %}
+
+{% block content %} 
+  <div id="lineup" style="height: 100vh;">
+  </div>
+{% endblock content %}
+
+{% block page_scripts %}
+  <script src="https://unpkg.com/lineupjs/build/LineUpJS.js"></script>
+  <script>
+    var metadata = JSON.parse('{{ metadata | tojson | safe}}');
+    const lineup = LineUpJS.asLineUp(
+      document.getElementById('lineup'), 
+      metadata,
+    );
+  </script>
+{% endblock page_scripts %}

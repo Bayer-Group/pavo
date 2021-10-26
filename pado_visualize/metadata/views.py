@@ -1,3 +1,4 @@
+import json 
 
 from flask import Blueprint
 from flask import current_app
@@ -18,17 +19,16 @@ blueprint = Blueprint('metadata', __name__)
 @blueprint.route("/metadata")
 @login_required
 def index():
-    info = {
-        "dataset_paths": current_app.config["DATASET_PATHS"],
-        "images": 0,
-        "annotations": 0,
-        "metadata": 0,
-    }
-    if dataset.state == DatasetState.READY:
-        info["images"] = len(dataset.images)
-        info["annotations"] = len(dataset.annotations.df)
-        info["metadata"] = len(dataset.metadata.df)
-    return render_template("metadata/index.html", info=info, page_title="Metadata")
+
+    # some desirable cols for now
+    cols = ['individual_id', 'dose', 'barcode', 'species', 'organ', 'finding_type', 'compound_name']
+    mdf = dataset.metadata.df[cols]
+    
+    return render_template(
+        "metadata/index.html", 
+        page_title="Metadata",
+        metadata=mdf.to_dict('records'),
+    )
 
 
 # ---- metadata endpoints -----------------------------------------------------
