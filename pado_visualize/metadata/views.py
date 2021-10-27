@@ -22,7 +22,10 @@ def index():
 
     # some desirable cols for now
     cols = ['individual_id', 'dose', 'barcode', 'species', 'organ', 'finding_type', 'compound_name']
-    mdf = dataset.metadata.df[cols]
+    try:
+        mdf = dataset.metadata.df[cols]
+    except KeyError as err:
+        raise KeyError(f"{err} available are: {dataset.metadata.df.columns!r}")
     
     return render_template(
         "metadata/index.html", 
