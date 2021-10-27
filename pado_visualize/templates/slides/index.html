@@ -42,7 +42,7 @@
                 id="filename_filter_widget" 
                 name="filename" 
                 disabled="disabled"
-                value="{{ filter['filename'] }}"
+                value=""
               />
             </div>
           </li>
@@ -62,7 +62,7 @@
                 name="metadata_key" 
                 disabled="disabled" 
                 onclick="EnableMetadataOptions(this)"
-                value="{{ filter['metadata_key'] }}"
+                value=""
               >
                 {% for attribute in metadata_attributes.keys() %}
                   <option value="{{ attribute }}">{{ attribute }}</option>
