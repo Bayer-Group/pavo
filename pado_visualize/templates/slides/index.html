@@ -3,7 +3,6 @@
 
 {% block styles %}
   {{ super() }}
-  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.scss') }}">
 {% endblock styles %}
 
 {% macro slide_card(image_id, image) %}
