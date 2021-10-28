@@ -3,7 +3,6 @@
 
 {% block styles %}
   {{ super() }}
-  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.css') }}">
 {% endblock styles %}
 
 {% macro slide_card(image_id, image) %}
@@ -100,7 +99,6 @@
 {% endblock content %}
 
 {% block page_scripts %}
-  <script type="text/javascript" src="{{ url_for_versioned('static', filename='js/slides_deckgl.js') }}"></script>
   <script>
 
     function resizeIframe(obj) {

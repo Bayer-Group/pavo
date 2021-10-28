@@ -2,7 +2,6 @@
 
 {% block styles %}
 {{ super() }}
-<!-- link rel="stylesheet" href="{{ url_for_versioned('static', filename='images/openseadragon/css-42-openseadragon-annotorious.min.css') }}"-->
 <link rel="stylesheet"
     href="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/annotorious.min.css') }}">
 {% endblock styles %}
@@ -19,7 +18,7 @@
 
 {% block page_scripts %}
 <script type="text/javascript"
-    src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/recogito-polyfill.js') }}"></script>
+    src="{{ url_for('static', filename='temporary/annotorious-openseadragon-2.5.7/recogito-polyfills.js') }}"></script>
 <script type="text/javascript"
     src="{{ url_for('static', filename='temporary/openseadragon-2.4.2/openseadragon.js') }}"></script>
 <script type="text/javascript"
