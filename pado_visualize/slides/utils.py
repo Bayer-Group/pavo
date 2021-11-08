@@ -43,8 +43,11 @@ class PaginatedItems(NamedTuple):
     pages: int
     items: List[ImageIdImagePair]
 
-def get_paginated_images(ds: DatasetProxy, page: int, page_size: int, filter: dict = {}) -> PaginatedItems:
+
+def get_paginated_images(ds: DatasetProxy, page: int, page_size: int, filter: dict = None) -> PaginatedItems:
     """return filtered and paginated Images"""
+    if filter is None:
+        filter = {}
     idx_start = page * page_size
     idx_end = page * page_size + page_size
     ds_index = get_filtered_images(filter, ds)
