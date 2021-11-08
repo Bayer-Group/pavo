@@ -1,2 +1,1 @@
-import "normalize.css";
-import "./css/base.scss";
+import "./js/common.js";

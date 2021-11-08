@@ -18,7 +18,7 @@ const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
 module.exports = {
   entry: {
     // todo: use glob to gather the entry points
-    home: path.resolve(...srcDir, "base.js"),
+    home: path.resolve(...srcDir, "home.js"),
     slides: path.resolve(...srcDir, "slides.js"),
     metadata: path.resolve(...srcDir, "metadata.js"),
   },
