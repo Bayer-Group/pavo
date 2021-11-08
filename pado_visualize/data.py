@@ -67,11 +67,13 @@ class DatasetProxy:
         self.urlpath = None
         self.state = DatasetState.NOT_CONFIGURED
         self._ds: Optional[PadoDataset] = None
+        self._cache_path = None
 
     def init_app(self, app: Flask) -> None:
         """initialize the dataset proxy with the Flask app instance"""
         urlpaths = app.config.get("DATASET_PATHS", [])
         assert len(urlpaths) <= 1, "todo: support for multiple datasets"
+        self._cache_path = app.config.get("CACHE_IMAGES_PATH", None)
 
         self.urlpath = urlpaths[0] if urlpaths else None
         if self.urlpath:
@@ -110,7 +112,12 @@ class DatasetProxy:
     def images(self) -> ImageProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
-        return self._ds.images
+        if self._cache_path is None:
+            return self._ds.images
+        else:
+            return LocallyCachedImageProvider(
+                self._ds.images, cache_cls=SimpleCacheFileSystem, cache_storage=self._cache_path
+            )
 
     @lockless_cached_property
     def annotations(self) -> AnnotationProvider:

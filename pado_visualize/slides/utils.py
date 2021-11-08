@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import enum
 import hashlib
 import io
 import math
 import os
+import shutil
+from collections import OrderedDict
+from functools import lru_cache
+from pathlib import Path
 from typing import List
 from typing import Mapping
 from typing import NamedTuple
@@ -13,16 +18,18 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 
 import fsspec
-from flask import current_app
 from PIL import Image as PILImage
-
-from pado.images import ImageId
-from pado.images import Image
-from pado.io.files import fsopen
-from pado.io.files import urlpathlike_to_fs_and_path
-from pado.types import UrlpathLike
+from filelock import FileLock
+from filelock import Timeout as FileLockTimeout
+from flask import current_app
 from werkzeug.datastructures import ImmutableMultiDict
 
+from pado.images import Image
+from pado.images import ImageId
+from pado.io.files import fsopen
+from pado.io.files import urlpathlike_to_fs_and_path
+from pado.io.files import urlpathlike_to_string
+from pado.types import UrlpathLike
 from pado_visualize.api.utils import get_filtered_images
 
 if TYPE_CHECKING:
@@ -95,8 +102,10 @@ def thumbnail_image(
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
 
     def mkpth(s):
-        path = f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{s[0]:d}x{s[1]:d}.png"
-        return os.path.join(cache_path, path)
+        return os.path.join(
+            cache_path,
+            f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{s[0]:d}x{s[1]:d}.png"
+        )
 
     _sizes = sorted(zip(sizes, sizes), reverse=True)
     p = mkpth(_sizes[-1])
@@ -132,7 +141,6 @@ def thumbnail_image(
 
 # --- filtering ---------------------------------------------------------------
 
-
 def formdata_to_filter(formdata: ImmutableMultiDict) -> Mapping[str, str]:
     """converts form data into a filter dictionary"""
-    pass
+    raise NotImplementedError("todo")
