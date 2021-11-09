@@ -13,6 +13,8 @@ const outDir = [__dirname, "pado_visualize", "static"];
 
 // css plugin config (see https://github.com/webpack-contrib/css-loader#recommend)
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+// copy files to dist dir plugin
+const CopyPlugin = require("copy-webpack-plugin");
 
 // the actual webpack config
 module.exports = {
@@ -69,6 +71,15 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: "[name].css",
+    }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from:
+            path.dirname(require.resolve("openseadragon")) + "/images/*.png",
+          to: "images/openseadragon/[name][ext]",
+        },
+      ],
     }),
   ],
 };

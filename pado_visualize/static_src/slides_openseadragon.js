@@ -1,4 +1,5 @@
 import "./_base.js";
+// base and annotorious css
 import "./css/slides_openseadragon.scss";
 import "@recogito/annotorious/src/ImageAnnotator.scss";
 

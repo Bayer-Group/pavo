@@ -21,7 +21,7 @@
     pavo.slides_openseadragon.setupOpenSeadragonViewer({
         id: "seadragon-container",
         tileSources: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
-        prefixUrl: "{{ url_for('static', filename='temporary/openseadragon-2.4.2/images/') }}",
+        prefixUrl: "{{ url_for('static', filename='images/openseadragon/') }}",
     },{
         annotationUrl: "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}",
     });
