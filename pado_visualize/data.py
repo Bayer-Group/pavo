@@ -134,6 +134,18 @@ class DatasetProxy:
         (ImageId, classification, area, annotator_type, annotator_name, 
         compound_name, organ, species)
         """
+        # NOTE: currently the returned dataframe contains the following columns:
+        OUTPUT_COLUMNS = [
+            'image_id',
+            'classification',
+            'area',
+            'annotator_type',
+            'annotator_name',
+            'compound_name',
+            'organ',
+            'species',
+            'annotation',
+        ]
 
         def _aggreate_annotations(x: pd.Series) -> pd.Series:
             """treat strings differently to intergers/floats when aggregating"""
@@ -194,6 +206,7 @@ class DatasetProxy:
         table = table.transform(_fill_nan_by_column_type)
         table = table.reset_index()
 
+        assert all(table.columns == OUTPUT_COLUMNS), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
         return table
 
 
