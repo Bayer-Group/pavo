@@ -182,10 +182,12 @@ class DatasetProxy:
         adf = adf[['classification', 'area', 'annotator_type', 'annotator_name']]
 
         # get the set of shared rows for annotations and metadata
-        if mdf.shape[0] < adf.shape[0]:
-            adf = adf.loc[mdf.index.unique()]
+        common_index = mdf.index.intersection(adf.index)
+        if common_index.empty:
+            return pd.DataFrame(columns=OUTPUT_COLUMNS)
         else:
-            mdf = mdf.loc[adf.index.unique()]
+            adf = adf.loc[common_index]
+            mdf = mdf.loc[common_index]
         
         # prepare annotations df for joining
         adf['image_id'] = adf.index
