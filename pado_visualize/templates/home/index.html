@@ -2,8 +2,13 @@
 
 {% block styles %}
   {{ super() }}
-  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/home.scss') }}">
+  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='home.css') }}">
 {% endblock styles %}
+
+{% block page_scripts %}
+  {{ super() }}
+  <script type="text/javascript" href="{{ url_for_versioned('static', filename='home.js') }}"></script>
+{% endblock page_scripts %}
 
 {% macro pado_nested_dict_table(data) -%}
   <table class="nested-table">

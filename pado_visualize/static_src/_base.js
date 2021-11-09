@@ -1,10 +1,13 @@
 /* common pado_visualize javascripty things */
-import "../images/pathological-heart.jpg";
 import "normalize.css";
-import "../css/base.scss";
+import "./css/base.scss";
 import "regenerator-runtime/runtime";
 import "core-js/stable";
 
+/* images used in the base layout */
+import "./images/pathological-heart.jpg";
+
+/* common functions */
 function documentReady(fn) {
   if (document.readyState !== "loading") {
     fn();

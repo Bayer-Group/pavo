@@ -10,7 +10,7 @@
   <link rel="icon" type="image/x-icon" href="{{ url_for_versioned('static', filename='favicon.ico') }}">
 
   {% block styles_base %}
-    <link rel="stylesheet" href="{{ url_for_versioned('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for_versioned('static', filename='_base.css') }}">
   {% endblock styles_base %}
   {% block styles %}{% endblock styles %}
   {% block styles_override %}{% endblock styles_override %}
@@ -31,6 +31,8 @@
       {% block footer %}{% endblock footer %}
     </footer>
   </div>
-{% block page_scripts %}{% endblock page_scripts %}
+{% block page_scripts %}
+  <script type="text/javascript" src="{{ url_for_versioned('static', filename='_base.js') }}"></script>
+{% endblock page_scripts %}
 </body>
 </html>

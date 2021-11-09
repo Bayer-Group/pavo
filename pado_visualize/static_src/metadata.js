@@ -1,1 +1,1 @@
-import "./js/common.js";
+import "./_base.js";
