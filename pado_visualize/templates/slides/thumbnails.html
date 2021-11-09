@@ -10,34 +10,48 @@
   {% endblock styles %}
 </head>
 
+{% macro slide_card(image_id, image) %}
+  <a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
+  <div class="card slide-card">
+    <div class="thumbnail">
+      <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
+    </div>
+    <div class="title">{{ image_id.last }}</div>
+    <div class="indicators">
+    </div>
+  </div>
+  </a>
+{% endmacro %}
+
+{% macro slide_cards(image_id_pairs) %} 
+  <div class="container slide-container">
+    {% for image_id, image in image_id_pairs %}
+      {{ slide_card(image_id, image) }}
+    {% endfor %}
+  </div>
+{% endmacro %}
+
 <body>
   <div class="container-thumbnails">
-    {% macro slide_card(image_id, image) %}
-      <a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
-      <div class="card slide-card">
-        <div class="thumbnail">
-          <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
-        </div>
-        <div class="title">{{ image_id.last }}</div>
-        <div class="indicators">
-        </div>
+
+  {% block thumbnails %}
+    {{ slide_cards(image_id_pairs) }}
+  {% endblock thumbnails %}
+
+  {% block pages %}
+  <div class="pagination-container">
+
+      <div class="page-picker">
+        <label for="page_size_picker">Page size</label>
+        <select name="page_size" id="page_size_picker">
+          <option value="1">1</option>
+          <option value="5">5</option>
+          <option value="20">20</option>
+          <option value="40">40</option>
+          <option value="80">80</option>
+        </select>
       </div>
-      </a>
-    {% endmacro %}
 
-    {% macro slide_cards(image_id_pairs) %} 
-      <div class="container slide-container">
-        {% for image_id, image in image_id_pairs %}
-          {{ slide_card(image_id, image) }}
-        {% endfor %}
-      </div>
-    {% endmacro %}
-
-    {% block thumbnails %}
-      {{ slide_cards(image_id_pairs) }}
-    {% endblock thumbnails %}
-
-    {% block pages %}
       <div class="pagination">
         {% for idx in range(pages) %}
           <a 
@@ -48,8 +62,16 @@
           </a>
         {% endfor %}
       </div>
-    {% endblock pages %}
+      
+    </div>
+
   </div>
+
+
+  {% endblock pages %}
+
+  </div>
+
   
 </body>
 

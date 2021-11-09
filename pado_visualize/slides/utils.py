@@ -24,8 +24,6 @@ from pado.types import UrlpathLike
 from werkzeug.datastructures import ImmutableMultiDict
 
 from pado_visualize.api.utils import get_filtered_images
-from pado_visualize.api.utils import get_valid_metadata_attributes
-from pado_visualize.api.utils import get_valid_metadata_attribute_options
 
 if TYPE_CHECKING:
     from pado_visualize.data import DatasetProxy

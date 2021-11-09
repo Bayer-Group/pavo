@@ -42,6 +42,9 @@ class ImageIdConverter(BaseConverter):
             image_id_str = value.to_str()
         elif isinstance(value, (tuple, list)):
             image_id_str = ImageId.make(value[1:], site=value[0]).to_str()
+        elif isinstance(value, str):
+            # TODO: check that the ImageId string is valid somehow
+            image_id_str = value
         else:
             raise NotImplementedError(f"todo: {type(value).__name__!r} for {value!r}")
         return base64_encode(image_id_str.encode()).decode()
