@@ -11,10 +11,14 @@
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
+    "@recogito/annotorious": "^2.5.10",
+    "@recogito/annotorious-openseadragon": "^2.5.10",
+    "@recogito/annotorious-selector-pack": "^0.3.3",
     "core-js": "^3.15.2",
     "images": "^3.2.3",
     "math.gl": "^3.5.4",
     "normalize.css": "^8.0.1",
+    "openseadragon": "^2.4.2",
     "regenerator-runtime": "^0.13.9"
   },
   "devDependencies": {

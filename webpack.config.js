@@ -1,10 +1,10 @@
 /**
- * @fileoverview The webpack configuration for pado_visualize
+ * @fileOverview The webpack configuration for pado_visualize
  * This file should take care of translating the pado_visualize/static_src
  * folder to shippable sources in pado_visualize/static
  */
 // are we in development mode?
-const devMode = process.env.NODE_ENV !== "production";
+// const devMode = process.env.NODE_ENV !== "production";
 
 // path related config
 const path = require("path");
@@ -17,14 +17,17 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // the actual webpack config
 module.exports = {
   entry: {
-    // todo: use glob to gather the entry points
+    // todo: use glob to gather the entry points?
     _base: path.resolve(...srcDir, "_base.js"),
     home: path.resolve(...srcDir, "home.js"),
-    slides: path.resolve(...srcDir, "slides.js"),
     metadata: path.resolve(...srcDir, "metadata.js"),
+    slides: path.resolve(...srcDir, "slides.js"),
+    slides_openseadragon: path.resolve(...srcDir, "slides_openseadragon.js"),
   },
   output: {
     path: path.resolve(...outDir),
+    library: ["pavo", "[name]"],
+    libraryExport: "default",
   },
   module: {
     rules: [
