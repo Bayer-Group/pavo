@@ -18,9 +18,10 @@ function setupLineUp(options) {
     metadata: [],
   };
   const luOptions = Object.assign({}, defaultOptions, options);
-  const lineup = LineUpJS.asLineUp(luOptions.id, luOptions.metadata);
+  const luElement = document.getElementById(luOptions.id);
+  const lineup = LineUpJS.asLineUp(luElement, luOptions.metadata);
 }
 
 export default {
-    setupLineUp: setupLineUp
+  setupLineUp: setupLineUp,
 };
