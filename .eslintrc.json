@@ -15,5 +15,14 @@
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
-  }
+  },
+  "overrides": [
+    {
+      "files": "webpack.config.js",
+      "env": {
+        "es6": true,
+        "node": true
+      }
+    }
+  ]
 }

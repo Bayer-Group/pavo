@@ -1,5 +1,3 @@
-import "normalize.css";
-import "./css/base.scss";
-import "regenerator-runtime/runtime";
-import "core-js/stable";
+import "./_base.js";
+import "./images/background_landing.jpg";
 import "./css/home.scss";

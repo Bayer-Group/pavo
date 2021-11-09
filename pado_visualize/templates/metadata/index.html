@@ -3,8 +3,8 @@
 
 {% block styles %}
   {{ super() }}
-  <link rel="stylesheet" href="{{ url_for_versioned('static', filename='css/slides.scss') }}">
-  <link href="{{ url_for('static', filename='temporary/lineupjs/LineUpJS.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='metadata.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/lineupjs/LineUpJS.css') }}" rel="stylesheet">
 {% endblock styles %}
 
 {% block content %} 
@@ -13,12 +13,13 @@
 {% endblock content %}
 
 {% block page_scripts %}
-  <script src="{{ url_for('static', filename='temporary/lineupjs/LineUpJS.js') }}"></script>
-  <script>
-    var metadata = JSON.parse('{{ metadata | tojson | safe}}');
-    const lineup = LineUpJS.asLineUp(
-      document.getElementById('lineup'), 
-      metadata,
-    );
+  <script src="{{ url_for('static', filename='vendor/lineupjs/LineUpJS.js') }}"></script>
+  <script src="{{ url_for('static', filename='metadata.js') }}"></script>
+  <script type="text/javascript">
+    const metadata = JSON.parse('{{ metadata | tojson | safe}}');
+    pavo.metadata.setupLineUp({
+      id: "lineup",
+      metadata: metadata
+    });
   </script>
 {% endblock page_scripts %}
