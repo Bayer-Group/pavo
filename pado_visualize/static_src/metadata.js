@@ -83,7 +83,6 @@ function setupLineUp(options) {
     }
   }
 
-  // TODO: something is broken with the group actions
   const groupAction = {
     // TODO do something with an entire slide here
     name: "Group Operation",
@@ -101,42 +100,42 @@ function setupLineUp(options) {
   const builder = LineUpJS.builder(luOptions.metadata);
   builder
     .column(LineUpJS.buildCategoricalColumn('image_url')
-      .renderer(renderer='thumbnail', groupRenderer='thumbnail')
+      .renderer('thumbnail', 'thumbnail')
       .label('Image')
       .width(200)
     )
     .column(LineUpJS.buildCategoricalColumn('classification')
-      .renderer(renderer='categorical', groupRenderer='upset')
+      .renderer('categorical', 'upset')
       .label('Finding')
       .width(160)
     )
     .column(LineUpJS.buildBooleanColumn('annotation')
-      .renderer(renderer='categorical', groupRenderer='catdistributionbar')
+      .renderer('categorical', 'catdistributionbar')
       .label('Annotation')
       .width(160)
     )
     .column(LineUpJS.buildCategoricalColumn('annotator_type')
-      .renderer(renderer='categorical', groupRenderer='catdistributionbar', summaryRenderer='categorical')
+      .renderer('categorical', 'catdistributionbar', 'categorical')
       .label('Annotator Type')
       .width(160)
     )
     .column(LineUpJS.buildCategoricalColumn('annotator_name')
-      .renderer(renderer='categorical', groupRenderer='catdistributionbar', summaryRenderer='categorical')
+      .renderer('categorical', 'catdistributionbar', 'categorical')
       .label('Annotator Name')
       .width(160)
     )
     .column(LineUpJS.buildNumberColumn('area')
       .label('Annotation Area')
-      .renderer(renderer='number', groupRenderer='histogram')
+      .renderer('number', 'histogram')
       .width(160)
     )
     .column(LineUpJS.buildCategoricalColumn('compound_name')
-      .renderer(renderer='categorical', groupRenderer='categorical', summaryRenderer='categorical')
+      .renderer('categorical', 'categorical', 'categorical')
       .label('Compound')
       .width(160)
     )
     .column(LineUpJS.buildActionsColumn()
-      .renderer(renderer='myaction', groupRenderer='myaction')
+      .renderer('myaction', 'myaction')
       .groupAction(groupAction)
       .action(rowAction)
       .label('Action')
@@ -155,15 +154,15 @@ function setupLineUp(options) {
   builder.registerRenderer("thumbnail", new ThumbnailRenderer());
   builder.registerRenderer("myaction", new MyActionRenderer());
   builder.expandLineOnHover(true);
-  builder.sidePanel(enable = false, collapsed = true);
+  builder.sidePanel(false, true);
   builder.singleSelection();
-  builder.groupRowHeight(groupHeight=150);
-  builder.summaryHeader(enable=false);
+  builder.groupRowHeight(150);
+  builder.summaryHeader(false);
   builder.expandLineOnHover(true);
 
   const lineup = builder.build(luElement);
 
-  lineup.on("selectionChanged", listener = selectionChangedListener);
+  lineup.on("selectionChanged", selectionChangedListener);
 
   let d = lineup.dump()
 
