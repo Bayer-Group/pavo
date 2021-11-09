@@ -19,9 +19,169 @@ function setupLineUp(options) {
   };
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
-  const lineup = LineUpJS.asLineUp(luElement, luOptions.metadata);
+
+
+  class ThumbnailRenderer {
+    constructor() {
+      this.title = 'ThumbnailRenderer';
+    }
+
+    canRender(col) {
+      return col instanceof LineUpJS.StringColumn;
+    }
+
+    create(col) {
+      return {
+        template: `<p></p>`,
+        update: (n, d) => {
+          n.textContent = '';
+        }
+      };
+    }
+
+    createGroup(col) {
+      return {
+        template: `<img alt="thumbnail" class="thumbnail"> </img>`,
+        update: (n, d) => {
+          n.src = `/slides/thumbnail_${d.name}_200.jpg`
+        }
+      };
+    }
+  }
+
+  class MyActionRenderer {
+    constructor() {
+      this.title = "MyActionRenderer";
+    }
+
+    canRender(col) {
+      return col instanceof LineUpJS.ActionColumn;
+    }
+
+    create(col) {
+      const align = col.alignment || 'center';
+      return {
+        template: `
+          <div class="icon-container"> 
+            <span class='fas fa-search' > </span>
+          </div>
+        `,
+        update: (n, d) => {
+        }
+      };
+    }
+
+    createGroup(col) {
+      return {
+        template: `
+          <div class="icon-container"> 
+            <span class='fas fa-search'></span>
+          </div>`,
+        update: (n, d) => {
+        }
+      };
+    }
+  }
+
+  // TODO: something is broken with the group actions
+  const groupAction = {
+    // TODO do something with an entire slide here
+    name: "Group Operation",
+    action: (rows) => alert(rows.map((d) => d.v))
+  };
+  const rowAction = {
+    name: "Row Action",
+    icon: "&#x2794; row operate &#x2794;",
+    action: (row) => {
+      // TODO: Do something with a single row here
+      console.log(row.v['image_url']);
+    }
+  };
+
+  const builder = LineUpJS.builder(luOptions.metadata);
+  builder
+    .column(LineUpJS.buildCategoricalColumn('image_url')
+      .renderer(renderer='thumbnail', groupRenderer='thumbnail')
+      .label('Image')
+      .width(200)
+    )
+    .column(LineUpJS.buildCategoricalColumn('classification')
+      .renderer(renderer='categorical', groupRenderer='upset')
+      .label('Finding')
+      .width(160)
+    )
+    .column(LineUpJS.buildBooleanColumn('annotation')
+      .renderer(renderer='categorical', groupRenderer='catdistributionbar')
+      .label('Annotation')
+      .width(160)
+    )
+    .column(LineUpJS.buildCategoricalColumn('annotator_type')
+      .renderer(renderer='categorical', groupRenderer='catdistributionbar', summaryRenderer='categorical')
+      .label('Annotator Type')
+      .width(160)
+    )
+    .column(LineUpJS.buildCategoricalColumn('annotator_name')
+      .renderer(renderer='categorical', groupRenderer='catdistributionbar', summaryRenderer='categorical')
+      .label('Annotator Name')
+      .width(160)
+    )
+    .column(LineUpJS.buildNumberColumn('area')
+      .label('Annotation Area')
+      .renderer(renderer='number', groupRenderer='histogram')
+      .width(160)
+    )
+    .column(LineUpJS.buildCategoricalColumn('compound_name')
+      .renderer(renderer='categorical', groupRenderer='categorical', summaryRenderer='categorical')
+      .label('Compound')
+      .width(160)
+    )
+    .column(LineUpJS.buildActionsColumn()
+      .renderer(renderer='myaction', groupRenderer='myaction')
+      .groupAction(groupAction)
+      .action(rowAction)
+      .label('Action')
+      .width(80)
+    )
+    ;
+
+  builder.ranking(
+    LineUpJS.buildRanking()
+      .aggregate()
+      .allColumns()
+      .groupBy('image_url')
+      .sortBy('annotation')
+      // .nested(label='Annotation', 'annotator_type', 'annotator_name', 'area')
+  );
+  builder.registerRenderer("thumbnail", new ThumbnailRenderer());
+  builder.registerRenderer("myaction", new MyActionRenderer());
+  builder.expandLineOnHover(true);
+  builder.sidePanel(enable = false, collapsed = true);
+  builder.singleSelection();
+  builder.groupRowHeight(groupHeight=150);
+  builder.summaryHeader(enable=false);
+  builder.expandLineOnHover(true);
+
+  const lineup = builder.build(luElement);
+
+  lineup.on("selectionChanged", listener = selectionChangedListener);
+
+  let d = lineup.dump()
+
+  // ---- functions ------------------------------------------------------------
+  function selectionChangedListener(itemIdx) {
+    // Do something when the selection changed
+    var imageURL = lineup.data._data[itemIdx]['image_url']
+    console.log(imageURL);
+
+    // Simulate an HTTP redirect:
+    window.location.href = `/slides/viewer/${imageURL}/osd`;
+  }
+
 }
 
 export default {
   setupLineUp: setupLineUp,
 };
+
+
+

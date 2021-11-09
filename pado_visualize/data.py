@@ -8,6 +8,10 @@ from typing import Callable
 from typing import NoReturn
 from typing import Optional
 from typing import Sequence
+from typing import Mapping
+
+import pandas as pd
+import geopandas as gpd
 
 from flask import Flask
 
@@ -15,6 +19,7 @@ from pado import PadoDataset
 from pado.annotations import AnnotationProvider
 from pado.images import ImageId
 from pado.images import ImageProvider
+from pado.images.image import Image
 from pado.metadata import MetadataProvider
 
 __all__ = [
@@ -118,6 +123,78 @@ class DatasetProxy:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.describe(output_format)
+
+    @lru_cache
+    def get_tabular_records(self) -> pd.DataFrame:
+        """tabular representation of the dataset including metadata and annotations
+        
+        Each row is either a finding from the metadata provider or from the 
+        annotations provider. It returns a dataframe of records where each record
+        is of the form:
+        (ImageId, classification, area, annotator_type, annotator_name, 
+        compound_name, organ, species)
+        """
+
+        def _aggreate_annotations(x: pd.Series) -> pd.Series:
+            """treat strings differently to intergers/floats when aggregating"""
+            if isinstance(x[0], int):
+                return x.mean()
+            elif isinstance(x[0], float):
+                return x.mean()
+            else:
+                return x[0]
+        
+        def _fill_nan_by_column_type(x: pd.Series) -> pd.Series:
+            """fill nans in joined table depending on the name of the column"""
+            if 'area' in x.name:
+                return x
+            elif 'annotator' in x.name:
+                return x.fillna('none')
+            elif isinstance(x[0], str):
+                return x.fillna(x.dropna().unique()[0])
+            else:
+                return x
+
+        adf = self._ds.annotations.df.copy()
+        mdf = self._ds.metadata.df.copy()
+
+        # get area of annotations
+        if 'area' not in adf.columns:
+            gs = gpd.GeoSeries.from_wkt(adf['geometry'])
+            geo_adf = gpd.GeoDataFrame(adf, geometry=gs)
+            adf['area'] = geo_adf.geometry.area
+
+        # get the relevant columns of adf
+        adf['annotator_type'] = adf['annotator'].apply(lambda x: x["type"])
+        adf['annotator_name'] = adf['annotator'].apply(lambda x: x["name"])
+        adf = adf[['classification', 'area', 'annotator_type', 'annotator_name']]
+
+        # get the set of shared rows for annotations and metadata
+        if mdf.shape[0] < adf.shape[0]:
+            adf = adf.loc[mdf.index.unique()]
+        else:
+            mdf = mdf.loc[adf.index.unique()]
+        
+        # prepare annotations df for joining
+        adf['image_id'] = adf.index
+        adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate_annotations)
+
+        # prepare metadata df for joining
+        mdf = mdf[['compound_name', 'organ', 'species', 'finding_type']]
+        mdf['index'] = mdf.index
+        mdf.rename(columns={'finding_type': 'classification'}, inplace=True)
+        mdf.set_index(['index', 'classification'], inplace=True)
+
+        # join annotations and metadata (the multi-index was neccesary to perform this join)
+        table = pd.concat([adf, mdf], axis=1, sort=False)
+        table.index.names = ['image_id', 'classification']
+
+        # add some final information and remove nan values
+        table['annotation'] = ~table['area'].isna()
+        table = table.transform(_fill_nan_by_column_type)
+        table = table.reset_index()
+
+        return table
 
 
 # interface used throughout the app

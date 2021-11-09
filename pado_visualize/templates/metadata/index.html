@@ -7,15 +7,19 @@
   <link href="{{ url_for('static', filename='vendor/lineupjs/LineUpJS.css') }}" rel="stylesheet">
 {% endblock styles %}
 
-{% block content %} 
-  <div id="lineup" style="height: 100vh;">
-  </div>
+{% block content %}
+<div class="lineup_container" >
+  <div id="lineup" style="height: 100vh;"/>
+</div>
 {% endblock content %}
 
 {% block page_scripts %}
   <script src="{{ url_for('static', filename='vendor/lineupjs/LineUpJS.js') }}"></script>
   <script src="{{ url_for('static', filename='metadata.js') }}"></script>
   <script type="text/javascript">
+    /*
+    Load data using Jinja magic
+    */
     const metadata = JSON.parse('{{ metadata | tojson | safe}}');
     pavo.metadata.setupLineUp({
       id: "lineup",
@@ -23,3 +27,20 @@
     });
   </script>
 {% endblock page_scripts %}
+
+<style>
+.lineup_container {
+  background-color: grey;
+  height: 100vh;
+  border: 2px blue solid;
+}
+
+.lineup_container header {
+  padding: 0em;
+}
+
+.action_container {
+    text-align: center;
+    background-color: blue;
+}
+</style>

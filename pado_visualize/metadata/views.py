@@ -2,6 +2,8 @@ from flask import Blueprint
 from flask import render_template
 from flask import jsonify
 
+from pado.images import ImageId
+
 from pado_visualize.data import dataset
 from pado_visualize.oauth import login_required
 from pado_visualize.metadata.utils import get_valid_metadata_attribute_options
@@ -15,17 +17,16 @@ blueprint = Blueprint('metadata', __name__)
 @blueprint.route("/metadata")
 @login_required
 def index():
-    # some desirable cols for now
-    cols = ['individual_id', 'dose', 'barcode', 'species', 'organ', 'finding_type', 'compound_name']
-    try:
-        mdf = dataset.metadata.df[cols]
-    except KeyError as err:
-        raise KeyError(f"{err} available are: {dataset.metadata.df.columns!r}")
+
+    table = dataset.get_tabular_records()
+    # TODO: this is super inneficient and I do not like modifying the underlying data
+    if 'image_url' not in table.columns:
+        table['image_url'] = table['image_id'].apply(ImageId.from_str).apply(lambda x: x.to_url_id())
     
     return render_template(
         "metadata/index.html", 
         page_title="Metadata",
-        metadata=mdf.to_dict('records'),
+        metadata=table.to_dict('records'),
     )
 
 
