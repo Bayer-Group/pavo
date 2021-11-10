@@ -1,5 +1,0 @@
-41a42,45
->     let mainEntry = bundle.getMainEntry();
->     if (!mainEntry) {
->       return null;
->     }
