@@ -161,6 +161,8 @@ class DatasetProxy:
             elif isinstance(x[0], float):
                 return x.mean()
             else:
+                # FIXME this is required to aggregate a group but it is assuming that the entire group has the
+                # same value in this non int/float column. This is actually not true!
                 return x[0]
         
         def _fill_nan_by_column_type(x: pd.Series) -> pd.Series:
@@ -169,10 +171,13 @@ class DatasetProxy:
                 return x
             elif 'annotator' in x.name:
                 return x.fillna('none')
-            elif isinstance(x[0], str):
-                return x.fillna(x.dropna().unique()[0])
             else:
-                return x
+                # FIXME this will probably cause bugs. When you concatenate and there are NaNs pandas will
+                # automatically upcast the entire column to float. So the string columns in this
+                # joined database have a float type. To avoid an extremely rigid solution handling each
+                # by its name, I resorted to finding the first unique item in the group and assuming that
+                # it is a string.
+                return x.fillna(str(x.dropna().unique()[0]))
 
         adf = self._ds.annotations.df.copy()
         mdf = self._ds.metadata.df.copy()
