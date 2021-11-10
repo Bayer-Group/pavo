@@ -177,7 +177,10 @@ class DatasetProxy:
                 # joined database have a float type. To avoid an extremely rigid solution handling each
                 # by its name, I resorted to finding the first unique item in the group and assuming that
                 # it is a string.
-                return x.fillna(str(x.dropna().unique()[0]))
+                if x.dropna().shape[0] > 0:
+                    return x.fillna(str(x.dropna().unique()[0]))
+                else:
+                    return x.fillna('unknown')
 
         adf = self._ds.annotations.df.copy()
         mdf = self._ds.metadata.df.copy()
