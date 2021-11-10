@@ -31,6 +31,7 @@ module.exports = {
     library: ["pavo", "[name]"],
     libraryExport: "default",
   },
+  devtool: "source-map",
   module: {
     rules: [
       {
