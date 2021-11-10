@@ -154,7 +154,7 @@ class DatasetProxy:
             'annotation',
         ]
 
-        def _aggreate_annotations(x: pd.Series) -> pd.Series:
+        def _aggreate(x: pd.Series) -> pd.Series:
             """treat strings differently to intergers/floats when aggregating"""
             if isinstance(x[0], int):
                 return x.mean()
@@ -198,13 +198,13 @@ class DatasetProxy:
         
         # prepare annotations df for joining
         adf['image_id'] = adf.index
-        adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate_annotations)
+        adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate)
 
         # prepare metadata df for joining
         mdf = mdf[['compound_name', 'organ', 'species', 'finding_type']]
         mdf['index'] = mdf.index
         mdf.rename(columns={'finding_type': 'classification'}, inplace=True)
-        mdf.set_index(['index', 'classification'], inplace=True)
+        mdf = mdf.groupby(['index', 'classification']).aggregate(_aggreate)
 
         # join annotations and metadata (the multi-index was neccesary to perform this join)
         table = pd.concat([adf, mdf], axis=1, sort=False)
