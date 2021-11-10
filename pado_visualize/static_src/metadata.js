@@ -100,7 +100,7 @@ function setupLineUp(options) {
   const builder = LineUpJS.builder(luOptions.metadata);
   builder
     .column(LineUpJS.buildCategoricalColumn('image_url')
-      .renderer('thumbnail', 'thumbnail')
+      .renderer('thumbnail', 'thumbnail', 'none')
       .label('Image')
       .width(200)
     )
@@ -153,18 +153,13 @@ function setupLineUp(options) {
   );
   builder.registerRenderer("thumbnail", new ThumbnailRenderer());
   builder.registerRenderer("myaction", new MyActionRenderer());
-  builder.expandLineOnHover(true);
   builder.sidePanel(false, true);
   builder.singleSelection();
   builder.groupRowHeight(150);
-  builder.summaryHeader(false);
-  builder.expandLineOnHover(true);
 
   const lineup = builder.build(luElement);
 
   lineup.on("selectionChanged", selectionChangedListener);
-
-  let d = lineup.dump()
 
   // ---- functions ------------------------------------------------------------
   function selectionChangedListener(itemIdx) {
