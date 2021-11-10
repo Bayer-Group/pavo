@@ -27,3 +27,4 @@ environment.docker.yml
 *.secrets.toml
 .env*
 .cache/
+/.env_hash
