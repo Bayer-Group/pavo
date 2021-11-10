@@ -217,7 +217,7 @@ class DatasetProxy:
 
         # add some final information and remove nan values
         table['annotation'] = ~table['area'].isna()
-        table = table.groupby(table.index.get_level_values(0)).transform(_fill_nan_by_column_type)
+        table = table.transform(_fill_nan_by_column_type)
         table = table.reset_index()
 
         assert all(table.columns == OUTPUT_COLUMNS), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
