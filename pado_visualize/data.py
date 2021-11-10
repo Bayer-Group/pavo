@@ -8,18 +8,18 @@ from typing import Callable
 from typing import NoReturn
 from typing import Optional
 from typing import Sequence
-from typing import Mapping
 
 import pandas as pd
 import geopandas as gpd
 
 from flask import Flask
+from fsspec.implementations.cached import SimpleCacheFileSystem
 
 from pado import PadoDataset
 from pado.annotations import AnnotationProvider
 from pado.images import ImageId
 from pado.images import ImageProvider
-from pado.images.image import Image
+from pado.images.providers import LocallyCachedImageProvider
 from pado.metadata import MetadataProvider
 
 __all__ = [
