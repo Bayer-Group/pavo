@@ -33,6 +33,7 @@ dependencies:
   - click
   - diskcache
   - dynaconf
+  - filelock
   - flask>=2
   - flask-caching>=1.8.0
   - flask-dance

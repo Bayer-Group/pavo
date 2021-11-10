@@ -2,35 +2,31 @@ from __future__ import annotations
 
 import re
 import uuid
-import json
-
 from typing import TYPE_CHECKING
-from typing import List
 
 from flask import Blueprint
 from flask import abort
+from flask import current_app
+from flask import jsonify
 from flask import make_response
 from flask import render_template
 from flask import request
 from flask import send_file
-from flask import jsonify
-from flask import get_template_attribute
-from fsspec.implementations.cached import CachingFileSystem
 
-from pado.annotations import Annotation, Annotations
+from pado.annotations import Annotation
+from pado.annotations import Annotations
+from pado.images.providers import image_is_cached_or_local
 from pado.io.files import urlpathlike_to_fsspec
-import pado_visualize
 from pado_visualize.data import DatasetState
 from pado_visualize.data import dataset
 from pado_visualize.extensions import cache
+from pado_visualize.metadata.utils import get_all_metadata_attribute_options
 from pado_visualize.slides.utils import get_paginated_images
 from pado_visualize.slides.utils import thumbnail_fs_and_path
 from pado_visualize.slides.utils import thumbnail_image
-from pado_visualize.metadata.utils import get_valid_metadata_attributes
-from pado_visualize.metadata.utils import get_all_metadata_attribute_options
+from pado_visualize.utils import check_numeric_list
 from pado_visualize.utils import int_ge_0
 from pado_visualize.utils import int_ge_1
-from pado_visualize.utils import check_numeric_list
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
 if TYPE_CHECKING:
@@ -129,7 +125,27 @@ def thumbnail(image_id: ImageId, size: int):
 
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
+    """the landing page for the openseadragon viewer"""
+
+
     return render_template("slides/viewer_openseadragon.html", image_id=image_id)
+
+
+@blueprint.route("/cache/<image_id:image_id>/status")
+def cache_status(image_id: ImageId):
+    """return a json status message about the current cache state"""
+    try:
+        image = dataset.images[image_id]
+    except KeyError:
+        return {'status': 404, 'ready': False}
+
+    if current_app.config.get("CACHE_IMAGES_PATH", None) is None:
+        return {'status': 200, 'ready': True, 'caching': False, 'cache': 'inactive'}
+    elif image_is_cached_or_local(image):
+        return {'status': 200, 'ready': True, 'caching': False, 'cache': 'active'}
+    else:
+        caching = False  # fixme: check if currently caching
+        return {'status': 200, 'ready': False, 'caching': caching, 'cache': 'active'}
 
 
 # --- pyramidal tile server -------------------------------------------
@@ -138,7 +154,9 @@ def viewer_openseadragon(image_id: ImageId):
 def _slide_get_deep_zoom_from_session(image_id: ImageId) -> MinimalComputeAperioDZGenerator:
     """retrieve the deep zoom generator from the user session"""
     of = urlpathlike_to_fsspec(dataset.images[image_id].urlpath)
-    return MinimalComputeAperioDZGenerator(of)
+    # noinspection PyTypeChecker,PydanticTypeChecker
+    dzi = MinimalComputeAperioDZGenerator(of)
+    return dzi
 
 
 @blueprint.route('/viewer/<image_id:image_id>/osd/image.dzi')
