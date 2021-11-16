@@ -15,6 +15,7 @@ from flask import send_file
 
 from pado.annotations import Annotation
 from pado.annotations import Annotations
+from pado.images.providers import image_cached_percentage
 from pado.images.providers import image_is_cached_or_local
 from pado.io.files import urlpathlike_to_fsspec
 from pado_visualize.data import DatasetState
@@ -134,18 +135,25 @@ def viewer_openseadragon(image_id: ImageId):
 @blueprint.route("/cache/<image_id:image_id>/status")
 def cache_status(image_id: ImageId):
     """return a json status message about the current cache state"""
+    cache_inactive = current_app.config.get("CACHE_IMAGES_PATH", None) is None
+    data = {
+        'cache': 'inactive' if cache_inactive else 'active',
+    }
+
     try:
         image = dataset.images[image_id]
     except KeyError:
-        return {'status': 404, 'ready': False}
+        return {'status': 404, 'ready': False, 'pct_cached': 0.0, **data}
 
-    if current_app.config.get("CACHE_IMAGES_PATH", None) is None:
-        return {'status': 200, 'ready': True, 'caching': False, 'cache': 'inactive'}
+    if cache_inactive:
+        return {'status': 200, 'ready': True, 'pct_cached': 0.0, **data}
+
     elif image_is_cached_or_local(image):
-        return {'status': 200, 'ready': True, 'caching': False, 'cache': 'active'}
+        return {'status': 200, 'ready': True, 'pct_cached': 100.0, **data}
+
     else:
-        caching = False  # fixme: check if currently caching
-        return {'status': 200, 'ready': False, 'caching': caching, 'cache': 'active'}
+        pct_cached = image_cached_percentage(image)
+        return {'status': 200, 'ready': False, 'pct_cached': pct_cached, **data}
 
 
 # --- pyramidal tile server -------------------------------------------
