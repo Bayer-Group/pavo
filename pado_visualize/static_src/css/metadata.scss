@@ -3,10 +3,11 @@
 
 .lineup_container {
     height: 100vh;
-    padding: 2rem;
+    padding: 1em 0 0 1em;
+    box-sizing: border-box;
 
     header {
-        padding: 0em;
+        padding: 0;
     }
 }
 
