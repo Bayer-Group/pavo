@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import logging
 import sys
+import time
 from logging.config import dictConfig
 from typing import Optional
 
 from flask import Flask
+from flask import g
 
 from pado_visualize.data import initialize_dataset
 from pado_visualize.extensions import register_extensions
@@ -40,6 +42,7 @@ def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = Fals
 
     register_extensions(app, is_worker=is_worker)
     register_blueprints(app, is_worker=is_worker)
+    register_decorators(app, is_worker=is_worker)
 
     return app
 
@@ -96,3 +99,19 @@ def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
 
     # --- plugins ---
     ...  # todo...
+
+
+def register_decorators(app: Flask, *, is_worker: bool = True) -> None:
+    """register useful decorators"""
+    if is_worker:
+        return
+
+    @app.before_request
+    def calculate_timing():
+        t0 = time.monotonic()
+        g.get_request_duration = lambda: time.monotonic() - t0
+
+    @app.after_request
+    def set_timing_header(response):
+        response.headers["x-pado-request-duration"] = g.get_request_duration()
+        return response
