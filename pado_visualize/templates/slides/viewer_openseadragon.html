@@ -10,13 +10,40 @@
 
 {% block content %}
 <div class="seadragon-container-parent">
-    <div id="seadragon-container" style="position: relative;"></div>
+    <div id="progress-overlay"><div class="progress-container"><div class="progress"></div></div></div>
+    <div id="seadragon-container" ></div>
 </div>
 {% endblock content %}
 
 {% block page_scripts %}
 <script type="text/javascript" src="{{ url_for('static', filename='slides_openseadragon.js') }}"></script>
 <script type="text/javascript">
+    'use strict';
+
+    // progress bar
+    const progressUrl = "{{ url_for('slides.cache_status', image_id=image_id) }}";
+    const progressBar = document.querySelector(".progress");
+    const progressOverlay = document.querySelector("#progress-overlay");
+    const changeProgress = () => {
+      fetch(progressUrl).then(res => res.json()).then(out => {
+          let progress = 0;
+          if (out.ready) {
+              progress = 100;
+          } else if (out.progress > 0) {
+              progress = Math.min(out.progress, 100);
+          } else {
+              progress = 0;
+          }
+          progressBar.style.width = `${progress}%`;
+          if (progress < 100) {
+              setTimeout(changeProgress, 1000);
+          } else {
+              progressOverlay.style.display = "none";
+          }
+      }).catch(err => {throw err});
+    };
+    changeProgress();
+
     // setup the slide viewer
     pavo.slides_openseadragon.setupOpenSeadragonViewer({
         id: "seadragon-container",
