@@ -26,7 +26,7 @@
     const progressOverlay = document.querySelector("#progress-overlay");
     const changeProgress = () => {
       fetch(progressUrl).then(res => res.json()).then(out => {
-          let progress = 0;
+          let progress;
           if (out.ready) {
               progress = 100;
           } else if (out.progress > 0) {
@@ -36,9 +36,7 @@
           }
           progressBar.style.width = `${progress}%`;
           if (progress < 100) {
-              setTimeout(changeProgress, 1000);
-          } else {
-              progressOverlay.style.display = "none";
+              setTimeout(changeProgress, 200);
           }
       }).catch(err => {throw err});
     };
