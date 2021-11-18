@@ -203,6 +203,7 @@ def prod_run(
         "--mount", "/=pado_visualize.app:create_app()",
         "--lazy-apps",
         "--master",
+        "--buffer-size", "8192",
         "--processes", str(settings.UWSGI_NUM_PROCESSES)
     ]
 
