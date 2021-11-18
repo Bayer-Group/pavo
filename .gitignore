@@ -8,7 +8,6 @@
 # dotenv environment variable files
 .env*
 .cache/
-.parcel-cache
 
 # python module
 **/*.egg-info
@@ -23,10 +22,6 @@ node_modules/
 pado_visualize/static/**/*
 pado_visualize/_version.py
 
-# docker
-.image_id
-environment.yml
-environment.docker.yml
 
 # pado_visualize config
 .pado_visualize.local.toml
@@ -37,3 +32,4 @@ environment.docker.yml
 # dev environment
 supervisord.pid
 celerybeat-schedule.db
+environment.yml
