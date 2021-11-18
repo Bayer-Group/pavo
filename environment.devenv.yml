@@ -66,6 +66,7 @@ dependencies:
   # utils
   - tqdm
   - s3fs
+  - typer
 
   - pip:
     # flask extras
