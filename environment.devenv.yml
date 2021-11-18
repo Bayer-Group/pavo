@@ -55,7 +55,7 @@ dependencies:
   - zarr
 
   # pado deps
-  - appdirs
+  - platformdirs
   - orjson
   - toml
   - pyarrow
