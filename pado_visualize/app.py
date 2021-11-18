@@ -16,7 +16,7 @@ from pado_visualize.extensions import register_extensions
 __all__ = ["create_app"]
 
 
-def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = False) -> Flask:
+def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = False, config_only: bool = False) -> Flask:
     """create a Flask app instance
 
     Parameters
@@ -37,6 +37,9 @@ def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = Fals
         _ = initialize_config(app)
     else:
         app = configured_app
+
+    if config_only:
+        return app
 
     initialize_dataset(app)
 
