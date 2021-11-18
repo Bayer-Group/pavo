@@ -161,6 +161,7 @@ function setupLineUp(options) {
       .groupBy('image_url')
       .sortBy('annotation')
       .column('image_url')
+      .column('classification')
       .column('annotation')
       .column('annotator_type')
       .column('annotator_name')
