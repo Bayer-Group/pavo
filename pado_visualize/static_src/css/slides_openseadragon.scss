@@ -10,6 +10,7 @@
     height: 100%;
     grid-row: 1;
     grid-column: 1;
+    z-index: 0;
   }
 
   #progress-overlay {
@@ -22,7 +23,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 0;
+    z-index: 1;
   }
 }
 
