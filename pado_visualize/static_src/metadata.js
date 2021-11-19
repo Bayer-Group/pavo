@@ -20,6 +20,9 @@ function setupLineUp(options) {
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
 
+  function isFirstGroupMember(i) {
+    return i == 0;
+  }
 
   class ThumbnailRenderer {
     constructor() {
@@ -32,9 +35,15 @@ function setupLineUp(options) {
 
     create(col) {
       return {
-        template: `<p></p>`,
-        update: (n, d) => {
-          n.textContent = '';
+        template: `<div><div/>`,
+        update: (node, row, i, group) => {
+          if (isFirstGroupMember(i)) {
+            let img = document.createElement('img');
+            img.src = `/slides/thumbnail_${group.name}_200.jpg`;
+            node.children[0].classList.add('thumbnail');
+            node.style.height = `${rowHeight * (group.order.length+1)}px`;
+            node.children[0].appendChild(img);
+          } 
         }
       };
     }
@@ -42,8 +51,8 @@ function setupLineUp(options) {
     createGroup(col) {
       return {
         template: `<img alt="thumbnail" class="thumbnail"> </img>`,
-        update: (n, d) => {
-          n.src = `/slides/thumbnail_${d.name}_200.jpg`
+        update: (node, group) => {
+          node.src = `/slides/thumbnail_${group.name}_200.jpg`;
         }
       };
     }
@@ -84,10 +93,9 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span class='button fas fa-search'></span>
+            <span class='button grouped fas fa-search fa-2x'></span>
           </div>`,
         update: (n, group) => {
-          console.log(n.childNodes);
           var children = n.childNodes;
           children.forEach( function(ni, i) {
             ni.onclick = function(event) {
@@ -146,7 +154,6 @@ function setupLineUp(options) {
       window.location.href = `/slides/viewer/${group['name']}/osd`;
     }
   };
-  
 
   const builder = LineUpJS.builder(luOptions.metadata);
   builder
@@ -212,7 +219,6 @@ function setupLineUp(options) {
   builder.ranking(
     LineUpJS.buildRanking()
       .aggregate()
-      // .allColumns()
       .column('Action')
       .groupBy('image_url')
       .sortBy('annotation')
@@ -234,18 +240,21 @@ function setupLineUp(options) {
   builder.singleSelection();
   builder.groupRowHeight(150);
 
+  const rowHeight = 25;   /* needed as a global variable */
+  builder.rowHeight(rowHeight);
+
   const lineup = builder.build(luElement);
 
   lineup.on("selectionChanged", selectionChangedListener);
+  lineup.on("groupSelectionChanged", selectionChangedListener);
 
   // ---- functions ------------------------------------------------------------
   function selectionChangedListener(itemIdx) {
     // Do something when the selection changed
-    // var imageURL = lineup.data._data[itemIdx]['image_url']
-    // console.log(imageURL);
+    var imageURL = lineup.data._data[itemIdx]['image_url']
 
     // Simulate an HTTP redirect:
-    // window.location.href = `/slides/viewer/${imageURL}/osd`;
+    window.location.href = `/slides/viewer/${imageURL}/osd`;
   }
 
 }
