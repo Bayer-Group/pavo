@@ -63,7 +63,7 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span class='fas fa-search' > </span>
+            <span class='button fas fa-search' > </span>
           </div>
         `,
         update: (n, d) => {
@@ -84,7 +84,7 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span id="group_icon" class='fas fa-search'></span>
+            <span class='button fas fa-search'></span>
           </div>`,
         update: (n, group) => {
           console.log(n.childNodes);
@@ -96,6 +96,37 @@ function setupLineUp(options) {
               setTimeout(() => actions[0].action(group), 1);
             }
           })
+        }
+      };
+    }
+  }
+
+  class AnnotatorRenderer {
+    constructor() {
+      this.title = "AnnotatorRenderer";
+    }
+
+    canRender(col) {
+      return col instanceof LineUpJS.CategoricalColumn;
+    }
+
+    create(col) {
+      return {
+        template: `
+          <div class="icon-container"> 
+            <span id="annotator_icon_id" class='fas' > </span>
+          </div>
+        `,
+        update: (n, d) => {
+          var annotator_type = d.v['annotator_type'];
+          var icon = n.getElementsByTagName('span')[0];
+          if (annotator_type == 'model'){
+            icon.classList.add('fa-laptop-code');
+          } else if (annotator_type == 'human'){
+            icon.classList.add('fa-user');
+          } else if (annotator_type == 'unknown'){
+            icon.classList.add('fa-question');
+          }
         }
       };
     }
@@ -135,7 +166,7 @@ function setupLineUp(options) {
       .width(160)
     )
     .column(LineUpJS.buildCategoricalColumn('annotator_type')
-      .renderer('categorical', 'categorical', 'categorical')
+      .renderer('annotator', 'categorical', 'categorical')
       .label('Annotator Type')
       .width(160)
     )
@@ -198,6 +229,7 @@ function setupLineUp(options) {
   );
   builder.registerRenderer("thumbnail", new ThumbnailRenderer());
   builder.registerRenderer("myaction", new MyActionRenderer());
+  builder.registerRenderer("annotator", new AnnotatorRenderer());
   builder.sidePanel(true, true);
   builder.singleSelection();
   builder.groupRowHeight(150);
