@@ -38,6 +38,9 @@
           if (progress < 100) {
               setTimeout(changeProgress, 200);
           }
+          else {
+            setTimeout(() => {progressOverlay.style.display = "none"}, 1000);
+          }
       }).catch(err => {throw err});
     };
     changeProgress();
