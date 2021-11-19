@@ -59,7 +59,7 @@ function setupLineUp(options) {
     }
 
     create(col) {
-      const align = col.alignment || 'center';
+      const actions = col.actions;
       return {
         template: `
           <div class="icon-container"> 
@@ -67,35 +67,55 @@ function setupLineUp(options) {
           </div>
         `,
         update: (n, d) => {
+          var children = n.childNodes;
+          children.forEach(function(ni, i){
+              ni.onclick = function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                setTimeout(() => actions[0].action(d), 1);
+              };
+          });
         }
       };
     }
 
     createGroup(col) {
+      const actions = col.groupActions;
       return {
         template: `
           <div class="icon-container"> 
-            <span class='fas fa-search'></span>
+            <span id="group_icon" class='fas fa-search'></span>
           </div>`,
-        update: (n, d) => {
+        update: (n, group) => {
+          console.log(n.childNodes);
+          var children = n.childNodes;
+          children.forEach( function(ni, i) {
+            ni.onclick = function(event) {
+              event.preventDefault();
+              event.stopPropagation();
+              setTimeout(() => actions[0].action(group), 1);
+            }
+          })
         }
       };
     }
   }
 
-  const groupAction = {
-    // TODO do something with an entire slide here
-    name: "Group Operation",
-    action: (rows) => alert(rows.map((d) => d.v))
-  };
   const rowAction = {
     name: "Row Action",
-    icon: "&#x2794; row operate &#x2794;",
     action: (row) => {
-      // TODO: Do something with a single row here
-      console.log(row.v['image_url']);
+      // TODO: Do something more interesting with a single row here
+      window.location.href = `/slides/viewer/${row.v['image_url']}/osd`;
     }
   };
+  const groupAction = {
+    // TODO do something more interesting with an entire slide here
+    name: "Group Operation",
+    action: (group) => {
+      window.location.href = `/slides/viewer/${group['name']}/osd`;
+    }
+  };
+  
 
   const builder = LineUpJS.builder(luOptions.metadata);
   builder
@@ -189,11 +209,11 @@ function setupLineUp(options) {
   // ---- functions ------------------------------------------------------------
   function selectionChangedListener(itemIdx) {
     // Do something when the selection changed
-    var imageURL = lineup.data._data[itemIdx]['image_url']
-    console.log(imageURL);
+    // var imageURL = lineup.data._data[itemIdx]['image_url']
+    // console.log(imageURL);
 
     // Simulate an HTTP redirect:
-    window.location.href = `/slides/viewer/${imageURL}/osd`;
+    // window.location.href = `/slides/viewer/${imageURL}/osd`;
   }
 
 }
