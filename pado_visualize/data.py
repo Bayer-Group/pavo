@@ -145,7 +145,8 @@ class DatasetProxy:
         OUTPUT_COLUMNS = [
             'image_id',
             'classification',
-            'area',
+            'annotation_area',
+            'annotation_count',
             'annotator_type',
             'annotator_name',
             'compound_name',
@@ -155,7 +156,7 @@ class DatasetProxy:
         ]
 
         def _aggreate(x: pd.Series) -> pd.Series:
-            """treat strings differently to intergers/floats when aggregating"""
+            """treat strings differently to integers/floats when aggregating"""
             if isinstance(x[0], int):
                 return x.mean()
             elif isinstance(x[0], float):
@@ -167,7 +168,7 @@ class DatasetProxy:
         
         def _fill_nan_by_column_type(x: pd.Series) -> pd.Series:
             """fill nans in joined table depending on the name of the column"""
-            if 'area' in x.name:
+            if 'area' in x.name or 'count' in x.name:
                 return x
             elif 'annotator' in x.name:
                 return x.fillna('none')
@@ -194,7 +195,7 @@ class DatasetProxy:
         # get the relevant columns of adf
         adf['annotator_type'] = adf['annotator'].apply(lambda x: x["type"])
         adf['annotator_name'] = adf['annotator'].apply(lambda x: x["name"])
-        adf = adf[['classification', 'area', 'annotator_type', 'annotator_name']]
+        adf = adf[['image_id', 'classification', 'area', 'annotator_type', 'annotator_name']]
 
         # get the set of shared rows for annotations and metadata
         common_index = mdf.index.intersection(adf.index)
@@ -205,8 +206,13 @@ class DatasetProxy:
             mdf = mdf.loc[common_index]
         
         # prepare annotations df for joining
-        adf['image_id'] = adf.index
-        adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate)
+        grouped_adf_area = adf.groupby(['image_id', 'classification'])['area']
+        grouped_adf_other = adf.drop('area', axis=1).groupby(['image_id', 'classification'])
+        adf = pd.concat([
+            grouped_adf_other.aggregate(_aggreate), 
+            grouped_adf_area.agg(['count', 'sum']).rename(columns={"count":"annotation_count", "sum": "annotation_area"})
+            ], axis=1, sort=False)
+        # adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate)
 
         # prepare metadata df for joining
         mdf = mdf[['compound_name', 'organ', 'species', 'finding_type']]
@@ -219,11 +225,11 @@ class DatasetProxy:
         table.index.names = ['image_id', 'classification']
 
         # add some final information and remove nan values
-        table['annotation'] = ~table['area'].isna()
+        table['annotation'] = ~table['annotation_area'].isna()
         table = table.groupby(table.index.get_level_values(0)).transform(_fill_nan_by_column_type)
         table = table.reset_index()
 
-        assert all(table.columns == OUTPUT_COLUMNS), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
+        assert table.columns.sort_values().to_list() == sorted(OUTPUT_COLUMNS), f"expected {sorted(OUTPUT_COLUMNS)!r} got {table.columns.sort_values().to_list()!r}"
         return table
 
 

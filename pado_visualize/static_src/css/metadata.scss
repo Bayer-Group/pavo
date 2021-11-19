@@ -30,6 +30,10 @@
     pointer-events: none;
 
     img {
+
+        .table_thumbnail {
+            height: 200%;
+        }
         position: absolute;
         top: 0;
         bottom: 0;
@@ -38,6 +42,9 @@
         margin: auto;
     }
 }
+.table_thumbnail {
+    height: 300% !important;
+}
 
 .icon-container {
     span {
@@ -45,7 +52,10 @@
         cursor: pointer;
         margin-left: 50%;
     }
-    span:hover {
+    .button:hover {
         color: $color-primary-light;
+    }
+    .grouped {
+        margin-top: 50%;
     }
 }

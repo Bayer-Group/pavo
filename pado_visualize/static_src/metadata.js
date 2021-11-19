@@ -20,6 +20,9 @@ function setupLineUp(options) {
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
 
+  function isFirstGroupMember(i) {
+    return i == 0;
+  }
 
   class ThumbnailRenderer {
     constructor() {
@@ -32,9 +35,15 @@ function setupLineUp(options) {
 
     create(col) {
       return {
-        template: `<p></p>`,
-        update: (n, d) => {
-          n.textContent = '';
+        template: `<div><div/>`,
+        update: (node, row, i, group) => {
+          if (isFirstGroupMember(i)) {
+            let img = document.createElement('img');
+            img.src = `/slides/thumbnail_${group.name}_200.jpg`;
+            node.children[0].classList.add('thumbnail');
+            node.style.height = `${rowHeight * (group.order.length+1)}px`;
+            node.children[0].appendChild(img);
+          } 
         }
       };
     }
@@ -42,8 +51,8 @@ function setupLineUp(options) {
     createGroup(col) {
       return {
         template: `<img alt="thumbnail" class="thumbnail"> </img>`,
-        update: (n, d) => {
-          n.src = `/slides/thumbnail_${d.name}_200.jpg`
+        update: (node, group) => {
+          node.src = `/slides/thumbnail_${group.name}_200.jpg`;
         }
       };
     }
@@ -59,41 +68,90 @@ function setupLineUp(options) {
     }
 
     create(col) {
-      const align = col.alignment || 'center';
+      const actions = col.actions;
       return {
         template: `
           <div class="icon-container"> 
-            <span class='fas fa-search' > </span>
+            <span class='button fas fa-search' > </span>
           </div>
         `,
         update: (n, d) => {
+          var children = n.childNodes;
+          children.forEach(function(ni, i){
+              ni.onclick = function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                setTimeout(() => actions[0].action(d), 1);
+              };
+          });
         }
       };
     }
 
     createGroup(col) {
+      const actions = col.groupActions;
       return {
         template: `
           <div class="icon-container"> 
-            <span class='fas fa-search'></span>
+            <span class='button grouped fas fa-search fa-2x'></span>
           </div>`,
-        update: (n, d) => {
+        update: (n, group) => {
+          var children = n.childNodes;
+          children.forEach( function(ni, i) {
+            ni.onclick = function(event) {
+              event.preventDefault();
+              event.stopPropagation();
+              setTimeout(() => actions[0].action(group), 1);
+            }
+          })
         }
       };
     }
   }
 
-  const groupAction = {
-    // TODO do something with an entire slide here
-    name: "Group Operation",
-    action: (rows) => alert(rows.map((d) => d.v))
-  };
+  class AnnotatorRenderer {
+    constructor() {
+      this.title = "AnnotatorRenderer";
+    }
+
+    canRender(col) {
+      return col instanceof LineUpJS.CategoricalColumn;
+    }
+
+    create(col) {
+      return {
+        template: `
+          <div class="icon-container"> 
+            <span id="annotator_icon_id" class='fas' > </span>
+          </div>
+        `,
+        update: (n, d) => {
+          var annotator_type = d.v['annotator_type'];
+          var icon = n.getElementsByTagName('span')[0];
+          if (annotator_type == 'model'){
+            icon.classList.add('fa-laptop-code');
+          } else if (annotator_type == 'human'){
+            icon.classList.add('fa-user');
+          } else if (annotator_type == 'unknown'){
+            icon.classList.add('fa-question');
+          }
+        }
+      };
+    }
+  }
+
   const rowAction = {
     name: "Row Action",
-    icon: "&#x2794; row operate &#x2794;",
     action: (row) => {
-      // TODO: Do something with a single row here
-      console.log(row.v['image_url']);
+      // TODO: Do something more interesting with a single row here
+      window.location.href = `/slides/viewer/${row.v['image_url']}/osd`;
+    }
+  };
+  const groupAction = {
+    // TODO do something more interesting with an entire slide here
+    name: "Group Operation",
+    action: (group) => {
+      window.location.href = `/slides/viewer/${group['name']}/osd`;
     }
   };
 
@@ -115,7 +173,7 @@ function setupLineUp(options) {
       .width(160)
     )
     .column(LineUpJS.buildCategoricalColumn('annotator_type')
-      .renderer('categorical', 'categorical', 'categorical')
+      .renderer('annotator', 'categorical', 'categorical')
       .label('Annotator Type')
       .width(160)
     )
@@ -124,9 +182,14 @@ function setupLineUp(options) {
       .label('Annotator Name')
       .width(160)
     )
-    .column(LineUpJS.buildNumberColumn('area')
+    .column(LineUpJS.buildNumberColumn('annotation_area')
       .label('Annotation Area')
-      .renderer('number', 'histogram')
+      .renderer('brightness', 'histogram')
+      .width(160)
+    )
+    .column(LineUpJS.buildNumberColumn('annotation_count')
+      .label('Annotation Count')
+      .renderer('brightness', 'histogram')
       .width(160)
     )
     .column(LineUpJS.buildCategoricalColumn('compound_name')
@@ -156,7 +219,6 @@ function setupLineUp(options) {
   builder.ranking(
     LineUpJS.buildRanking()
       .aggregate()
-      // .allColumns()
       .column('Action')
       .groupBy('image_url')
       .sortBy('annotation')
@@ -165,26 +227,31 @@ function setupLineUp(options) {
       .column('annotation')
       .column('annotator_type')
       .column('annotator_name')
-      .column('area')
+      .column('annotation_area')
+      .column('annotation_count')
       .column('compound_name')
       .column('species')
       .column('organ')
   );
   builder.registerRenderer("thumbnail", new ThumbnailRenderer());
   builder.registerRenderer("myaction", new MyActionRenderer());
+  builder.registerRenderer("annotator", new AnnotatorRenderer());
   builder.sidePanel(true, true);
   builder.singleSelection();
   builder.groupRowHeight(150);
 
+  const rowHeight = 25;   /* needed as a global variable */
+  builder.rowHeight(rowHeight);
+
   const lineup = builder.build(luElement);
 
   lineup.on("selectionChanged", selectionChangedListener);
+  lineup.on("groupSelectionChanged", selectionChangedListener);
 
   // ---- functions ------------------------------------------------------------
   function selectionChangedListener(itemIdx) {
     // Do something when the selection changed
     var imageURL = lineup.data._data[itemIdx]['image_url']
-    console.log(imageURL);
 
     // Simulate an HTTP redirect:
     window.location.href = `/slides/viewer/${imageURL}/osd`;
