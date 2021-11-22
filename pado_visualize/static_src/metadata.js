@@ -20,10 +20,6 @@ function setupLineUp(options) {
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
 
-  function isFirstGroupMember(i) {
-    return i == 0;
-  }
-
   class ThumbnailRenderer {
     constructor() {
       this.title = 'ThumbnailRenderer';
@@ -37,11 +33,13 @@ function setupLineUp(options) {
       return {
         template: `<div><div/>`,
         update: (node, row, i, group) => {
-          if (isFirstGroupMember(i)) {
+          if (this.isFirstGroupMember(i)) {
             let img = document.createElement('img');
             img.src = `/slides/thumbnail_${group.name}_200.jpg`;
             node.children[0].classList.add('thumbnail');
-            node.style.height = `${rowHeight * (group.order.length+1)}px`;
+            let marginHeight = 2;
+            let numRows = group.order.length;
+            node.style.height = `${numRows * (rowHeight + marginHeight)}px`;
             node.children[0].appendChild(img);
           } 
         }
@@ -55,6 +53,10 @@ function setupLineUp(options) {
           node.src = `/slides/thumbnail_${group.name}_200.jpg`;
         }
       };
+    }
+
+    isFirstGroupMember(i) {
+      return i == 0;
     }
   }
 
