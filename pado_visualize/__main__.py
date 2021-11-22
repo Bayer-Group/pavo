@@ -5,17 +5,14 @@ useful commands for interacting with pado-visualize
 """
 from __future__ import annotations
 
-import argparse
 import os
 import os.path
 import shutil
 import subprocess
-import sys
 import warnings
 from pathlib import Path
 from typing import List
 from typing import NoReturn
-from typing import Optional
 
 import typer
 from flask import Flask
