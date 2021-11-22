@@ -127,9 +127,13 @@ def thumbnail(image_id: ImageId, size: int):
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     """the landing page for the openseadragon viewer"""
-
-
     return render_template("slides/viewer_openseadragon.html", image_id=image_id)
+
+
+@blueprint.route("/viewer/<image_id:image_id>/deckgl")
+def viewer_deckgl(image_id: ImageId):
+    """the landing page for the deck.gl viewer"""
+    return render_template("slides/viewer_deckgl.html", image_id=image_id)
 
 
 @blueprint.route("/cache/<image_id:image_id>/status")
