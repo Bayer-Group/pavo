@@ -84,7 +84,7 @@ module.exports = {
           // copy lineup from static_src to static for now.
           from: "pado_visualize/static_src/vendor/lineupjs/*",
           to: "vendor/lineupjs/[name][ext]",
-        }
+        },
       ],
     }),
   ],
