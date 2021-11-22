@@ -48,7 +48,6 @@ function setupLineUp(options) {
               while (node.firstChild) {
                 node.removeChild(node.firstChild);
               }
-              // node.classList.remove('thumbnail');
             }
             node.appendChild(img);
             node.classList.add('thumbnail');
@@ -147,16 +146,16 @@ function setupLineUp(options) {
           var annotator_type = row.v['annotator_type'];
 
           var icon = node.children[0];
+          icon.classList.remove('fa-laptop-code');
+          icon.classList.remove('fa-user');
+          icon.classList.remove('fa-question');
+
           if (annotator_type == 'model'){
             icon.classList.add('fa-laptop-code');
           } else if (annotator_type == 'human'){
             icon.classList.add('fa-user');
           } else if (annotator_type == 'unknown'){
             icon.classList.add('fa-question');
-          } else {
-            icon.classList.remove('fa-laptop-code');
-            icon.classList.remove('fa-user');
-            icon.classList.remove('fa-question');
           }
         }
       };
