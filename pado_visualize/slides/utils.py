@@ -30,7 +30,7 @@ from pado.io.files import fsopen
 from pado.io.files import urlpathlike_to_fs_and_path
 from pado.io.files import urlpathlike_to_string
 from pado.types import UrlpathLike
-from pado_visualize.api.utils import get_filtered_images
+from pado_visualize.api.utils import get_filtered_image_ids
 
 if TYPE_CHECKING:
     from pado_visualize.data import DatasetProxy
@@ -53,9 +53,9 @@ def get_paginated_images(ds: DatasetProxy, page: int, page_size: int, filter: di
     """return filtered and paginated Images"""
     if filter is None:
         filter = {}
+    ds_index = get_filtered_image_ids(filter, ds)
     idx_start = page * page_size
     idx_end = page * page_size + page_size
-    ds_index = get_filtered_images(filter, ds)
     ds_images = ds.images
     image_ids = ds_index[idx_start:idx_end]
     return PaginatedItems(

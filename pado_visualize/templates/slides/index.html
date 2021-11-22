@@ -110,10 +110,9 @@
 
     function applyFilter(page) {
       let form = document.querySelector('#filter_form');
-      let data = new FormData(form);
-      console.log(data);
+      let filter = new FormData(form);
       const current_url = new URL(window.location.href + 'thumbnails');
-      for (let [key, value] of data) {
+      for (let [key, value] of filter) {
         current_url.searchParams.append(key, value);
       }
       current_url.searchParams.append('page', 0);

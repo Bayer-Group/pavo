@@ -71,7 +71,7 @@
   margin-top: 2em;
   display:flex; 
   flex-direction: row; 
-  justify-content: left; 
+  justify-content: center; 
   align-items: center;
 
   .page-picker {
@@ -88,14 +88,11 @@
   }
 
   .pagination {
-    display: inline-block;
-    a {
-      color: black;
-      float: left;
-      padding: 8px 16px;
-      text-decoration: none;
-      border: thin solid lightgray;
-    }
+    white-space : nowrap; 
+    width: 200px;
+    height: 30px;
+    overflow-x: scroll;
+    background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, $color-primary-light 25%, $color-primary-light 75%, rgba(255, 255, 255, 1) 100%);
   
     a.active {
       background-color: $color-primary-dark;
@@ -103,8 +100,19 @@
       font-weight: 700;
       border: thin solid $color-primary-dark;
     }
-  
-    a:hover:not(.active) {background-color: #ddd;}
+
+    a:hover:not(.active) {
+      border: thin solid $color-primary-dark;
+    }
+  }
+
+  a {
+    color: black;
+    text-align: center;
+    width: 30px;
+    height: 28px;
+    text-decoration: none;
+    display: inline-block;
   }
 }
 
