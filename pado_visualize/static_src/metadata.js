@@ -20,6 +20,9 @@ function setupLineUp(options) {
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
 
+  /* ---------------------------------------------------------------------------
+  Renderers
+  --------------------------------------------------------------------------- */
   class ThumbnailRenderer {
     constructor() {
       this.title = 'ThumbnailRenderer';
@@ -142,6 +145,9 @@ function setupLineUp(options) {
     }
   }
 
+  /*
+  Action methods
+  */
   const rowAction = {
     name: "Row Action",
     action: (row) => {
@@ -157,7 +163,14 @@ function setupLineUp(options) {
     }
   };
 
+  /* ---------------------------------------------------------------------------
+  Build lineup
+  --------------------------------------------------------------------------- */
+
+  // load data
   const builder = LineUpJS.builder(luOptions.metadata);
+
+  // create builder
   builder
     .column(LineUpJS.buildCategoricalColumn('image_url')
       .renderer('thumbnail', 'thumbnail', 'none')
@@ -216,41 +229,47 @@ function setupLineUp(options) {
       .label('Action')
       .width(80)
     )
-    ;
+  ;
 
-  builder.ranking(
-    LineUpJS.buildRanking()
-      .aggregate()
-      .column('Action')
-      .groupBy('image_url')
-      .sortBy('annotation')
-      .column('image_url')
-      .column('classification')
-      .column('annotation')
-      .column('annotator_type')
-      .column('annotator_name')
-      .column('annotation_area')
-      .column('annotation_count')
-      .column('compound_name')
-      .column('species')
-      .column('organ')
-  );
-  builder.registerRenderer("thumbnail", new ThumbnailRenderer());
-  builder.registerRenderer("myaction", new MyActionRenderer());
-  builder.registerRenderer("annotator", new AnnotatorRenderer());
-  builder.sidePanel(true, true);
-  builder.singleSelection();
-  builder.groupRowHeight(150);
-
+  // configure builder
   const rowHeight = 25;   /* needed as a global variable */
-  builder.rowHeight(rowHeight);
+  builder
+    .ranking(
+      LineUpJS.buildRanking()
+        .aggregate()
+        .column('Action')
+        .groupBy('image_url')
+        .sortBy('annotation')
+        .column('image_url')
+        .column('classification')
+        .column('annotation')
+        .column('annotator_type')
+        .column('annotator_name')
+        .column('annotation_area')
+        .column('annotation_count')
+        .column('compound_name')
+        .column('species')
+        .column('organ')
+    )
+    .registerRenderer("thumbnail", new ThumbnailRenderer())
+    .registerRenderer("myaction", new MyActionRenderer())
+    .registerRenderer("annotator", new AnnotatorRenderer())
+    .sidePanel(true, true)
+    .singleSelection()
+    .groupRowHeight(150)
+    .rowHeight(rowHeight)
+  ;
 
+  // build lineup
   const lineup = builder.build(luElement);
 
+  // add listeners
   lineup.on("selectionChanged", selectionChangedListener);
   lineup.on("groupSelectionChanged", selectionChangedListener);
 
-  // ---- functions ------------------------------------------------------------
+  /* ---------------------------------------------------------------------------
+  Define listeners
+  --------------------------------------------------------------------------- */
   function selectionChangedListener(itemIdx) {
     // Do something when the selection changed
     var imageURL = lineup.data._data[itemIdx]['image_url']
