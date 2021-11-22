@@ -34,17 +34,30 @@ function setupLineUp(options) {
 
     create(col) {
       return {
-        template: `<div><div/>`,
+        template: `<div> </div>`,
         update: (node, row, i, group) => {
           if (this.isFirstGroupMember(i)) {
-            let img = document.createElement('img');
-            img.src = `/slides/thumbnail_${group.name}_200.jpg`;
-            node.children[0].classList.add('thumbnail');
             let marginHeight = 2;
             let numRows = group.order.length;
             node.style.height = `${numRows * (rowHeight + marginHeight)}px`;
-            node.children[0].appendChild(img);
-          } 
+
+            const img = document.createElement('img');
+            img.src = `/slides/thumbnail_${group.name}_200.jpg`;
+
+            if(node.children.length > 0){
+              while (node.firstChild) {
+                node.removeChild(node.firstChild);
+              }
+              // node.classList.remove('thumbnail');
+            }
+            node.appendChild(img);
+            node.classList.add('thumbnail');
+          } else {
+            while (node.firstChild) {
+              node.removeChild(node.firstChild);
+            }
+            node.classList.remove('thumbnail');
+          }
         }
       };
     }
@@ -130,15 +143,20 @@ function setupLineUp(options) {
             <span id="annotator_icon_id" class='fas' > </span>
           </div>
         `,
-        update: (n, d) => {
-          var annotator_type = d.v['annotator_type'];
-          var icon = n.getElementsByTagName('span')[0];
+        update: (node, row, i, group) => {
+          var annotator_type = row.v['annotator_type'];
+
+          var icon = node.children[0];
           if (annotator_type == 'model'){
             icon.classList.add('fa-laptop-code');
           } else if (annotator_type == 'human'){
             icon.classList.add('fa-user');
           } else if (annotator_type == 'unknown'){
             icon.classList.add('fa-question');
+          } else {
+            icon.classList.remove('fa-laptop-code');
+            icon.classList.remove('fa-user');
+            icon.classList.remove('fa-question');
           }
         }
       };
