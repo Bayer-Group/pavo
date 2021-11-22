@@ -4,7 +4,7 @@ from flask import request
 from werkzeug.exceptions import BadRequest
 
 from pado_visualize.data import dataset
-from pado_visualize.api.utils import get_filtered_images
+from pado_visualize.api.utils import get_filtered_image_ids
 from pado_visualize.api.utils import insert_annotation_prediction
 from pado_visualize.api.utils import insert_image_prediction
 
@@ -68,7 +68,7 @@ def filter_by():
     filter = request.get_json()
 
     try:
-        image_ids = get_filtered_images(filter)
+        image_ids = get_filtered_image_ids(filter)
     except Exception as e:
         raise BadRequest(f'{e}')
 

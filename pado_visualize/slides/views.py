@@ -45,7 +45,7 @@ def dataset_ready():
 
 def _unpack_filter_params(request):
     page = request.args.get("page", 0, type=int_ge_0)
-    page_size = request.args.get("page_size", 5, type=int_ge_1)
+    page_size = request.args.get("page_size", 20, type=int_ge_1)
     allowed_page_sizes = {1, 5, 20, 40, 80, 160, 320}
     if page_size not in allowed_page_sizes:
         abort(403, f"page_size must be one of {allowed_page_sizes!r}")

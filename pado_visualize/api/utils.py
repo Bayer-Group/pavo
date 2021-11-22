@@ -14,8 +14,8 @@ from pado_visualize.metadata.utils import get_valid_metadata_attribute_options
 class InvalidFilterParameters(Exception):
     pass
 
-def get_filtered_images(filter: dict, ds: DatasetProxy = dataset) -> List[ImageId]:
-    """returns tupe of ImageIds which match the given filter"""
+def get_filtered_image_ids(filter: dict, ds: DatasetProxy = dataset) -> List[ImageId]:
+    """returns tuple of all ImageIds which match the given filter"""
     
     filtered_ids = set(ds.index)
     

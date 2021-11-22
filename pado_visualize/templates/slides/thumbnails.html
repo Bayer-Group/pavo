@@ -11,67 +11,72 @@
 </head>
 
 {% macro slide_card(image_id, image) %}
-  <a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
-  <div class="card slide-card">
-    <div class="thumbnail">
-      <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
-    </div>
-    <div class="title">{{ image_id.last }}</div>
-    <div class="indicators">
-    </div>
+<a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
+<div class="card slide-card">
+  <div class="thumbnail">
+    <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
   </div>
-  </a>
+  <div class="title">{{ image_id.last }}</div>
+  <div class="indicators">
+  </div>
+</div>
+</a>
 {% endmacro %}
 
 {% macro slide_cards(image_id_pairs) %} 
-  <div class="container slide-container">
-    {% for image_id, image in image_id_pairs %}
-      {{ slide_card(image_id, image) }}
-    {% endfor %}
-  </div>
+<div class="container slide-container">
+  {% for image_id, image in image_id_pairs %}
+    {{ slide_card(image_id, image) }}
+  {% endfor %}
+</div>
 {% endmacro %}
 
 <body>
   <div class="container-thumbnails">
 
-  {% block thumbnails %}
-    {{ slide_cards(image_id_pairs) }}
-  {% endblock thumbnails %}
+    {% block thumbnails %}
+      {{ slide_cards(image_id_pairs) }}
+    {% endblock thumbnails %}
 
-  {% block pages %}
-  <div class="pagination-container">
+    {% block pages %}
+    <div class="pagination-container">
 
-      <div class="page-picker">
-        <label for="page_size_picker">Page size</label>
-        <select name="page_size" id="page_size_picker">
-          <option value="1">1</option>
-          <option value="5">5</option>
-          <option value="20">20</option>
-          <option value="40">40</option>
-          <option value="80">80</option>
-        </select>
-      </div>
+        <!-- <div class="page-picker">
+          <label for="page_size_picker">Page size</label>
+          <select name="page_size" id="page_size_picker">
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="20">20</option>
+            <option value="40">40</option>
+            <option value="80">80</option>
+          </select>
+        </div> -->
 
+      <a href="#" class="disabled">&laquo;</a>
       <div class="pagination">
         {% for idx in range(pages) %}
           <a 
-            href="{{ url_for('slides.thumbnails', page=idx, page_size=page_size , filter=filter) }}"
-            class="{% if idx == page %}active{% endif %}""
+            href="{{
+              url_for('slides.thumbnails', page=idx, 
+                page_size=page_size, filename=filter['filename'], 
+                metadata_key=filter['metadata_key'], 
+                metadata_values=filter['metadata_values']
+              )}}"
+            class="{% if idx == page %}active{% endif %}"
+            id="{% if idx == page %}active_page_id{% endif %}"
           >
           {{ idx }}
           </a>
         {% endfor %}
       </div>
-      
+      <a href="#" class="disabled">&raquo;</a>
     </div>
-
+    {% endblock pages %}
   </div>
-
-
-  {% endblock pages %}
-
-  </div>
-
-  
 </body>
 
+<script>
+  // when loaded, move the active page number into view
+  const active_page_tag = document.getElementById('active_page_id');
+  active_page_tag.scrollIntoView({behavior: "smooth", inline: "center"});
+</script>
