@@ -30,10 +30,6 @@
     pointer-events: none;
 
     img {
-
-        .table_thumbnail {
-            height: 200%;
-        }
         position: absolute;
         top: 0;
         bottom: 0;
@@ -41,9 +37,6 @@
         right: 0;
         margin: auto;
     }
-}
-.table_thumbnail {
-    height: 300% !important;
 }
 
 .icon-container {

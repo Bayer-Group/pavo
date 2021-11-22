@@ -20,10 +20,9 @@ function setupLineUp(options) {
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
 
-  function isFirstGroupMember(i) {
-    return i == 0;
-  }
-
+  /* ---------------------------------------------------------------------------
+  Renderers
+  --------------------------------------------------------------------------- */
   class ThumbnailRenderer {
     constructor() {
       this.title = 'ThumbnailRenderer';
@@ -35,15 +34,29 @@ function setupLineUp(options) {
 
     create(col) {
       return {
-        template: `<div><div/>`,
+        template: `<div> </div>`,
         update: (node, row, i, group) => {
-          if (isFirstGroupMember(i)) {
-            let img = document.createElement('img');
+          if (this.isFirstGroupMember(i)) {
+            let marginHeight = 2;
+            let numRows = group.order.length;
+            node.style.height = `${numRows * (rowHeight + marginHeight)}px`;
+
+            const img = document.createElement('img');
             img.src = `/slides/thumbnail_${group.name}_200.jpg`;
-            node.children[0].classList.add('thumbnail');
-            node.style.height = `${rowHeight * (group.order.length+1)}px`;
-            node.children[0].appendChild(img);
-          } 
+
+            if(node.children.length > 0){
+              while (node.firstChild) {
+                node.removeChild(node.firstChild);
+              }
+            }
+            node.appendChild(img);
+            node.classList.add('thumbnail');
+          } else {
+            while (node.firstChild) {
+              node.removeChild(node.firstChild);
+            }
+            node.classList.remove('thumbnail');
+          }
         }
       };
     }
@@ -55,6 +68,10 @@ function setupLineUp(options) {
           node.src = `/slides/thumbnail_${group.name}_200.jpg`;
         }
       };
+    }
+
+    isFirstGroupMember(i) {
+      return i == 0;
     }
   }
 
@@ -125,9 +142,14 @@ function setupLineUp(options) {
             <span id="annotator_icon_id" class='fas' > </span>
           </div>
         `,
-        update: (n, d) => {
-          var annotator_type = d.v['annotator_type'];
-          var icon = n.getElementsByTagName('span')[0];
+        update: (node, row, i, group) => {
+          var annotator_type = row.v['annotator_type'];
+
+          var icon = node.children[0];
+          icon.classList.remove('fa-laptop-code');
+          icon.classList.remove('fa-user');
+          icon.classList.remove('fa-question');
+
           if (annotator_type == 'model'){
             icon.classList.add('fa-laptop-code');
           } else if (annotator_type == 'human'){
@@ -140,6 +162,9 @@ function setupLineUp(options) {
     }
   }
 
+  /*
+  Action methods
+  */
   const rowAction = {
     name: "Row Action",
     action: (row) => {
@@ -155,7 +180,14 @@ function setupLineUp(options) {
     }
   };
 
+  /* ---------------------------------------------------------------------------
+  Build lineup
+  --------------------------------------------------------------------------- */
+
+  // load data
   const builder = LineUpJS.builder(luOptions.metadata);
+
+  // create builder
   builder
     .column(LineUpJS.buildCategoricalColumn('image_url')
       .renderer('thumbnail', 'thumbnail', 'none')
@@ -214,41 +246,47 @@ function setupLineUp(options) {
       .label('Action')
       .width(80)
     )
-    ;
+  ;
 
-  builder.ranking(
-    LineUpJS.buildRanking()
-      .aggregate()
-      .column('Action')
-      .groupBy('image_url')
-      .sortBy('annotation')
-      .column('image_url')
-      .column('classification')
-      .column('annotation')
-      .column('annotator_type')
-      .column('annotator_name')
-      .column('annotation_area')
-      .column('annotation_count')
-      .column('compound_name')
-      .column('species')
-      .column('organ')
-  );
-  builder.registerRenderer("thumbnail", new ThumbnailRenderer());
-  builder.registerRenderer("myaction", new MyActionRenderer());
-  builder.registerRenderer("annotator", new AnnotatorRenderer());
-  builder.sidePanel(true, true);
-  builder.singleSelection();
-  builder.groupRowHeight(150);
-
+  // configure builder
   const rowHeight = 25;   /* needed as a global variable */
-  builder.rowHeight(rowHeight);
+  builder
+    .ranking(
+      LineUpJS.buildRanking()
+        .aggregate()
+        .column('Action')
+        .groupBy('image_url')
+        .sortBy('annotation')
+        .column('image_url')
+        .column('classification')
+        .column('annotation')
+        .column('annotator_type')
+        .column('annotator_name')
+        .column('annotation_area')
+        .column('annotation_count')
+        .column('compound_name')
+        .column('species')
+        .column('organ')
+    )
+    .registerRenderer("thumbnail", new ThumbnailRenderer())
+    .registerRenderer("myaction", new MyActionRenderer())
+    .registerRenderer("annotator", new AnnotatorRenderer())
+    .sidePanel(true, true)
+    .singleSelection()
+    .groupRowHeight(150)
+    .rowHeight(rowHeight)
+  ;
 
+  // build lineup
   const lineup = builder.build(luElement);
 
+  // add listeners
   lineup.on("selectionChanged", selectionChangedListener);
   lineup.on("groupSelectionChanged", selectionChangedListener);
 
-  // ---- functions ------------------------------------------------------------
+  /* ---------------------------------------------------------------------------
+  Define listeners
+  --------------------------------------------------------------------------- */
   function selectionChangedListener(itemIdx) {
     // Do something when the selection changed
     var imageURL = lineup.data._data[itemIdx]['image_url']
