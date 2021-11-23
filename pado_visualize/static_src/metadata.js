@@ -89,8 +89,8 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span id="action0" class='button fas fa-dragon'></span>
-            <span id="action1" class='button fas fa-rocket'></span>
+            <span id="action0" class='button fas fa-search'></span>
+            <span id="action1" class='button fas fa-search-plus'></span>
           </div>
         `,
         update: (n, d) => {
@@ -116,8 +116,8 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span id="action0" class='button fas fa-dragon fa-2x'></span>
-            <span id="action1" class='button fas fa-rocket fa-2x'></span>
+            <span id="action0" class='button fas fa-search fa-2x'></span>
+            <span id="action1" class='button fas fa-search-plus fa-2x'></span>
           </div>`,
         update: (n, group) => {
           var children = n.childNodes;
@@ -184,7 +184,7 @@ function setupLineUp(options) {
   const DeckGLRowAction = {
     name: "DGL Row Action",
     action: (row) => {
-      window.location.href = `/slides/viewer_deckgl/${row.v['image_url']}/osd`;
+      window.location.href = `/slides/viewer/${row.v['image_url']}/deckgl`;
     }
   };
   const openSeaDragonGroupAction = {
@@ -196,7 +196,7 @@ function setupLineUp(options) {
   const DeckGLGroupAction = {
     name: "DGL Group Action",
     action: (group) => {
-      window.location.href = `/slides/viewer_deckgl/${group['name']}/osd`;
+      window.location.href = `/slides/viewer/${group['name']}/deckgl`;
     }
   };
 
