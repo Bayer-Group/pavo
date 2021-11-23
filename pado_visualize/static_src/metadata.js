@@ -89,17 +89,23 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span class='button fas fa-search' > </span>
+            <span id="action0" class='button fas fa-search'></span>
+            <span id="action1" class='button fas fa-search-plus'></span>
           </div>
         `,
         update: (n, d) => {
           var children = n.childNodes;
           children.forEach(function(ni, i){
-              ni.onclick = function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                setTimeout(() => actions[0].action(d), 1);
-              };
+              if(ni.tagName == 'SPAN'){
+                ni.onclick = function (event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  // FIXME I think this is a abusive usage of the index
+                  let actionIdx = ni.id.slice(-1);
+                  setTimeout(() => actions[actionIdx].action(d), 1);
+                  
+                };
+              }
           });
         }
       };
@@ -110,15 +116,19 @@ function setupLineUp(options) {
       return {
         template: `
           <div class="icon-container"> 
-            <span class='button grouped fas fa-search fa-2x'></span>
+            <span id="action0" class='button fas fa-search fa-2x'></span>
+            <span id="action1" class='button fas fa-search-plus fa-2x'></span>
           </div>`,
         update: (n, group) => {
           var children = n.childNodes;
           children.forEach( function(ni, i) {
-            ni.onclick = function(event) {
-              event.preventDefault();
-              event.stopPropagation();
-              setTimeout(() => actions[0].action(group), 1);
+            if(ni.tagName == 'SPAN'){
+              ni.onclick = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                let actionIdx = ni.id.slice(-1);
+                setTimeout(() => actions[actionIdx].action(group), 1);
+              }
             }
           })
         }
@@ -162,21 +172,31 @@ function setupLineUp(options) {
     }
   }
 
-  /*
-  Action methods
-  */
-  const rowAction = {
-    name: "Row Action",
+  /* ---------------------------------------------------------------------------
+  Actions
+  --------------------------------------------------------------------------- */
+  const openSeaDragonRowAction = {
+    name: "OSD Row Action",
     action: (row) => {
-      // TODO: Do something more interesting with a single row here
       window.location.href = `/slides/viewer/${row.v['image_url']}/osd`;
     }
   };
-  const groupAction = {
-    // TODO do something more interesting with an entire slide here
-    name: "Group Operation",
+  const DeckGLRowAction = {
+    name: "DGL Row Action",
+    action: (row) => {
+      window.location.href = `/slides/viewer/${row.v['image_url']}/deckgl`;
+    }
+  };
+  const openSeaDragonGroupAction = {
+    name: "OSD Group Operation",
     action: (group) => {
       window.location.href = `/slides/viewer/${group['name']}/osd`;
+    }
+  };
+  const DeckGLGroupAction = {
+    name: "DGL Group Action",
+    action: (group) => {
+      window.location.href = `/slides/viewer/${group['name']}/deckgl`;
     }
   };
 
@@ -241,10 +261,10 @@ function setupLineUp(options) {
     )
     .column(LineUpJS.buildActionsColumn() 
       .renderer('myaction', 'myaction')
-      .groupAction(groupAction)
-      .action(rowAction)
+      .groupActions([openSeaDragonGroupAction, DeckGLGroupAction])
+      .actions([openSeaDragonRowAction, DeckGLRowAction])
       .label('Action')
-      .width(80)
+      .width(160)
     )
   ;
 

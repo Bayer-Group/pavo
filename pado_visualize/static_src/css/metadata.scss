@@ -40,15 +40,15 @@
 }
 
 .icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     span {
         color: grey;
         cursor: pointer;
-        margin-left: 50%;
+        padding: 2px;
     }
     .button:hover {
         color: $color-primary-light;
-    }
-    .grouped {
-        margin-top: 50%;
     }
 }
