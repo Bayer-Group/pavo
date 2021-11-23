@@ -7,7 +7,12 @@
         "useBuiltIns": "usage",
         "corejs": 3,
         "targets": "> 0.25%, not dead"
-      }
+      },
+      "@babel/preset-react"
     ]
+  ],
+  "plugins": [
+    "@babel/plugin-transform-react-jsx",
+    "@babel/plugin-syntax-jsx"
   ]
 }

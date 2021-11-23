@@ -24,6 +24,7 @@ module.exports = {
     home: path.resolve(...srcDir, "home.js"),
     metadata: path.resolve(...srcDir, "metadata.js"),
     slides: path.resolve(...srcDir, "slides.js"),
+    slides_deckgl: path.resolve(...srcDir, "slides_deckgl.jsx"),
     slides_openseadragon: path.resolve(...srcDir, "slides_openseadragon.js"),
   },
   output: {
@@ -45,7 +46,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.js$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: ["babel-loader"],
       },
