@@ -7,36 +7,51 @@
   flex-wrap: wrap;
   justify-content: left;
 
-  a > .card.slide-card {
+  div > .card.slide-card {
     display: flex;
     position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 2px;
-    border-radius: 5px;
-    color: $color-white;
-    background: $color-primary-dark ;
+    width: 250px;
+    height: 250px;
+    margin: 8px;
+    border-radius: 8px;
+    color: $color-primary-dark;
     overflow: hidden;
     box-sizing: border-box;
     border-width: 1px;
     border-color: lightgray;
     border-style: solid;
 
-    .title {
+    .card-header {
       position: absolute;
       width: 100%;
       background: rgba(0, 0, 0, 0.2);
-      text-align: center;
-      border-radius: 5px 5px 0 0;
+      border-radius: 8px 8px 0 0;
       box-sizing: border-box;
-      padding: 2px;
-      pointer-events: none;
+      padding: 12px;
+
+      .card-title {
+        text-align: left;
+        font-weight: bold;
+      }
+
+      .card-actions {
+        text-align: right;
+
+        a {
+          text-decoration: none;
+          color: grey;
+          padding-left: 8px;
+        }
+        a:hover {
+          color: $color-primary-dark;
+        }
+      }
     }
   }
 
-  a > .card.slide-card:hover {
+  div > .card.slide-card:hover {
     border-color: $color-primary-dark;
-    .title {
+    .card-header {
       background: $color-primary-light;
     }
   }

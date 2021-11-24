@@ -11,16 +11,24 @@
 </head>
 
 {% macro slide_card(image_id, image) %}
-<a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}">
+<!-- <a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}"> -->
+<div>
 <div class="card slide-card">
   <div class="thumbnail">
     <img src="{{ url_for('slides.thumbnail', image_id=image_id, size=200) }}" alt="{{ image_id }}">
   </div>
-  <div class="title">{{ image_id.last }}</div>
+  <div class="card-header">
+    <div class="card-title">{{ image_id.last }}</div>
+    <div class="card-actions">
+      <a target="_top" href="{{ url_for('slides.viewer_openseadragon', image_id=image_id) }}" class="fas fa-search fa-lg" ></a>
+      <a target="_top" href="{{ url_for('slides.viewer_deckgl', image_id=image_id) }}" class="fas fa-search-plus fa-lg" ></a>
+    </div>
+  </div>
   <div class="indicators">
   </div>
 </div>
-</a>
+</div>
+<!-- </a> -->
 {% endmacro %}
 
 {% macro slide_cards(image_id_pairs) %} 
