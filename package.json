@@ -1,6 +1,6 @@
 {
   "name": "pado_visualize",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "keywords": [],
   "author": "",
@@ -50,6 +50,7 @@
     "ts-loader": "^9.2.6",
     "vue-template-compiler": "^2.6.12",
     "webpack": "^5.62.1",
+    "webpack-assets-manifest": "^5.0.6",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.4.0"
   }

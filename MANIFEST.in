@@ -1,2 +1,3 @@
 include pyproject.toml
+exclude .gitignore
 graft pado_visualize/templates

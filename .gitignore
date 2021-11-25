@@ -21,6 +21,7 @@ node_modules/
 # static is generated
 pado_visualize/static/**/*
 pado_visualize/_version.py
+webpack-output-manifest.json
 
 
 # pado_visualize config

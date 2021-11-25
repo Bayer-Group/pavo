@@ -15,6 +15,8 @@ const outDir = [__dirname, "pado_visualize", "static"];
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // copy files to dist dir plugin
 const CopyPlugin = require("copy-webpack-plugin");
+// assets manifest plugin for setup.py build_js
+const WebpackAssetsManifest = require("webpack-assets-manifest");
 
 // the actual webpack config
 module.exports = {
@@ -87,6 +89,9 @@ module.exports = {
           to: "vendor/lineupjs/[name][ext]",
         },
       ],
+    }),
+    new WebpackAssetsManifest({
+      output: "../../webpack-output-manifest.json",
     }),
   ],
 };
