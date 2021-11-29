@@ -83,11 +83,6 @@ module.exports = {
             path.dirname(require.resolve("openseadragon")) + "/images/*.png",
           to: "images/openseadragon/[name][ext]",
         },
-        {
-          // copy lineup from static_src to static for now.
-          from: "pado_visualize/static_src/vendor/lineupjs/*",
-          to: "vendor/lineupjs/[name][ext]",
-        },
       ],
     }),
     new WebpackAssetsManifest({
