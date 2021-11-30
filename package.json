@@ -5,6 +5,9 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "deploy": "webpack --mode production",
     "build": "webpack --mode production",
