@@ -1,22 +1,27 @@
 import "./css/slides_deckgl.scss";
-import React, { useState, useEffect } from "react";
-import { render } from "react-dom";
+import React, {useEffect, useState} from "react";
+import {render} from "react-dom";
 import PropTypes from "prop-types";
 
-import DeckGL, { COORDINATE_SYSTEM } from "deck.gl";
-import { OrbitView } from "@deck.gl/core";
-import { TileLayer } from "@deck.gl/geo-layers";
-import { BitmapLayer } from "@deck.gl/layers";
-import { load } from "@loaders.gl/core";
-import { clamp } from "math.gl";
+import DeckGL, {COORDINATE_SYSTEM} from "deck.gl";
+import {OrbitView} from "@deck.gl/core";
+import {TileLayer} from "@deck.gl/geo-layers";
+import {BitmapLayer, GeoJsonLayer} from "@deck.gl/layers";
+import {load} from "@loaders.gl/core";
+import {clamp} from "math.gl";
 
 const INITIAL_VIEW_STATE = {
   target: [13000, 13000, 0],
   zoom: -5,
-  rotationX: 22.5,
+  rotationX: 60.0,
   orthographic: false,
   near: 0.0001,
-  far: 2000,
+  far: 20000,
+};
+
+const CONTROLLER_STATE = {
+  dragPan: true,
+  inertia: true,
 };
 
 function getTooltip({ tile, bitmap }) {
@@ -28,7 +33,20 @@ function getTooltip({ tile, bitmap }) {
   return null;
 }
 
-function App({ slideUrl, autoHighlight = true, onTilesLoad }) {
+function stringToColour(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let colour = [];
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    colour.push(value);
+  }
+  return colour;
+}
+
+function App({ slideUrl, annotationUrl, autoHighlight = true, onTilesLoad }) {
   const [dimensions, setDimensions] = useState(null);
 
   useEffect(() => {
@@ -68,7 +86,7 @@ function App({ slideUrl, autoHighlight = true, onTilesLoad }) {
       pickable: autoHighlight,
       tileSize: dimensions.tileSize,
       autoHighlight,
-      highlightColor: [60, 60, 60, 200],
+      highlightColor: [60, 60, 60, 20],
       minZoom: -7,
       maxZoom: 0,
       coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
@@ -102,17 +120,36 @@ function App({ slideUrl, autoHighlight = true, onTilesLoad }) {
       },
     });
 
+  const jsonLayer = new GeoJsonLayer({
+    id: "geojson",
+    data: annotationUrl,
+    opacity: 0.8,
+    stroked: false,
+    filled: true,
+    extruded: true,
+    wireframe: true,
+    getElevation: (f) => {
+      return (
+        100.0 * Math.min(60.0, Math.sqrt(300000.0 / f.properties.area)) + 100.0
+      );
+    },
+    getFillColor: (f) => {
+      return stringToColour(f.properties.classification.name);
+    },
+    getLineColor: [0, 0, 0],
+    pickable: true,
+  });
+
   return (
     <DeckGL
       views={[
         new OrbitView({
           id: "orbitview",
-          controller: true,
         }),
       ]}
-      layers={[tileLayer]}
+      layers={[tileLayer, jsonLayer]}
       initialViewState={INITIAL_VIEW_STATE}
-      controller={true}
+      controller={CONTROLLER_STATE}
       getTooltip={getTooltip}
     />
   );
@@ -120,12 +157,16 @@ function App({ slideUrl, autoHighlight = true, onTilesLoad }) {
 
 App.propTypes = {
   slideUrl: PropTypes.string,
+  annotationUrl: PropTypes.string,
   autoHighlight: PropTypes.bool,
   onTilesLoad: PropTypes.func,
 };
 
 export default {
-  renderToDOM: (container, slideUrl) => {
-    render(<App slideUrl={slideUrl} />, container);
+  renderToDOM: (container, slideUrl, annotationUrl) => {
+    render(
+      <App slideUrl={slideUrl} annotationUrl={annotationUrl} />,
+      container
+    );
   },
 };
