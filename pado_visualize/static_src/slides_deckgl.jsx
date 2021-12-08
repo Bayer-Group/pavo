@@ -14,8 +14,8 @@ const INITIAL_VIEW_STATE = {
   target: [13000, 13000, 0],
   zoom: -5,
   rotationX: 22.5,
-  orthographic: true,
-  near: 0.0,
+  orthographic: false,
+  near: 0.0001,
   far: 2000,
 };
 
