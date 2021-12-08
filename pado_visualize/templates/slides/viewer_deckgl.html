@@ -47,7 +47,8 @@
 
       pavo.slides_deckgl.renderToDOM(
           document.getElementById("deckgl-container"),
-          "{{ url_for('slides.slide_dzi', image_id=image_id) }}"
+          "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
+          "{{ url_for('slides.serve_geojson_annotations', image_id=image_id) }}",
       );
 
   </script>

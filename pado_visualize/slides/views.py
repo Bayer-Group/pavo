@@ -206,6 +206,36 @@ def slide_tile(image_id, level, col, row):
 
 
 # --- annotation viewer -------------------------------------------
+
+@blueprint.route('/viewer/<image_id:image_id>/annotations.geojson')
+def serve_geojson_annotations(image_id):
+    try:
+        annotations: Annotations = dataset.annotations[image_id]
+    except KeyError:
+        return abort(404, f"No annotations found for {image_id!r}")
+
+    data = [
+        {
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Polygon',
+                'coordinates': [list(annotation.geometry.exterior.coords)],
+            },
+            'properties': {
+                'classification': {
+                    'name': annotation.classification,
+                    'color': list(annotation.color.as_rgb_tuple(alpha=False)),
+                },
+                'area': annotation.geometry.area,
+                'object_type': 'annotation',
+            }
+        } for annotation in annotations]
+    return jsonify({
+        "type": "FeatureCollection",
+        "features": data
+    }), 200
+
+
 @blueprint.route('/viewer/<image_id:image_id>/annotations.json')
 def serve_w3c_annotations(image_id):
 
