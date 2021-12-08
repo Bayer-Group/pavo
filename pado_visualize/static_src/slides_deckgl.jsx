@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { render } from "react-dom";
 import PropTypes from "prop-types";
 
-import DeckGL, { OrthographicView, COORDINATE_SYSTEM } from "deck.gl";
+import DeckGL, { COORDINATE_SYSTEM } from "deck.gl";
+import { OrbitView } from "@deck.gl/core";
 import { TileLayer } from "@deck.gl/geo-layers";
 import { BitmapLayer } from "@deck.gl/layers";
 import { load } from "@loaders.gl/core";
@@ -11,7 +12,11 @@ import { clamp } from "math.gl";
 
 const INITIAL_VIEW_STATE = {
   target: [13000, 13000, 0],
-  zoom: -7,
+  zoom: -5,
+  rotationX: 22.5,
+  orthographic: true,
+  near: 0.0,
+  far: 2000,
 };
 
 function getTooltip({ tile, bitmap }) {
@@ -99,7 +104,12 @@ function App({ slideUrl, autoHighlight = true, onTilesLoad }) {
 
   return (
     <DeckGL
-      views={[new OrthographicView({ id: "ortho" })]}
+      views={[
+        new OrbitView({
+          id: "orbitview",
+          controller: true,
+        }),
+      ]}
       layers={[tileLayer]}
       initialViewState={INITIAL_VIEW_STATE}
       controller={true}
