@@ -73,6 +73,6 @@ dependencies:
     - Flask-JSGlue
 
     # homemade dependencies
-    - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado
     - tiffslide
+    - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado  # [ not PADO_VISUALIZE_DEVEL ]
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
