@@ -32,6 +32,7 @@ from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
 if TYPE_CHECKING:
     from pado.images import ImageId
+    from pado.predictions.providers import ImagePredictionProvider
 
 
 # view blueprint for slide endpoints
@@ -127,7 +128,8 @@ def thumbnail(image_id: ImageId, size: int):
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     """the landing page for the openseadragon viewer"""
-    return render_template("slides/viewer_openseadragon.html", image_id=image_id)
+    ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
+    return render_template("slides/viewer_openseadragon.html", image_id=image_id, image_prediction_idx=ip_idx)
 
 
 @blueprint.route("/viewer/<image_id:image_id>/deckgl")
@@ -163,9 +165,20 @@ def cache_status(image_id: ImageId):
 # --- pyramidal tile server -------------------------------------------
 
 @cache.memoize()
-def _slide_get_deep_zoom_from_session(image_id: ImageId) -> MinimalComputeAperioDZGenerator:
+def _slide_get_deep_zoom_from_session(
+    image_id: ImageId,
+    *,
+    image_prediction_idx: int | None = None
+) -> MinimalComputeAperioDZGenerator:
     """retrieve the deep zoom generator from the user session"""
-    of = urlpathlike_to_fsspec(dataset.images[image_id].urlpath)
+    if image_prediction_idx is None:
+        urlpath = dataset.images[image_id].urlpath
+    else:
+        # when image_prediction_idx is provided we get the prediction
+        _ipp: ImagePredictionProvider = dataset.predictions.images
+        urlpath = _ipp[image_id][image_prediction_idx].image.urlpath
+
+    of = urlpathlike_to_fsspec(urlpath)
     # noinspection PyTypeChecker,PydanticTypeChecker
     dzi = MinimalComputeAperioDZGenerator(of)
     return dzi
@@ -173,8 +186,9 @@ def _slide_get_deep_zoom_from_session(image_id: ImageId) -> MinimalComputeAperio
 
 @blueprint.route('/viewer/<image_id:image_id>/osd/image.dzi')
 def slide_dzi(image_id: ImageId):
+    ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
     try:
-        dz = _slide_get_deep_zoom_from_session(image_id)
+        dz = _slide_get_deep_zoom_from_session(image_id, image_prediction_idx=ip_idx)
     except (KeyError, FileNotFoundError) as err:
         return abort(404, str(err))
     resp = make_response(dz.get_dzi())
@@ -184,8 +198,9 @@ def slide_dzi(image_id: ImageId):
 
 @blueprint.route('/viewer/<image_id:image_id>/osd/image_files/<int:level>/<int:col>_<int:row>.jpeg')
 def slide_tile(image_id, level, col, row):
+    ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
     try:
-        dz = _slide_get_deep_zoom_from_session(image_id)
+        dz = _slide_get_deep_zoom_from_session(image_id, image_prediction_idx=ip_idx)
     except (KeyError, FileNotFoundError) as err:
         return abort(404, str(err))
     try:
