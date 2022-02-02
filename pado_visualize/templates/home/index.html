@@ -15,7 +15,9 @@
     <tbody>
       {% for item in data %}
       <tr>
-        {% if item is iterable %} 
+        {% if item is string %}
+          <td>{{ item }}</td>
+        {% elif item is iterable %}
           {% for x in item %}
             {% if x is number %}
               <td>{{ x | round(3, 'floor') }}</td>
