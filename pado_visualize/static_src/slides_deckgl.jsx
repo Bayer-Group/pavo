@@ -1,21 +1,21 @@
 import "./css/slides_deckgl.scss";
-import React, {useEffect, useState} from "react";
-import {render} from "react-dom";
+import React, { useEffect, useState } from "react";
+import { render } from "react-dom";
 import PropTypes from "prop-types";
 
-import DeckGL, {COORDINATE_SYSTEM} from "deck.gl";
-import {OrbitView} from "@deck.gl/core";
-import {TileLayer} from "@deck.gl/geo-layers";
-import {BitmapLayer, GeoJsonLayer} from "@deck.gl/layers";
-import {load} from "@loaders.gl/core";
-import {clamp} from "math.gl";
+import DeckGL, { COORDINATE_SYSTEM } from "deck.gl";
+import { OrbitView } from "@deck.gl/core";
+import { TileLayer } from "@deck.gl/geo-layers";
+import { BitmapLayer, GeoJsonLayer } from "@deck.gl/layers";
+import { load } from "@loaders.gl/core";
+import { clamp } from "math.gl";
 
 const INITIAL_VIEW_STATE = {
   target: [13000, 13000, 0],
   zoom: -5,
-  rotationX: 60.0,
-  orthographic: false,
-  near: 0.0001,
+  rotationX: 72.0,
+  orthographic: true,
+  near: 0.00001,
   far: 20000,
 };
 
