@@ -51,7 +51,7 @@ dependencies:
   - fsspec
   - imagecodecs
   - pillow
-  - tifffile>=2020.9.22
+  - tifffile>=2020.10.1
   - zarr
 
   # pado deps
@@ -67,6 +67,10 @@ dependencies:
   - tqdm
   - s3fs
   - typer
+
+  - geopandas
+  - gettext != 0.19.8.1-h73d1719_1008  # workaround, for shasum mismatch
+  - uwsgi
 
   - pip:
     # flask extras
