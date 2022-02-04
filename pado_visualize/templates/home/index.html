@@ -10,30 +10,60 @@
   <script type="text/javascript" href="{{ url_for_versioned('static', filename='home.js') }}"></script>
 {% endblock page_scripts %}
 
-{% macro pado_nested_dict_table(data) -%}
-  <table class="nested-table">
-    <tbody>
-      {% for item in data %}
-      <tr>
-        {% if item is string %}
-          <td>{{ item }}</td>
-        {% elif item is iterable %}
-          {% for x in item %}
-            {% if x is number %}
-              <td>{{ x | round(3, 'floor') }}</td>
-            {% else %}
-              <td>{{ x }}</td>
-            {% endif %}
-          {% endfor %}
-        {% endif %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{%- endmacro %}
+{% macro render_describe_table_value(key, val) %}
+  {# renders values for the overview table #}
+  {% if val is string %}
+    <td>{{ val }}</td>
+  {% elif val is number %}
+    <td>{{ val }}</td>
+  {% elif val is mapping and pado_is_number(val) %}
+    {# we need to special case a few mappings ... #}
+    <td>
+      {% if key in ["avg_image_width", "avg_image_height"] %}
+        {{ val|pado_number_to_str(prefix_unit=False) }}
+      {% elif key == "total_size_images" %}
+        {{ val|pado_number_to_str(prefix="~", prefix_unit=True) }}
+      {% else %}
+        {{ val|pado_number_to_str(prefix_unit=True) }}
+      {% endif %}
+    </td>
+  {% elif val is mapping and pado_is_mpp_count(val) %}
+    <td>{{ val["mpp"] }}</td>
+    <td>{{ val["num"] }}</td>
+  {% elif val is mapping %}
+    <td style="padding: 0;">
+      <table class="nested-table">
+        <tbody>
+        {% for k, v in val.items() %}
+          <tr>
+            <td>{{ k }}</td>
+            {{ render_describe_table_value(key, v) }}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </td>
+  {% elif val is iterable %}
+    <td style="padding: 0;">
+      <table class="nested-table">
+        <tbody>
+        {% for v in val %}
+          <tr>
+          {{ render_describe_table_value(key, v) }}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </td>
+  {% else %}
+    <td><!-- UNSUPPORTED TYPE {{ val|escape }} --></td>
+  {% endif %}
+{% endmacro %}
 
-{% macro pado_dict_table(data) -%}
-    <table class="overview-table">
+
+{% macro render_describe_table(data) -%}
+  {# renders the overview table #}
+  <table class="overview-table">
     <thead>
       <tr>
           <th>Dataset Attribute</th>
@@ -48,23 +78,10 @@
             replace("_", " ") |
             replace("num", "number of") |
             replace("std", "standard deviation of") |
-            capitalize }}
+            replace("avg", "Average of") |
+            title }}
         </td>
-        {% if data[key] is string %} 
-          <td>{{ data[key] }}</td>
-        {% elif data[key] is number %}
-          {% if "size" in key %}
-            <td>{{ data[key] | filesizeformat }}</td>
-          {% else %}
-            <td>{{ data[key] or 0.0 | round(3, 'floor') }}</td>
-          {% endif %}
-        {% elif data[key] is iterable %} 
-          <td style="padding: 0px;;">
-            {{ pado_nested_dict_table(data[key]) }}
-          </td>
-        {% else %}
-          <td>{{ data[key] }}</td>
-        {% endif %}
+        {{ render_describe_table_value(key, data[key]) }}
       </tr>
       {% endfor %}
     </tbody>
@@ -76,7 +93,7 @@
     <h1>Dataset Overview</h1>
     <div class="row">
       <div class="col">
-        {{ pado_dict_table(info) }}
+        {{ render_describe_table(info) }}
       </div>
     </div>
   </div>
