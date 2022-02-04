@@ -39,8 +39,14 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
         app.url_map.converters['image_id'] = ImageIdConverter
 
         # register jinja2 globals
+        from pado_visualize.utils import number_to_str
+        from pado_visualize.utils import is_number
+        from pado_visualize.utils import is_mpp_count
         from pado_visualize.utils import url_for_versioned
         app.jinja_env.globals['url_for_versioned'] = url_for_versioned
+        app.jinja_env.globals['pado_is_number'] = is_number
+        app.jinja_env.globals['pado_is_mpp_count'] = is_mpp_count
+        app.jinja_env.filters['pado_number_to_str'] = number_to_str
 
         # register custom JSGlue
         ServerRoutesJS().init_app(app)
