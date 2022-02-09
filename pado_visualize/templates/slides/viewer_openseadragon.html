@@ -37,6 +37,14 @@
     {% if has_annotations %}
       {{ menu_select("annotations", "checkbox-annotations", checked=show_annotations) }}
     {% endif %}
+    {% for image_prediction in image_predictions %}
+      {{ menu_select(
+           image_prediction["name"],
+           "checkbox-predictions-{}".format(loop.index0),
+           checked=loop.index0 in show_image_predictions,
+           data={"prediction-index": loop.index0}
+         ) }}
+    {% endfor %}
   </ul>
 {% endblock post_menu %}
 
@@ -47,11 +55,19 @@
     'use strict';
     // image predictions
     const hasAnnotations = Boolean({{ has_annotations|tojson }});
+    const numAvailableImagePredictions = Number({{ image_predictions|length }});
 
     // image url
     const tileSources = [{
         tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
     }];
+
+    // prediction tile sources
+    const imagePredictionTileSources = [
+      {%- for _ in image_predictions %}
+        { tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id, image_prediction_idx=loop.index0) }}" },
+      {%- endfor %}
+    ];
 
     // connect checkboxes
     if (hasAnnotations) {
@@ -59,6 +75,30 @@
       cbxAnnotations.addEventListener('change', function() {
           pavo.slides_openseadragon.setAnnotationVisibility("seadragon-container", this.checked);
       });
+    }
+    if (numAvailableImagePredictions > 0) {
+      const cbxsImagePredictions = [];
+
+      function setPredictionVisibility(viewer_id, idx, show) {
+        const osdTs = pavo.slides_openseadragon.getTileSource(viewer_id, idx);
+        if (!osdTs && show) {
+          const ts = imagePredictionTileSources[idx];
+          const opts = { opacity: 0.4 };
+          pavo.slides_openseadragon.attachTileSource(viewer_id, ts, opts);
+          console.log("attaching source")
+        } else if (osdTs && !show) {
+          pavo.slides_openseadragon.removeTileSource(viewer_id, idx);
+          console.log("removing source")
+        }
+      }
+
+      for (let i = 0; i < numAvailableImagePredictions; i++) {
+        const cbxImagePredictions = document.querySelector("input[id=checkbox-predictions-" + i + "]");
+        cbxsImagePredictions.push(cbxImagePredictions);
+        cbxImagePredictions.addEventListener('change', function (){
+          setPredictionVisibility("seadragon-container", this.dataset.predictionIndex, this.checked)
+        });
+      }
     }
 
     // progress bar
