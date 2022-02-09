@@ -128,8 +128,26 @@ def thumbnail(image_id: ImageId, size: int):
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     """the landing page for the openseadragon viewer"""
-    ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
-    return render_template("slides/viewer_openseadragon.html", image_id=image_id, image_prediction_idx=ip_idx)
+    show_annotations = bool(request.args.get("show_annotations", 1, int))
+    show_image_predictions = request.args.getlist("show_image_predictions", int)
+
+    # check if we have annotations
+    has_annotations = len(dataset.annotations.get(image_id, [])) > 0
+
+    # get a list of the image_predictions
+    image_predictions = []
+    for idx, ip in enumerate(dataset.predictions.images.get(image_id, [])):
+        name = ", ".join(f"{k}={v!r}" for k, v in ip.extra_metadata.items())
+        image_predictions.append({"idx": idx, "name": name})
+
+    return render_template(
+        "slides/viewer_openseadragon.html",
+        image_id=image_id,
+        has_annotations=has_annotations,
+        image_predictions=image_predictions,
+        show_annotations=show_annotations,
+        show_image_predictions=show_image_predictions,
+    )
 
 
 @blueprint.route("/viewer/<image_id:image_id>/deckgl")
