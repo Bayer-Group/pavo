@@ -137,8 +137,9 @@ def viewer_openseadragon(image_id: ImageId):
     # get a list of the image_predictions
     image_predictions = []
     for idx, ip in enumerate(dataset.predictions.images.get(image_id, [])):
-        name = ", ".join(f"{k}={v!r}" for k, v in ip.extra_metadata.items())
-        image_predictions.append({"idx": idx, "name": name})
+        name = "-".join(ip.extra_metadata.values()).replace(" ", "-")
+        tooltip = " ".join(f"{k}={v!r}" for k, v in ip.extra_metadata.items())
+        image_predictions.append({"idx": idx, "name": name, "tooltip": tooltip})
 
     return render_template(
         "slides/viewer_openseadragon.html",
