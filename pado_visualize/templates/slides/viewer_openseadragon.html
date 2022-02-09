@@ -36,7 +36,8 @@
 {% endmacro %}
 
 {% block post_menu %}
-  <ul class="menu" style="padding-top: 20px;">
+  <h2>Overlays</h2>
+  <ul class="menu">
     {% if has_annotations %}
       {{ menu_select("Annotations", "checkbox-annotations", checked=show_annotations) }}
     {% endif %}
@@ -50,6 +51,15 @@
          ) }}
     {% endfor %}
   </ul>
+  {% if metadata %}
+  <h2>Metadata</h2>
+  <dl class="menu">
+    {% for column, values in metadata.items() %}
+      <dt class="menu-item">{{ column }}</dt>
+      <dd class="menu-item">{{ values|join(", ") }}</dd>
+    {% endfor %}
+  </dl>
+  {% endif %}
 {% endblock post_menu %}
 
 
