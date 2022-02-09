@@ -113,13 +113,36 @@ function attachTileSource(viewer_id, tileSource, options) {
 }
 
 /**
+ * return the prediction tilesource
+ * @param viewer_id
+ * @param idx
+ * @returns {OpenSeadragon.TiledImage|*}
+ */
+function getTileSource(viewer_id, idx) {
+  const viewer = getViewer(viewer_id);
+  return viewer.world.getItemAt(Number(idx) + 1);
+}
+
+/**
  * removes the tileSource at index + 1
  * @param viewer_id
  * @param idx
  */
 function removeTileSource(viewer_id, idx) {
   const viewer = getViewer(viewer_id);
-  viewer.world.getItemAt(Number(idx) + 1);
+  const item = viewer.world.getItemAt(Number(idx) + 1);
+  viewer.world.removeItem(item);
+}
+
+/**
+ * set the opacity of the tileSource at index + 1
+ * @param viewer_id
+ * @param idx
+ * @param opacity
+ */
+function setPredictionOpacity(viewer_id, idx, opacity) {
+  const viewer = getViewer(viewer_id);
+  viewer.world.getItemAt(Number(idx) + 1).setOpacity(opacity);
 }
 
 /**
@@ -175,8 +198,10 @@ function hexToRgbA(hex) {
 export default {
   setupOpenSeadragonViewer: setupOpenSeadragonViewer,
   attachTileSource: attachTileSource,
+  getTileSource: getTileSource,
   removeTileSource: removeTileSource,
   getViewer: getViewer,
   getAnno: getAnno,
+  setPredictionOpacity: setPredictionOpacity,
   setAnnotationVisibility: setAnnotationVisibility,
 };
