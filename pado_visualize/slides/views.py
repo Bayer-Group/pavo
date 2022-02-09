@@ -142,7 +142,7 @@ def viewer_openseadragon(image_id: ImageId):
         image_predictions.append({"idx": idx, "name": name, "tooltip": tooltip})
 
     # metadata
-    metadata = {}
+    metadata = {"name": ['/'.join(image_id.parts)]}
     mdf = dataset.metadata.get(image_id, None)
     if mdf is not None and not mdf.empty:
         for col in mdf:
