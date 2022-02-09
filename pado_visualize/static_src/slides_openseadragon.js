@@ -8,6 +8,10 @@ import OpenSeaDragon from "openseadragon";
 import * as Annotorious from "@recogito/annotorious-openseadragon";
 import * as SelectorPack from "@recogito/annotorious-selector-pack";
 
+/* GLOBAL STATE */
+const _osdViewers = new Map(); // maps viewer ids to osd instances
+const _osdAnnos = new Map(); // maps viewer ids to annotorious instances
+
 /**
  * Setup the openseadragon viewer
  * @param options
@@ -38,6 +42,7 @@ function setupOpenSeadragonViewer(options, annoOptions) {
       let osdOptions = Object.assign({}, defaultOptions, options);
 
       let osdviewer = OpenSeaDragon(osdOptions);
+      _osdViewers.set(osdOptions.id, osdviewer);
       osdviewer.addHandler("open", function () {
         // To improve load times, ignore the lowest-resolution Deep Zoom
         // levels.  This is a hack: we can't configure the minLevel via
@@ -52,6 +57,7 @@ function setupOpenSeadragonViewer(options, annoOptions) {
       let anno = Annotorious(osdviewer, {
         formatter: aOptions.formatter,
       });
+      _osdAnnos.set(osdOptions.id, anno);
 
       // add selectorpack to fix click errors
       SelectorPack(anno);
@@ -75,6 +81,58 @@ function setupOpenSeadragonViewer(options, annoOptions) {
     });
   });
 }
+
+/**
+ * return the corresponding Openseadragon instance
+ * @param viewerId
+ * @returns {any}
+ */
+function getViewer(viewerId) {
+  return _osdViewers.get(viewerId);
+}
+
+/**
+ * return the corresponding Annotorious instance
+ * @param viewerId
+ * @returns {any}
+ */
+function getAnno(viewerId) {
+  return _osdAnnos.get(viewerId);
+}
+
+/**
+ * Attach TileSource
+ * @param viewer_id
+ * @param tileSource
+ * @param options
+ */
+function attachTileSource(viewer_id, tileSource, options) {
+  const viewer = getViewer(viewer_id);
+  options = Object.assign({}, options || {}, tileSource);
+  viewer.addTiledImage(options);
+}
+
+/**
+ * removes the tileSource at index + 1
+ * @param viewer_id
+ * @param idx
+ */
+function removeTileSource(viewer_id, idx) {
+  const viewer = getViewer(viewer_id);
+  viewer.world.getItemAt(Number(idx) + 1);
+}
+
+/**
+ * set the annotation visibility
+ * @param viewer_id
+ * @param visible
+ */
+function setAnnotationVisibility(viewer_id, visible) {
+  const anno = getAnno(viewer_id);
+  anno.setVisible(visible);
+}
+
+/* UTILITIES */
 
 function formatter(annotation) {
   if (annotation.body.length > 0) {
@@ -116,4 +174,9 @@ function hexToRgbA(hex) {
 // export the setup function
 export default {
   setupOpenSeadragonViewer: setupOpenSeadragonViewer,
+  attachTileSource: attachTileSource,
+  removeTileSource: removeTileSource,
+  getViewer: getViewer,
+  getAnno: getAnno,
+  setAnnotationVisibility: setAnnotationVisibility,
 };

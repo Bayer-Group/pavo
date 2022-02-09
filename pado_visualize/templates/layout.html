@@ -23,6 +23,10 @@
     </header>
     <nav class="pado-sidebar">
       {% include "sidebar.html" %}
+      <div class="pado-sidebar container">
+      {% block post_menu %}
+      {% endblock post_menu %}
+      </div>
     </nav>
     <main class="pado-main">
       {% block content %}{% endblock content %}
