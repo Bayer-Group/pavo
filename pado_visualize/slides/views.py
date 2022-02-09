@@ -141,6 +141,13 @@ def viewer_openseadragon(image_id: ImageId):
         tooltip = " ".join(f"{k}={v!r}" for k, v in ip.extra_metadata.items())
         image_predictions.append({"idx": idx, "name": name, "tooltip": tooltip})
 
+    # metadata
+    metadata = {}
+    mdf = dataset.metadata.get(image_id, None)
+    if mdf is not None and not mdf.empty:
+        for col in mdf:
+            metadata[col] = mdf[col].unique().tolist()
+
     return render_template(
         "slides/viewer_openseadragon.html",
         image_id=image_id,
@@ -148,6 +155,7 @@ def viewer_openseadragon(image_id: ImageId):
         image_predictions=image_predictions,
         show_annotations=show_annotations,
         show_image_predictions=show_image_predictions,
+        metadata=metadata,
     )
 
 

@@ -84,6 +84,9 @@ $primary-font: "Lato", sans-serif;
   max-width: 240px;
   background: $color-primary-dark;
   padding: 1.4em 1em;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: scroll;
 }
 
 $menu-border-radius: 15px;
@@ -130,6 +133,14 @@ $menu-text-color-subtle: #bbb;
   }
 }
 
+.pado-sidebar.container > h2 {
+  font-size: 20px;
+  font-weight: 300;
+  margin: 42px 0 0;
+  padding-left: 8px;
+  color: $menu-text-color;
+}
+
 .pado-sidebar .menu {
   display: flex;
   flex-direction: column;
@@ -137,6 +148,8 @@ $menu-text-color-subtle: #bbb;
   padding-left: 0;
   margin-bottom: 0;
   list-style: none;
+  width: 100%;
+  overflow-x: hidden;
 
   .menu-item {
     margin-top: 3px;
@@ -212,9 +225,29 @@ $menu-text-color-subtle: #bbb;
       color: $menu-text-color;
     }
   }
+
+  dt.menu-item {
+    font-size: small;
+    color: $menu-text-color-subtle;
+    width: 240px;
+    margin-top: 1px;
+    margin-bottom: 2px;
+    font-weight: 100;
+  }
+
+  dd.menu-item {
+    font-size: small;
+    color: $menu-text-color;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 200px;
+    margin-top: 1px;
+    margin-bottom: 2px;
+    font-weight: 200;
+  }
+
 }
-
-
 
 .pado main {
   grid-column: 2 / 3;
