@@ -15,24 +15,51 @@
 </div>
 {% endblock content %}
 
+
+{% macro menu_select(text, id_, checked=false, data=none) -%}
+  <li class="menu-item">
+    <input
+        id="{{ id_ }}"
+        type="checkbox"
+        {% if checked %}checked{% endif %}
+        {% if data %}
+          {% for k, v in data.items() %}
+            {{ 'data-{}={}'.format(k, v) }}
+          {% endfor %}
+        {% endif %}
+    />
+    <label for="{{ id_ }}">{{ text|escape }}</label>
+  </li>
+{% endmacro %}
+
+{% block post_menu %}
+  <ul class="menu" style="padding-top: 20px;">
+    {% if has_annotations %}
+      {{ menu_select("annotations", "checkbox-annotations", checked=show_annotations) }}
+    {% endif %}
+  </ul>
+{% endblock post_menu %}
+
+
 {% block page_scripts %}
 <script type="text/javascript" src="{{ url_for('static', filename='slides_openseadragon.js') }}"></script>
 <script type="text/javascript">
     'use strict';
+    // image predictions
+    const hasAnnotations = Boolean({{ has_annotations|tojson }});
 
     // image url
-    {% if image_prediction_idx is none %}
-    const imageUrl = [{
+    const tileSources = [{
         tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
     }];
-    {% else %}
-    const imageUrl = [{
-        tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
-    }, {
-        tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id, image_prediction_idx=image_prediction_idx) }}",
-        opacity: 0.4,
-    }];
-    {% endif %}
+
+    // connect checkboxes
+    if (hasAnnotations) {
+      const cbxAnnotations = document.querySelector("input[id=checkbox-annotations]");
+      cbxAnnotations.addEventListener('change', function() {
+          pavo.slides_openseadragon.setAnnotationVisibility("seadragon-container", this.checked);
+      });
+    }
 
     // progress bar
     const progressUrl = "{{ url_for('slides.cache_status', image_id=image_id) }}";
@@ -62,7 +89,7 @@
     // setup the slide viewer
     pavo.slides_openseadragon.setupOpenSeadragonViewer({
         id: "seadragon-container",
-        tileSources: imageUrl,
+        tileSources: tileSources,
         prefixUrl: "{{ url_for('static', filename='images/openseadragon/') }}",
     },{
         annotationUrl: "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}",
