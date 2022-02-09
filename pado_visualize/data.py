@@ -21,6 +21,7 @@ from pado.images import ImageId
 from pado.images import ImageProvider
 from pado.images.providers import LocallyCachedImageProvider
 from pado.metadata import MetadataProvider
+from pado.predictions.proxy import PredictionProxy
 
 __all__ = [
     "dataset",
@@ -96,18 +97,21 @@ class DatasetProxy:
             return wrapper
         return decorator
 
+    index: Sequence[ImageId]
     @lockless_cached_property
     def index(self) -> Sequence[ImageId]:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return list(self._ds.index)
 
+    metadata: MetadataProvider
     @lockless_cached_property
     def metadata(self) -> MetadataProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.metadata
 
+    images: ImageProvider
     @lockless_cached_property
     def images(self) -> ImageProvider:
         if self.state != DatasetState.READY:
@@ -119,11 +123,19 @@ class DatasetProxy:
                 self._ds.images, cache_cls=SimpleCacheFileSystem, cache_storage=self._cache_path
             )
 
+    annotations: AnnotationProvider
     @lockless_cached_property
     def annotations(self) -> AnnotationProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.annotations
+
+    predictions: PredictionProxy
+    @lockless_cached_property
+    def predictions(self) -> PredictionProxy:
+        if self.state != DatasetState.READY:
+            raise DatasetNotReadyException(self.state)
+        return self._ds.predictions
 
     @lru_cache
     def describe(self, output_format: str) -> str:

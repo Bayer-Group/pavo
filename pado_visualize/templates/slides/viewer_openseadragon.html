@@ -15,10 +15,95 @@
 </div>
 {% endblock content %}
 
+
+{% macro menu_select(text, id_, checked=false, data=none, tooltip=none) -%}
+  <li class="menu-item">
+    <input
+        id="{{ id_ }}"
+        type="checkbox"
+        {% if checked %}checked{% endif %}
+        {% if data %}
+          {% for k, v in data.items() %}
+            {{ 'data-{}={}'.format(k, v) }}
+          {% endfor %}
+        {% endif %}
+    />
+    <label
+        for="{{ id_ }}"
+        {% if tooltip %}title="{{ tooltip }}"{% endif %}
+    >{{ text|escape }}</label>
+  </li>
+{% endmacro %}
+
+{% block post_menu %}
+  <ul class="menu" style="padding-top: 20px;">
+    {% if has_annotations %}
+      {{ menu_select("Annotations", "checkbox-annotations", checked=show_annotations) }}
+    {% endif %}
+    {% for image_prediction in image_predictions %}
+      {{ menu_select(
+           image_prediction["name"],
+           "checkbox-predictions-{}".format(loop.index0),
+           checked=loop.index0 in show_image_predictions,
+           data={"prediction-index": loop.index0},
+           tooltip=image_prediction["tooltip"]
+         ) }}
+    {% endfor %}
+  </ul>
+{% endblock post_menu %}
+
+
 {% block page_scripts %}
 <script type="text/javascript" src="{{ url_for('static', filename='slides_openseadragon.js') }}"></script>
 <script type="text/javascript">
     'use strict';
+    // image predictions
+    const hasAnnotations = Boolean({{ has_annotations|tojson }});
+    const numAvailableImagePredictions = Number({{ image_predictions|length }});
+
+    // image url
+    const tileSources = [{
+        tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
+    }];
+
+    // prediction tile sources
+    const imagePredictionTileSources = [
+      {%- for _ in image_predictions %}
+        { tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id, image_prediction_idx=loop.index0) }}" },
+      {%- endfor %}
+    ];
+
+    // connect checkboxes
+    if (hasAnnotations) {
+      const cbxAnnotations = document.querySelector("input[id=checkbox-annotations]");
+      cbxAnnotations.addEventListener('change', function() {
+          pavo.slides_openseadragon.setAnnotationVisibility("seadragon-container", this.checked);
+      });
+    }
+    if (numAvailableImagePredictions > 0) {
+      const cbxsImagePredictions = [];
+
+      function setPredictionVisibility(viewer_id, idx, show) {
+        const osdTs = pavo.slides_openseadragon.getTileSource(viewer_id, idx);
+        if (!osdTs && show) {
+          const ts = imagePredictionTileSources[idx];
+          const opts = { opacity: 0.4 };
+          pavo.slides_openseadragon.attachTileSource(viewer_id, ts, opts);
+          console.log("attaching source")
+        } else if (osdTs && !show) {
+          pavo.slides_openseadragon.removeTileSource(viewer_id, idx);
+          console.log("removing source")
+        }
+      }
+
+      for (let i = 0; i < numAvailableImagePredictions; i++) {
+        const cbxImagePredictions = document.querySelector("input[id=checkbox-predictions-" + i + "]");
+        cbxsImagePredictions.push(cbxImagePredictions);
+        cbxImagePredictions.addEventListener('change', function (){
+          setPredictionVisibility("seadragon-container", this.dataset.predictionIndex, this.checked)
+        });
+      }
+    }
 
     // progress bar
     const progressUrl = "{{ url_for('slides.cache_status', image_id=image_id) }}";
@@ -48,7 +133,7 @@
     // setup the slide viewer
     pavo.slides_openseadragon.setupOpenSeadragonViewer({
         id: "seadragon-container",
-        tileSources: "{{ url_for('slides.slide_dzi', image_id=image_id) }}",
+        tileSources: tileSources,
         prefixUrl: "{{ url_for('static', filename='images/openseadragon/') }}",
     },{
         annotationUrl: "{{ url_for('slides.serve_w3c_annotations', image_id=image_id) }}",
