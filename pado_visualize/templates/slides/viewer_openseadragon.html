@@ -16,7 +16,7 @@
 {% endblock content %}
 
 
-{% macro menu_select(text, id_, checked=false, data=none) -%}
+{% macro menu_select(text, id_, checked=false, data=none, tooltip=none) -%}
   <li class="menu-item">
     <input
         id="{{ id_ }}"
@@ -28,21 +28,25 @@
           {% endfor %}
         {% endif %}
     />
-    <label for="{{ id_ }}">{{ text|escape }}</label>
+    <label
+        for="{{ id_ }}"
+        {% if tooltip %}title="{{ tooltip }}"{% endif %}
+    >{{ text|escape }}</label>
   </li>
 {% endmacro %}
 
 {% block post_menu %}
   <ul class="menu" style="padding-top: 20px;">
     {% if has_annotations %}
-      {{ menu_select("annotations", "checkbox-annotations", checked=show_annotations) }}
+      {{ menu_select("Annotations", "checkbox-annotations", checked=show_annotations) }}
     {% endif %}
     {% for image_prediction in image_predictions %}
       {{ menu_select(
            image_prediction["name"],
            "checkbox-predictions-{}".format(loop.index0),
            checked=loop.index0 in show_image_predictions,
-           data={"prediction-index": loop.index0}
+           data={"prediction-index": loop.index0},
+           tooltip=image_prediction["tooltip"]
          ) }}
     {% endfor %}
   </ul>
