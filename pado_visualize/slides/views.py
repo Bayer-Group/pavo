@@ -137,7 +137,7 @@ def viewer_openseadragon(image_id: ImageId):
     # get a list of the image_predictions
     image_predictions = []
     for idx, ip in enumerate(dataset.predictions.images.get(image_id, [])):
-        name = "-".join(ip.extra_metadata.values()).replace(" ", "-")
+        name = "-".join(str(v) for v in ip.extra_metadata.values()).replace(" ", "-")
         tooltip = " ".join(f"{k}={v!r}" for k, v in ip.extra_metadata.items())
         image_predictions.append({"idx": idx, "name": name, "tooltip": tooltip})
 
@@ -214,6 +214,9 @@ def _slide_get_deep_zoom_from_session(
 @blueprint.route('/viewer/<image_id:image_id>/osd/image.dzi')
 def slide_dzi(image_id: ImageId):
     ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
+    
+    print(f'HERE IS THE IMAGE ID: {image_id}')
+    
     try:
         dz = _slide_get_deep_zoom_from_session(image_id, image_prediction_idx=ip_idx)
     except (KeyError, FileNotFoundError) as err:
