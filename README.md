@@ -30,7 +30,7 @@ If there are any questions open an issue, and we'll do our best to help!
 2. Clone pado_visualize `git clone https://github.com/bayer-science-for-a-better-life/pado_visualize.git`
 3. Change directory `cd pado_visualize`
 4. Run `conda devenv --env PADO_VISUALIZE_DEVEL=TRUE -f environment.devenv.yml --print > environment.yml`
-5. Run `conda env create -f environment.yaml`
+5. Run `conda env create -f environment.yml`
 6. Activate the environment `conda activate pado_visualize`
 7. Setup the javascript dependencies `npm install .` (optional, handled in `setup.py`)
 
