@@ -69,7 +69,8 @@ dependencies:
   - typer
 
   - geopandas
-  - gettext != 0.19.8.1-h73d1719_1008  # workaround, for shasum mismatch
+  - gettext=0.19.8.1=hd1a6beb_1007  # [ osx ]
+  - gettext  # [ not osx ]
   - uwsgi
 
   - pip:
