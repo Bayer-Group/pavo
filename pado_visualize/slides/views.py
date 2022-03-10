@@ -214,9 +214,6 @@ def _slide_get_deep_zoom_from_session(
 @blueprint.route('/viewer/<image_id:image_id>/osd/image.dzi')
 def slide_dzi(image_id: ImageId):
     ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
-    
-    print(f'HERE IS THE IMAGE ID: {image_id}')
-    
     try:
         dz = _slide_get_deep_zoom_from_session(image_id, image_prediction_idx=ip_idx)
     except (KeyError, FileNotFoundError) as err:
