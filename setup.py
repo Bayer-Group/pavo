@@ -3,14 +3,19 @@ import json
 import os
 import pathlib
 import shutil
+import warnings
 
 from setuptools import Command
 from setuptools import setup
+from setuptools.command.develop import develop
 
 
 # noinspection PyAttributeOutsideInit
 class BuildFrontendCommand(Command):
     """build_js subcommand for npm building the frontend"""
+    user_options = [
+        ('npm=', None, 'path to npm executable'),
+    ]
 
     def initialize_options(self):
         self.build_lib = None
@@ -44,6 +49,22 @@ class BuildFrontendCommand(Command):
 distutils.command.build.build.sub_commands.append(('build_js', None))
 
 
+class DevelopWithJS(develop):
+
+    def run(self) -> None:
+        super().run()
+        npm = shutil.which("npm")
+
+        if not npm:
+            warnings.warn(
+                "installing pado_visualize from source requires npm"
+            )
+            return
+        # compile all javascript sources
+        self.spawn([npm, "install"])
+        self.spawn([npm, "run", "deploy"])
+
+
 def all_files_at(path, suffix):
     p = pathlib.Path(path)
     return [
@@ -62,6 +83,7 @@ setup(
         ]
     },
     cmdclass={
-        "build_js": BuildFrontendCommand
+        "build_js": BuildFrontendCommand,
+        "develop": DevelopWithJS,
     }
 )
