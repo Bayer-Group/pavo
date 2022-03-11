@@ -59,23 +59,17 @@ function setupOpenSeadragonViewer(options, annoOptions) {
       });
       _osdAnnos.set(osdOptions.id, anno);
 
-      // add selectorpack to fix click errors
-      SelectorPack(anno);
-
       anno.on("clickAnnotation", function (a) {
         console.log(a);
         anno.fitBounds(a, false);
       });
 
+      // add selectorpack to fix click errors
+      SelectorPack(anno);
+      
       // Load annotations in W3C WebAnnotation format
       const annotation_url = aOptions.annotationUrl;
       anno.loadAnnotations(annotation_url);
-
-      // Attach handlers to listen to events
-      anno.on("createAnnotation", function () {
-        // Do something
-        console.log("created annotation");
-      });
 
       resolve(osdviewer);
     });
@@ -159,10 +153,26 @@ function setAnnotationVisibility(viewer_id, visible) {
 
 function formatter(annotation) {
   if (annotation.body.length > 0) {
-    const colour = stringToColour(annotation.body[0].value);
+    console.log(annotation.body[0].value);
+    const colour = get_color(annotation.body[0].value);
     return {
       style: `stroke: ${colour}; fill: ${hexToRgbA(colour)}`,
     };
+  }
+}
+
+function get_color(str) {
+  let lstr = str.toLowerCase()
+  if (lstr.includes("necrosis")){
+    return "#1f78b4";
+  } else if (lstr.includes("mitosis")){
+    return "#ff7f00";
+  } else if (lstr.includes("parenchyma")){
+    return "#a6cee3";
+  } else if (lstr.includes("inflammatoryinfiltrate")){
+    return "#33a02c";
+  } else {
+    return stringToColour(str);
   }
 }
 
