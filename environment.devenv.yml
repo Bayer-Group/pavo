@@ -21,7 +21,7 @@ dependencies:
   - pip
 
   # dev related
-  - nodejs
+  - nodejs=16.*  # revisit when up
   - pre-commit
   - pytest
   - pytest-cov
