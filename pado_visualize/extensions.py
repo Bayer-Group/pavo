@@ -43,10 +43,14 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
         from pado_visualize.utils import is_number
         from pado_visualize.utils import is_mpp_count
         from pado_visualize.utils import url_for_versioned
+        from pado_visualize.utils import get_instance_name
+        from pado_visualize.utils import get_instance_version
         app.jinja_env.globals['url_for_versioned'] = url_for_versioned
         app.jinja_env.globals['pado_is_number'] = is_number
         app.jinja_env.globals['pado_is_mpp_count'] = is_mpp_count
         app.jinja_env.filters['pado_number_to_str'] = number_to_str
+        app.jinja_env.globals['pado_instance_name'] = get_instance_name
+        app.jinja_env.globals['pado_instance_version'] = get_instance_version
 
         # register custom JSGlue
         ServerRoutesJS().init_app(app)
