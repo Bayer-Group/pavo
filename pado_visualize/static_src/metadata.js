@@ -3,6 +3,24 @@ import "./css/metadata.scss";
 
 import * as LineUpJS from "lineupjs";
 
+
+/**
+ * clear a node
+ */
+function clearNode(node) {
+  if (node.children.length > 0) {
+    while (node.firstChild) {
+      node.removeChild(node.firstChild);
+    }
+  }
+}
+
+
+function getGroupedRowsHeight(numRows, rowHeight= 25, marginHeight = 2) {
+  return `${numRows * (rowHeight + marginHeight)}px`;
+}
+
+
 /**
  * setup our lineup viewer
  */
@@ -27,29 +45,30 @@ function setupLineUp(options) {
 
     create(col) {
       return {
-        template: `<div> </div>`,
+        template: `<div class="thumbnail-container"><img alt="thumbnail" class="thumbnail" src=""></div>`,
         update: (node, row, i, group) => {
-          if (this.isFirstGroupMember(i)) {
-            let marginHeight = 2;
-            let numRows = group.order.length;
-            // node.style.height = `${numRows * (rowHeight + marginHeight)}px`;
+          const img = node.firstChild;
+          img.src = `/slides/thumbnail_${row.v["image_url"]}_200.jpg`;
 
-            const img = document.createElement("img");
-            img.src = `/slides/thumbnail_${row.v["image_url"]}_200.jpg`;
-            img.style.height = "100%";
-
-            if (node.children.length > 0) {
-              while (node.firstChild) {
-                node.removeChild(node.firstChild);
-              }
+          if (col.isGroupedBy() === 0) {
+            // we're grouping by image, display the first node and expand the view
+            if (i === 0) {
+              const multiRowHeight = getGroupedRowsHeight(group.order.length, rowHeight);
+              node.style.height = multiRowHeight;
+              img.style.maxHeight = multiRowHeight;
+              node.style.display = "block";
+            } else {
+              // the other rows should show nothing
+              node.style.display = "none";
             }
-            node.appendChild(img);
-            node.classList.add("thumbnail");
+
           } else {
-            while (node.firstChild) {
-              node.removeChild(node.firstChild);
-            }
-            node.classList.remove("thumbnail");
+            // we're grouping something else
+            const singleRowHeight = getGroupedRowsHeight(1, rowHeight);
+            node.style.height = singleRowHeight;
+            img.style.maxHeight = singleRowHeight;
+            node.style.display = "block";
+
           }
         },
       };
@@ -58,16 +77,13 @@ function setupLineUp(options) {
     // noinspection JSUnusedGlobalSymbols
     createGroup(col) {
       return {
-        template: `<img alt="thumbnail" class="thumbnail" src="">`,
+        template: `<div class="thumbnail-container"><img alt="thumbnail" class="thumbnail" src=""></div>`,
         update: (node, group) => {
-          node.src = `/slides/thumbnail_${group.name}_200.jpg`;
+          node.firstChild.src = `/slides/thumbnail_${group.name}_200.jpg`;
         },
       };
     }
 
-    isFirstGroupMember(i) {
-      return i === 0;
-    }
   }
 
   class MyActionRenderer {
