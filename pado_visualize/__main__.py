@@ -195,7 +195,7 @@ def prod_run(
     cmd = [
         "uwsgi",
         "--http", f"{settings.SERVER}:{settings.PORT}",
-        "--env", f"{settings.ENVVAR_PREFIX}_ENV=production",
+        "--env", f"{settings.ENV_SWITCHER_FOR_DYNACONF}=production",
         "--manage-script-name",
         "--mount", "/=pado_visualize.app:create_app()",
         "--lazy-apps",
