@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 import hashlib
+import os
+import platform
+from functools import lru_cache
 from functools import wraps
+from getpass import getuser
 from typing import Any
 from typing import Callable
 from typing import Type
@@ -17,8 +21,10 @@ from werkzeug.routing import ValidationError
 from pado._repr import number_to_str
 from pado._repr import is_mpp_count
 from pado._repr import is_number
+from pado import __version__ as _pado_version
 from pado.images import ImageId
 from pado_visualize._version import version as _pado_visualize_version
+from tiffslide import __version__ as _tiffslide_version
 
 _T = TypeVar("_T")
 
@@ -32,6 +38,8 @@ __all__ = [
     "number_to_str",
     "is_number",
     "is_mpp_count",
+    "get_instance_name",
+    "get_instance_version",
 ]
 
 
@@ -118,3 +126,27 @@ def check_numeric_list(lst: list | None) -> list | None:
             lst[idx] = int(value)
 
     return lst
+
+
+@lru_cache()
+def get_instance_name() -> str | None:
+    """return a name to identify the pado_visualize instance"""
+    name = os.getenv("PADOVIS_INSTANCE_NAME")
+    if name is None:
+        from flask import current_app
+        if current_app.config.env == "development":
+            try:
+                name = f"{getuser()!s}@{platform.uname().node!s}"
+            except (OSError, KeyError, ValueError):
+                pass
+    return name or None
+
+
+@lru_cache()
+def get_instance_version() -> dict:
+    """return pado_visualize instance version information"""
+    return {
+        "pado_visualize": _pado_visualize_version,
+        "pado": _pado_version,
+        "tiffslide": _tiffslide_version,
+    }

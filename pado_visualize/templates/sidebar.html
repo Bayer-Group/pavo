@@ -8,13 +8,21 @@
   </li>
 {%- endmacro %}
 
+{% macro version_info() -%}
+  version information:&#010;
+  {%- for k, v in pado_instance_version().items() -%}
+    - {{ k }} == {{ v }}{% if not loop.last %}&#010;{% endif %}
+  {%- endfor -%}
+{%- endmacro %}
+
 
 <div class="pado-sidebar container">
   <div class="header">
     <a href="{{ url_for('home.index') }}">
       <h2>Pado Visualize</h2>
       <h3>Pathological Data Obsession</h3>
-      <img alt="logo" src="{{ url_for('static', filename='images/pathological-heart.jpg') }}">
+      <span class="host">{{ pado_instance_name() or "" }}</span>
+      <img alt="logo" title="{{ version_info() }}" src="{{ url_for('static', filename='images/pathological-heart.jpg') }}">
     </a>
   </div>
 
