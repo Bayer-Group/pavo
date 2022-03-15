@@ -1,7 +1,7 @@
 #
 # Conda devenv environment for pado_visualize.
 #
-# Create the environment, do not install pado in development mode:
+# Create the environment, do not install pado_visualize in development mode:
 #   conda devenv
 # equivalent to:
 #   PADO_VISUALIZE_DEVEL="" conda devenv
@@ -21,7 +21,7 @@ dependencies:
   - pip
 
   # dev related
-  - nodejs=16.*  # revisit when up
+  - nodejs=16.*  # revisit when upgrading js deps
   - pre-commit
   - pytest
   - pytest-cov
@@ -69,9 +69,11 @@ dependencies:
   - typer
 
   - geopandas
+  - uwsgi
+
+  # fixme: this should be removed as soon as hd1a6beb_1008 is not the newest version anymore
   - gettext=0.19.8.1=hd1a6beb_1007  # [ osx ]
   - gettext  # [ not osx ]
-  - uwsgi
 
   - pip:
     # flask extras

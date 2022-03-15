@@ -19,7 +19,7 @@ Development
 ## :warning: :dragon: Here be dragons :dragon: :warning:
 
 This is an early release version, so expect things to break. In its current
-incarnation we are targeting unix operating system and experienced developers.
+version we are targeting unix operating system and experienced developers.
 Feedback and contributions are very welcome :heart: <br>
 If there are any questions open an issue, and we'll do our best to help!
 
@@ -28,11 +28,11 @@ If there are any questions open an issue, and we'll do our best to help!
 
 1. Install `git` and `conda` and `conda-devenv`
 2. Clone pado_visualize `git clone https://github.com/bayer-science-for-a-better-life/pado_visualize.git`
-3. chdir `cd pado_visualize`
-4. Run `conda devenv -f environment.devenv.yml --print > environment.yml`
+3. Change directory `cd pado_visualize`
+4. Run `conda devenv --env PADO_VISUALIZE_DEVEL=TRUE -f environment.devenv.yml --print > environment.yml`
 5. Run `conda env create -f environment.yaml`
 6. Activate the environment `conda activate pado_visualize`
-7. setup the javascript dependencies `npm install .`
+7. Setup the javascript dependencies `npm install .` (optional, handled in `setup.py`)
 
 Note that in this environment `pado_visualize` is already installed in
 development mode, so go ahead and hack.
@@ -43,7 +43,7 @@ Ubuntu `sudo apt install redis && sudo systemctl start redis`.
 
 - Run tests via `pytest`
 - Run the static type analysis via `mypy pado_visualize`
-- Launch a development instance via `supervisorctl -f dev/pado_visualize.dev.conf`
+- Launch a development instance via `pado-visualize development run`
 
 
 ## Contributing Guidelines
@@ -57,4 +57,4 @@ Ubuntu `sudo apt install redis && sudo systemctl start redis`.
 
 Build with love by the _Machine Learning Research_ group at Bayer.
 
-`pado_visualize`: copyright 2020 Bayer AG
+`pado_visualize`: copyright 2020-2022 Bayer AG
