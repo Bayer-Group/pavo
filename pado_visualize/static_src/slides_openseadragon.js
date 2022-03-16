@@ -51,6 +51,9 @@ function setupOpenSeadragonViewer(options, annoOptions) {
         osdviewer.source.minLevel = 8;
       });
 
+      // grab focus
+      osdviewer.canvas.focus();
+
       let aOptions = Object.assign({}, defaultAnnoOptions, annoOptions);
 
       // Initialize the Annotorious plugin
