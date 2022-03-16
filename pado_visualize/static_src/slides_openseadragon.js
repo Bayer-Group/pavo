@@ -114,7 +114,13 @@ function attachTileSource(viewer_id, tileSource, options) {
  */
 function getTileSource(viewer_id, idx) {
   const viewer = getViewer(viewer_id);
-  return viewer.world.getItemAt(Number(idx) + 1);
+  for (let j = 0; j < viewer.world.getItemCount(); j++) {
+    let ts = viewer.world.getItemAt(j);
+    if (ts.imagePredictionIndex === Number(idx)) {
+      return ts;
+    }
+  }
+  return null;
 }
 
 /**
@@ -123,9 +129,11 @@ function getTileSource(viewer_id, idx) {
  * @param idx
  */
 function removeTileSource(viewer_id, idx) {
-  const viewer = getViewer(viewer_id);
-  const item = viewer.world.getItemAt(Number(idx) + 1);
-  viewer.world.removeItem(item);
+  const item = getTileSource(viewer_id, idx);
+  if (item !== null) {
+    const viewer = getViewer(viewer_id);
+    viewer.world.removeItem(item);
+  }
 }
 
 /**
