@@ -20,6 +20,32 @@ function getGroupedRowsHeight(numRows, rowHeight= 25, marginHeight = 2) {
   return `${numRows * (rowHeight + marginHeight)}px`;
 }
 
+/**
+ * return thumbnailSize for fitting numImages thumbnails into rectangle
+ * @param nodeHeight
+ * @param nodeWidth
+ * @param numImages
+ * @returns {number}
+ */
+function getOptimalThumbnailSize(nodeHeight, nodeWidth, numImages) {
+  const rxy = nodeWidth / nodeHeight;
+  const ryx = nodeHeight / nodeWidth;
+  const px = Math.ceil(Math.sqrt(numImages * rxy));
+  let sx, sy;
+  if (Math.floor(px * ryx) * px < numImages) {
+    sx = nodeHeight / Math.ceil(px * ryx);
+  } else {
+    sx = nodeWidth / px;
+  }
+  const py = Math.ceil(Math.sqrt(numImages * ryx));
+  if (Math.floor(py * rxy) * py < numImages) {
+    sy = nodeWidth / Math.ceil(py * rxy);
+  } else {
+    sy = nodeHeight / py;
+  }
+  return Math.max(sx, sy);
+}
+
 
 /**
  * setup our lineup viewer
@@ -53,10 +79,11 @@ function setupLineUp(options) {
           if (col.isGroupedBy() === 0) {
             // we're grouping by image, display the first node and expand the view
             if (i === 0) {
-              const multiRowHeight = getGroupedRowsHeight(group.order.length, rowHeight);
-              node.style.height = multiRowHeight;
-              img.style.maxHeight = multiRowHeight;
-              node.style.display = "block";
+              const multiRowSize = getGroupedRowsHeight(group.order.length, rowHeight);
+              node.style.height = multiRowSize;
+              img.style.maxHeight = multiRowSize;
+              img.style.maxWidth = multiRowSize;
+              node.style.display = "flex";
             } else {
               // the other rows should show nothing
               node.style.display = "none";
@@ -64,10 +91,11 @@ function setupLineUp(options) {
 
           } else {
             // we're grouping something else
-            const singleRowHeight = getGroupedRowsHeight(1, rowHeight);
-            node.style.height = singleRowHeight;
-            img.style.maxHeight = singleRowHeight;
-            node.style.display = "block";
+            const singleRowSize = getGroupedRowsHeight(1, rowHeight);
+            node.style.height = singleRowSize;
+            img.style.maxHeight = singleRowSize;
+            img.style.maxWidth = singleRowSize;
+            node.style.display = "flex";
 
           }
         },
@@ -75,11 +103,27 @@ function setupLineUp(options) {
     }
 
     // noinspection JSUnusedGlobalSymbols
-    createGroup(col) {
+    createGroup(col, context) {
       return {
-        template: `<div class="thumbnail-container"><img alt="thumbnail" class="thumbnail" src=""></div>`,
+        template: `<div class="thumbnail-container"></div>`,
         update: (node, group) => {
-          node.firstChild.src = `/slides/thumbnail_${group.name}_200.jpg`;
+          context.tasks.groupRows(col, group, null, (rows) => {
+            clearNode(node);
+            const height = groupRowHeight;
+            const width = col.getWidth();
+
+            const uniqueImageUrls = [...new Set(rows.map(row => row.v["image_url"]))]
+            const thumbnailSize = getOptimalThumbnailSize(height, width, uniqueImageUrls.length);
+
+            for (const imageUrl of uniqueImageUrls) {
+              let img = document.createElement("img");
+              img.src = `/slides/thumbnail_${imageUrl}_200.jpg`;
+              img.classList.add("thumbnail");
+              img.style.maxHeight = `${thumbnailSize}px`;
+              img.style.maxWidth = `${thumbnailSize}px`;
+              node.appendChild(img);
+            }
+          });
         },
       };
     }
@@ -290,7 +334,9 @@ function setupLineUp(options) {
     );
 
   // configure builder
-  const rowHeight = 25; /* needed as a global variable */
+  // fixme: these two constants should be reachable from within the renderer;
+  const rowHeight = 25;
+  const groupRowHeight = 150;
   builder
     .ranking(
       LineUpJS.buildRanking()
@@ -314,7 +360,7 @@ function setupLineUp(options) {
     .registerRenderer("annotator", new AnnotatorRenderer())
     .sidePanel(true, true)
     .singleSelection()
-    .groupRowHeight(150)
+    .groupRowHeight(groupRowHeight)
     .rowHeight(rowHeight);
 
   // build lineup
