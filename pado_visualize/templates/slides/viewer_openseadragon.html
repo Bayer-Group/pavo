@@ -79,7 +79,10 @@
     // prediction tile sources
     const imagePredictionTileSources = [
       {%- for _ in image_predictions %}
-        { tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id, image_prediction_idx=loop.index0) }}" },
+        {
+            tileSource: "{{ url_for('slides.slide_dzi', image_id=image_id, image_prediction_idx=loop.index0) }}",
+            imagePredictionIndex: {{ loop.index0 }},
+        },
       {%- endfor %}
     ];
 
