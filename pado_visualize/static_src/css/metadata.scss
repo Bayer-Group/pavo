@@ -27,7 +27,7 @@
     background: #f3f4f5;  /* fixme: make dynamic */
     pointer-events: none;
     display: flex;
-    flex-flow: row;
+    flex-flow: row wrap;
 
     img.thumbnail {
         width: initial;
