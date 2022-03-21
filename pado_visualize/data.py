@@ -1,6 +1,7 @@
 """pado_visualize.data provides access to pado datasets"""
 from __future__ import annotations
 
+import json
 from enum import Enum
 from enum import auto
 from functools import lru_cache, wraps
@@ -198,6 +199,40 @@ class DatasetProxy:
         adf = self._ds.annotations.df.copy()
         mdf = self._ds.metadata.df.copy()
 
+        pdf = self._ds.predictions.images.df.copy()
+        pdf['annotator_type'] = "model"
+
+        def _model_name(x):
+            try:
+                dct = json.loads(x)
+            except:
+                return None
+            else:
+                for key in ["annotator", "model"]:
+                    if key in dct:
+                        return dct[key]
+                return "-"
+        pdf['annotator_name'] = pdf['extra_metadata'].apply(_model_name)
+
+        def _classification(x):
+            try:
+                dct = json.loads(x)
+            except:
+                return None
+            else:
+                if dct.get("model", "").startswith("aig"):
+                    return "Mitosis"
+                if dct.get("model", None) == "segmentation-model":
+                    return "Mitosis"
+                if dct.get("annotator", None) == "multiclass_segmentation_model_v0.1":
+                    return "MultiClass"
+                return "?"
+
+        pdf['classification'] = pdf.extra_metadata.apply(_classification)
+        pdf['area'] = 0.0
+
+        pdf = pdf[['image_id', 'classification', 'area', 'annotator_type', 'annotator_name']]
+
         # get area of annotations
         if 'area' not in adf.columns:
             gs = gpd.GeoSeries.from_wkt(adf['geometry'])
@@ -209,6 +244,8 @@ class DatasetProxy:
         adf['annotator_name'] = adf['annotator'].apply(lambda x: x["name"])
         adf = adf[['image_id', 'classification', 'area', 'annotator_type', 'annotator_name']]
 
+        adf = pd.concat([adf, pdf])
+
         # get the set of shared rows for annotations and metadata
         common_index = mdf.index.intersection(adf.index)
         if common_index.empty:
@@ -216,7 +253,7 @@ class DatasetProxy:
         else:
             adf = adf.loc[common_index]
             mdf = mdf.loc[common_index]
-        
+
         # prepare annotations df for joining
         grouped_adf_area = adf.groupby(['image_id', 'classification'])['area']
         grouped_adf_other = adf.drop('area', axis=1).groupby(['image_id', 'classification'])
