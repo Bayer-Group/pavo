@@ -119,7 +119,7 @@ function getTileSource(viewer_id, idx) {
   const viewer = getViewer(viewer_id);
   for (let j = 0; j < viewer.world.getItemCount(); j++) {
     let ts = viewer.world.getItemAt(j);
-    if (ts.source.queryParams.input === tileSources[Number(idx)].tileSource) {
+    if (ts.source.queryParams.input === window.imagePredictionTileSources[Number(idx)].tileSource) {
       return ts;
     }
   }
