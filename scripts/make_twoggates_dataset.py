@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pado.dataset import PadoDataset
 from pado.images import ImageProvider
 from pado.images.ids import ImageId
@@ -5,7 +7,6 @@ from pado.metadata import MetadataProvider
 from pado.types import UrlpathLike
 from pado_tggates import make_image_provider
 from pado_tggates import make_metadata_provider
-
 
 SELECTED = {"66380.svs", "66372.svs"}
 
