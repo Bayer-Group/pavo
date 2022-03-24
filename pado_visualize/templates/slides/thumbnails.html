@@ -31,7 +31,7 @@
 <!-- </a> -->
 {% endmacro %}
 
-{% macro slide_cards(image_id_pairs) %} 
+{% macro slide_cards(image_id_pairs) %}
 <div class="container slide-container">
   {% for image_id, image in image_id_pairs %}
     {{ slide_card(image_id, image) }}
@@ -63,11 +63,11 @@
       <a href="#" class="disabled">&laquo;</a>
       <div class="pagination">
         {% for idx in range(pages) %}
-          <a 
+          <a
             href="{{
-              url_for('slides.thumbnails', page=idx, 
-                page_size=page_size, filename=filter['filename'], 
-                metadata_key=filter['metadata_key'], 
+              url_for('slides.thumbnails', page=idx,
+                page_size=page_size, filename=filter['filename'],
+                metadata_key=filter['metadata_key'],
                 metadata_values=filter['metadata_values']
               )}}"
             class="{% if idx == page %}active{% endif %}"

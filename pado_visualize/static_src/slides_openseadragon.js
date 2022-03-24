@@ -69,7 +69,7 @@ function setupOpenSeadragonViewer(options, annoOptions) {
 
       // add selectorpack to fix click errors
       SelectorPack(anno);
-      
+
       // Load annotations in W3C WebAnnotation format
       const annotation_url = aOptions.annotationUrl;
       anno.loadAnnotations(annotation_url);
