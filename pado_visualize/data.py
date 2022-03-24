@@ -7,16 +7,16 @@ from enum import auto
 from functools import wraps
 from typing import Any
 from typing import Callable
+from typing import Generic
 from typing import NoReturn
 from typing import Optional
 from typing import Sequence
+from typing import TypeVar
 
-import pandas as pd
 import geopandas as gpd
-
+import pandas as pd
 from flask import Flask
 from fsspec.implementations.cached import SimpleCacheFileSystem
-
 from pado import PadoDataset
 from pado.annotations import AnnotationProvider
 from pado.images import ImageId
@@ -49,6 +49,7 @@ class lockless_cached_property:
 
 class DatasetState(Enum):
     """indicates current state of the loaded proxy"""
+
     NOT_CONFIGURED = auto()
     READY = auto()
 
@@ -61,6 +62,7 @@ class DatasetNotReadyException(Exception):
 
 class DatasetProxy:
     """a proxy for accessing the pado dataset"""
+
     urlpath: Optional[str]
     state: DatasetState
 
@@ -82,7 +84,13 @@ class DatasetProxy:
             self._ds = PadoDataset(self.urlpath, mode="r")
             self.state = DatasetState.READY
 
-    def requires_state(self, state: DatasetState, failure: Callable[[...], NoReturn], *args, **kwargs):
+    def requires_state(
+        self,
+        state: DatasetState,
+        failure: Callable[[...], NoReturn],
+        *args,
+        **kwargs,
+    ):
         """use as a decorator: calls failure in case of wrong state"""
         if not isinstance(state, DatasetState):
             raise ValueError("requires_state can't be used without arguments")
@@ -92,27 +100,35 @@ class DatasetProxy:
             def wrapper(*fn_args, **fn_kwargs):
                 if self.state != state:
                     failure(*args, **kwargs)
-                    raise AssertionError(f"callable failure={failure.__name__!r} must raise an exception")
+                    raise AssertionError(
+                        f"callable failure={failure.__name__!r} must raise an exception"
+                    )
                 else:
                     return fn(*fn_args, **fn_kwargs)
+
             return wrapper
+
         return decorator
 
+    # type annotations until https://youtrack.jetbrains.com/issue/PY-47698 is fixed
     index: Sequence[ImageId]
+    metadata: MetadataProvider
+    images: ImageProvider
+    annotations: AnnotationProvider
+    predictions: PredictionProxy
+
     @lockless_cached_property
     def index(self) -> Sequence[ImageId]:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return list(self._ds.index)
 
-    metadata: MetadataProvider
     @lockless_cached_property
     def metadata(self) -> MetadataProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.metadata
 
-    images: ImageProvider
     @lockless_cached_property
     def images(self) -> ImageProvider:
         if self.state != DatasetState.READY:
@@ -121,17 +137,17 @@ class DatasetProxy:
             return self._ds.images
         else:
             return LocallyCachedImageProvider(
-                self._ds.images, cache_cls=SimpleCacheFileSystem, cache_storage=self._cache_path
+                self._ds.images,
+                cache_cls=SimpleCacheFileSystem,
+                cache_storage=self._cache_path,
             )
 
-    annotations: AnnotationProvider
     @lockless_cached_property
     def annotations(self) -> AnnotationProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
         return self._ds.annotations
 
-    predictions: PredictionProxy
     @lockless_cached_property
     def predictions(self) -> PredictionProxy:
         if self.state != DatasetState.READY:
@@ -144,16 +160,18 @@ class DatasetProxy:
         try:
             description = self.__dict__["_describe"]
         except KeyError:
-            description = self.__dict__["_describe"] = self._ds.describe(output_format="json")
+            description = self.__dict__["_describe"] = self._ds.describe(
+                output_format="json"
+            )
         return description
 
     def get_tabular_records(self) -> pd.DataFrame:
         """tabular representation of the dataset including metadata and annotations
-        
-        Each row is either a finding from the metadata provider or from the 
+
+        Each row is either a finding from the metadata provider or from the
         annotations provider. It returns a dataframe of records where each record
         is of the form:
-        (ImageId, classification, area, annotator_type, annotator_name, 
+        (ImageId, classification, area, annotator_type, annotator_name,
         compound_name, organ, species)
         """
         if self.state != DatasetState.READY:
@@ -165,16 +183,16 @@ class DatasetProxy:
 
         # NOTE: currently the returned dataframe contains the following columns:
         OUTPUT_COLUMNS = [
-            'image_id',
-            'classification',
-            'annotation_area',
-            'annotation_count',
-            'annotator_type',
-            'annotator_name',
-            'compound_name',
-            'organ',
-            'species',
-            'annotation',
+            "image_id",
+            "classification",
+            "annotation_area",
+            "annotation_count",
+            "annotator_type",
+            "annotator_name",
+            "compound_name",
+            "organ",
+            "species",
+            "annotation",
         ]
 
         def _aggreate(x: pd.Series) -> pd.Series:
@@ -187,13 +205,13 @@ class DatasetProxy:
                 # FIXME this is required to aggregate a group but it is assuming that the entire group has the
                 # same value in this non int/float column. This is actually not true!
                 return x[0]
-        
+
         def _fill_nan_by_column_type(x: pd.Series) -> pd.Series:
             """fill nans in joined table depending on the name of the column"""
-            if 'area' in x.name or 'count' in x.name:
+            if "area" in x.name or "count" in x.name:
                 return x
-            elif 'annotator' in x.name:
-                return x.fillna('none')
+            elif "annotator" in x.name:
+                return x.fillna("none")
             else:
                 # FIXME this will probably cause bugs. When you concatenate and there are NaNs pandas will
                 # automatically upcast the entire column to float. So the string columns in this
@@ -203,13 +221,13 @@ class DatasetProxy:
                 if x.dropna().shape[0] > 0:
                     return x.fillna(str(x.dropna().unique()[0]))
                 else:
-                    return x.fillna('unknown')
+                    return x.fillna("unknown")
 
         adf = self._ds.annotations.df.copy()
         mdf = self._ds.metadata.df.copy()
 
         pdf = self._ds.predictions.images.df.copy()
-        pdf['annotator_type'] = "model"
+        pdf["annotator_type"] = "model"
 
         def _model_name(x):
             try:
@@ -221,7 +239,8 @@ class DatasetProxy:
                     if key in dct:
                         return dct[key]
                 return "-"
-        pdf['annotator_name'] = pdf['extra_metadata'].apply(_model_name)
+
+        pdf["annotator_name"] = pdf["extra_metadata"].apply(_model_name)
 
         def _classification(x):
             try:
@@ -237,21 +256,25 @@ class DatasetProxy:
                     return "MultiClass"
                 return "?"
 
-        pdf['classification'] = pdf.extra_metadata.apply(_classification)
-        pdf['area'] = 0.0
+        pdf["classification"] = pdf.extra_metadata.apply(_classification)
+        pdf["area"] = 0.0
 
-        pdf = pdf[['image_id', 'classification', 'area', 'annotator_type', 'annotator_name']]
+        pdf = pdf[
+            ["image_id", "classification", "area", "annotator_type", "annotator_name"]
+        ]
 
         # get area of annotations
-        if 'area' not in adf.columns:
-            gs = gpd.GeoSeries.from_wkt(adf['geometry'])
+        if "area" not in adf.columns:
+            gs = gpd.GeoSeries.from_wkt(adf["geometry"])
             geo_adf = gpd.GeoDataFrame(adf, geometry=gs)
-            adf['area'] = geo_adf.geometry.area
+            adf["area"] = geo_adf.geometry.area
 
         # get the relevant columns of adf
-        adf['annotator_type'] = adf['annotator'].apply(lambda x: x["type"])
-        adf['annotator_name'] = adf['annotator'].apply(lambda x: x["name"])
-        adf = adf[['image_id', 'classification', 'area', 'annotator_type', 'annotator_name']]
+        adf["annotator_type"] = adf["annotator"].apply(lambda x: x["type"])
+        adf["annotator_name"] = adf["annotator"].apply(lambda x: x["name"])
+        adf = adf[
+            ["image_id", "classification", "area", "annotator_type", "annotator_name"]
+        ]
 
         adf = pd.concat([adf, pdf])
 
@@ -264,30 +287,42 @@ class DatasetProxy:
             mdf = mdf.loc[common_index]
 
         # prepare annotations df for joining
-        grouped_adf_area = adf.groupby(['image_id', 'classification'])['area']
-        grouped_adf_other = adf.drop('area', axis=1).groupby(['image_id', 'classification'])
-        adf = pd.concat([
-            grouped_adf_other.aggregate(_aggreate), 
-            grouped_adf_area.agg(['count', 'sum']).rename(columns={"count":"annotation_count", "sum": "annotation_area"})
-            ], axis=1, sort=False)
+        grouped_adf_area = adf.groupby(["image_id", "classification"])["area"]
+        grouped_adf_other = adf.drop("area", axis=1).groupby(
+            ["image_id", "classification"]
+        )
+        adf = pd.concat(
+            [
+                grouped_adf_other.aggregate(_aggreate),
+                grouped_adf_area.agg(["count", "sum"]).rename(
+                    columns={"count": "annotation_count", "sum": "annotation_area"}
+                ),
+            ],
+            axis=1,
+            sort=False,
+        )
         # adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate)
 
         # prepare metadata df for joining
-        mdf = mdf[['compound_name', 'organ', 'species', 'finding_type']]
-        mdf['index'] = mdf.index
-        mdf.rename(columns={'finding_type': 'classification'}, inplace=True)
-        mdf = mdf.groupby(['index', 'classification']).aggregate(_aggreate)
+        mdf = mdf[["compound_name", "organ", "species", "finding_type"]]
+        mdf["index"] = mdf.index
+        mdf.rename(columns={"finding_type": "classification"}, inplace=True)
+        mdf = mdf.groupby(["index", "classification"]).aggregate(_aggreate)
 
         # join annotations and metadata (the multi-index was neccesary to perform this join)
         table = pd.concat([adf, mdf], axis=1, sort=False)
-        table.index.names = ['image_id', 'classification']
+        table.index.names = ["image_id", "classification"]
 
         # add some final information and remove nan values
-        table['annotation'] = ~table['annotation_area'].isna()
-        table = table.groupby(table.index.get_level_values(0)).transform(_fill_nan_by_column_type)
+        table["annotation"] = ~table["annotation_area"].isna()
+        table = table.groupby(table.index.get_level_values(0)).transform(
+            _fill_nan_by_column_type
+        )
         table = table.reset_index()
 
-        assert table.columns.sort_values().to_list() == sorted(OUTPUT_COLUMNS), f"expected {sorted(OUTPUT_COLUMNS)!r} got {table.columns.sort_values().to_list()!r}"
+        assert table.columns.sort_values().to_list() == sorted(
+            OUTPUT_COLUMNS
+        ), f"expected {sorted(OUTPUT_COLUMNS)!r} got {table.columns.sort_values().to_list()!r}"
         tabular_records = self.__dict__["_tabular_records"] = table
         return tabular_records
 
@@ -300,6 +335,6 @@ def initialize_dataset(app: Flask) -> DatasetProxy:
     """prepare the dataset"""
     global dataset
     dataset.init_app(app)
-    assert not hasattr(app, 'dataset')
+    assert not hasattr(app, "dataset")
     app.dataset = dataset
     return dataset
