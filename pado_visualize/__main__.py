@@ -17,18 +17,16 @@ from typing import NoReturn
 import typer
 from flask import Flask
 
+from pado_visualize import __version__
 from pado_visualize.app import create_app
 from pado_visualize.config import initialize_config
-from pado_visualize import __version__
-
 
 # --- formatting utils ---
 
+
 def echo_header(title, width=80):
     """print an ascii header"""
-    line = " ".join([
-        "#", "---", title, "-" * (width - len(title) - 7)
-    ])
+    line = " ".join(["#", "---", title, "-" * (width - len(title) - 7)])
     typer.secho(line, color=typer.colors.CYAN)
 
 
@@ -38,6 +36,7 @@ cli = typer.Typer(
     name="pado-visualize",
     epilog="#### visualize pado datasets ####",
 )
+
 
 @cli.command("version")
 def version():
@@ -61,7 +60,7 @@ def searchtree() -> None:
     settings = app.dynaconf
 
     # note: SEARCHTREE is updated after configure
-    tree: List[str] = getattr(_files, 'SEARCHTREE', [])
+    tree: List[str] = getattr(_files, "SEARCHTREE", [])
 
     echo_header("search tree")
     for location in tree:
@@ -97,7 +96,9 @@ cli.add_typer(cli_dev, name="development")
 @cli_dev.command(name="js")
 def dev_js(
     watch: bool = typer.Option(False, help="watch changes in frontend and rebuild"),
-    check_is_git: bool = typer.Option(True, help="test if dev is run on git repository"),
+    check_is_git: bool = typer.Option(
+        True, help="test if dev is run on git repository"
+    ),
 ) -> NoReturn:
     """build the javascript frontend"""
     if shutil.which("npm") is None:
@@ -119,13 +120,15 @@ def dev_js(
         )
         if ret != 0:
             typer.echo("pado-visualize is not in a git repository!", err=True)
-            typer.secho("You probably didn't install in development mode and should run again in your dev environment")
+            typer.secho(
+                "You probably didn't install in development mode and should run again in your dev environment"
+            )
             raise typer.Exit(code=1)
         else:
             typer.secho("running in git repo", color=typer.colors.GREEN)
 
     cmd = ["npm", "run", "deploy" if not watch else "watch"]
-    typer.secho(' '.join(cmd), color=typer.colors.YELLOW)
+    typer.secho(" ".join(cmd), color=typer.colors.YELLOW)
     # fixme: this throws a warning for now due to a multiprocessing cleanup issue...
     os.chdir(repo_dir)
     os.execvp(file="npm", args=cmd)
@@ -149,24 +152,26 @@ def dev_run(
 
     # acquire the configuration
     app = Flask("pado_visualize")
-    settings = initialize_config(app=app, override_config=overrides, force_env="development").settings
+    settings = initialize_config(
+        app=app, override_config=overrides, force_env="development"
+    ).settings
 
     if not settings.DATASET_PATHS:
-        warnings.warn("no DATASET_PATHS specified! (set via cmdline in dev or file in prod)")
+        warnings.warn(
+            "no DATASET_PATHS specified! (set via cmdline in dev or file in prod)"
+        )
 
     # print some extra info
     typer.secho(" * Loading datasets:", color=typer.colors.GREEN)
     for ds in settings.dataset_paths:
         typer.secho(f"   - '{ds!s}'", color=typer.colors.GREEN)
-    typer.secho(f" * Using cache_path: '{settings.cache_path!s}'", color=typer.colors.GREEN)
+    typer.secho(
+        f" * Using cache_path: '{settings.cache_path!s}'", color=typer.colors.GREEN
+    )
 
     # run development app
     app = create_app(configured_app=app)
-    app.run(
-        host=app.config.SERVER,
-        port=app.config.PORT,
-        debug=app.config.DEBUG
-    )
+    app.run(host=app.config.SERVER, port=app.config.PORT, debug=app.config.DEBUG)
 
 
 # --- production subcommands --------------------------------------------------
@@ -189,9 +194,14 @@ def prod_run(
             typer.secho("no dataset_paths defined", err=True, color=typer.colors.RED)
             raise typer.Exit(code=1)
         if settings.current_env.lower() != "production":
-            typer.secho(f"not running the production env: {settings.current_env!r}", err=True, color=typer.colors.RED)
+            typer.secho(
+                f"not running the production env: {settings.current_env!r}",
+                err=True,
+                color=typer.colors.RED,
+            )
             raise typer.Exit(code=1)
 
+    # fmt: off
     cmd = [
         "uwsgi",
         "--http", f"{settings.SERVER}:{settings.PORT}",
@@ -203,6 +213,7 @@ def prod_run(
         "--buffer-size", "8192",
         "--processes", str(settings.UWSGI_NUM_PROCESSES)
     ]
+    # fmt: on
 
     typer.secho("dispatching to uwsgi:", color=typer.colors.GREEN)
     os.execvp(file="uwsgi", args=cmd)
