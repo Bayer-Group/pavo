@@ -352,7 +352,7 @@ class DatasetProxy:
     def _check_refresh(self):
         ts = os.stat(self._modified_file).st_mtime
         dt = datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
-        if dt > self._modified_time:
+        if self._modified_time is None or dt > self._modified_time:
             self._modified_time = max([self._last_change(), dt])
             self._ds = PadoDataset(self.urlpath, mode="r")
             self._clear_caches()
