@@ -38,7 +38,11 @@ def clear_redis():
 @cli.command()
 def tasks_list():
     """launch the celery task monitor"""
-    os.execvpe("python", ["python", "-m", "celery", "-A", "pado_visualize.worker", "events"], os.environ)
+    os.execvpe(
+        "python",
+        ["python", "-m", "celery", "-A", "pado_visualize.worker", "events"],
+        os.environ,
+    )
 
 
 @cli.command()
@@ -49,10 +53,17 @@ def create_thumbnails(threads):
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
         ip = dataset.images
         futures = [
-            executor.submit(thumbnail_image, image_id, image, base_path=current_app.config["CACHE_PATH"])
+            executor.submit(
+                thumbnail_image,
+                image_id,
+                image,
+                base_path=current_app.config["CACHE_PATH"],
+            )
             for image_id, image in tqdm(ip.items(), desc="dispatch", total=len(ip))
         ]
-        for f in tqdm(concurrent.futures.as_completed(futures), desc="thumbnail", total=len(ip)):
+        for f in tqdm(
+            concurrent.futures.as_completed(futures), desc="thumbnail", total=len(ip)
+        ):
             f.result()
 
 
