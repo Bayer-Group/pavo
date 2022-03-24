@@ -7,12 +7,7 @@ import orjson
 from celery import Celery
 from celery import states
 from flask import Flask
-from flask import current_app
-from flask import render_template
-from flask.json import dumps as flask_json_dumps
 from flask_caching import Cache
-from flask_jsglue import JSGlue
-from flask_jsglue import get_routes
 
 __all__ = [
     "cache",
@@ -29,6 +24,7 @@ cache = Cache()
 
 # --- registration ---
 
+
 def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
     """register all extensions on the Flask app"""
 
@@ -38,24 +34,23 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
     if not is_worker:
         # register the image id converter
         from pado_visualize.utils import ImageIdConverter
-        app.url_map.converters['image_id'] = ImageIdConverter
+
+        app.url_map.converters["image_id"] = ImageIdConverter
 
         # register jinja2 globals
-        from pado_visualize.utils import number_to_str
-        from pado_visualize.utils import is_number
-        from pado_visualize.utils import is_mpp_count
-        from pado_visualize.utils import url_for_versioned
         from pado_visualize.utils import get_instance_name
         from pado_visualize.utils import get_instance_version
-        app.jinja_env.globals['url_for_versioned'] = url_for_versioned
-        app.jinja_env.globals['pado_is_number'] = is_number
-        app.jinja_env.globals['pado_is_mpp_count'] = is_mpp_count
-        app.jinja_env.filters['pado_number_to_str'] = number_to_str
-        app.jinja_env.globals['pado_instance_name'] = get_instance_name
-        app.jinja_env.globals['pado_instance_version'] = get_instance_version
+        from pado_visualize.utils import is_mpp_count
+        from pado_visualize.utils import is_number
+        from pado_visualize.utils import number_to_str
+        from pado_visualize.utils import url_for_versioned
 
-        # register custom JSGlue
-        ServerRoutesJS().init_app(app)
+        app.jinja_env.globals["url_for_versioned"] = url_for_versioned
+        app.jinja_env.globals["pado_is_number"] = is_number
+        app.jinja_env.globals["pado_is_mpp_count"] = is_mpp_count
+        app.jinja_env.filters["pado_number_to_str"] = number_to_str
+        app.jinja_env.globals["pado_instance_name"] = get_instance_name
+        app.jinja_env.globals["pado_instance_version"] = get_instance_version
 
         # use orjson as our default json encoder
         app.json_encoder = ORJSONEncoder
@@ -63,6 +58,7 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
 
 
 # --- constants ---
+
 
 class TaskState:
     SUCCESS = states.SUCCESS
@@ -94,25 +90,6 @@ class TaskState:
 
 # --- extras ---
 
-class ServerRoutesJS(JSGlue):
-
-    def init_app(self, app):
-
-        @app.route("/server_routes.js")
-        def serve_js():
-            return self.generate_js(), 200, {'Content-Type': 'text/javascript'}
-
-        @app.context_processor
-        def context_processor():
-            return {type(self).__name__: type(self)}
-
-    def generate_js(self):
-        routes = get_routes(current_app or self.app)
-        # noinspection PyUnresolvedReferences
-        return render_template(
-            "jsglue/js_bridge.js", namespace=type(self).__name__, rules=flask_json_dumps(routes)
-        )
-
 
 class ORJSONEncoder:
     """an orjson based encoder
@@ -135,16 +112,20 @@ class ORJSONEncoder:
         separators=None,
         default=None,
         sort_keys=True,
-        **kwargs
+        **kwargs,
     ):
         """setting up the orjson config"""
         # checking unused defaults and extra kwargs
         if skipkeys is not False:
             logging.warning(f"{type(self).__name__} ignores skipkeys={skipkeys!r}")
         if ensure_ascii is not True:
-            logging.warning(f"{type(self).__name__} ignores ensure_ascii={ensure_ascii!r}")
+            logging.warning(
+                f"{type(self).__name__} ignores ensure_ascii={ensure_ascii!r}"
+            )
         if check_circular is not True:
-            logging.warning(f"{type(self).__name__} ignores check_circular={check_circular!r}")
+            logging.warning(
+                f"{type(self).__name__} ignores check_circular={check_circular!r}"
+            )
         if allow_nan is not True:
             logging.warning(f"{type(self).__name__} ignores allow_nan={allow_nan!r}")
         if not (separators is None or tuple(separators) == (",", ":")):
@@ -169,7 +150,9 @@ class ORJSONEncoder:
 
     def encode(self, obj):
         """encode using orjson"""
-        return orjson.dumps(obj, option=self._flags, default=self._default).decode('utf-8')
+        return orjson.dumps(obj, option=self._flags, default=self._default).decode(
+            "utf-8"
+        )
 
 
 class ORJSONDecoder:
@@ -197,16 +180,20 @@ class ORJSONDecoder:
         parse_constant=None,
         strict=True,
         object_pairs_hook=None,
-        **kwargs
+        **kwargs,
     ):
         """parse the orjson decoder config"""
         # checking unused defaults and extra kwargs
         if parse_float is not None:
-            logging.warning(f"{type(self).__name__} ignores parse_float={parse_float!r}")
+            logging.warning(
+                f"{type(self).__name__} ignores parse_float={parse_float!r}"
+            )
         if parse_int is not None:
             logging.warning(f"{type(self).__name__} ignores parse_int={parse_int!r}")
         if parse_constant is not None:
-            logging.warning(f"{type(self).__name__} ignores parse_constant={parse_constant!r}")
+            logging.warning(
+                f"{type(self).__name__} ignores parse_constant={parse_constant!r}"
+            )
         if strict is not True:
             logging.warning(f"{type(self).__name__} ignores strict={strict!r}")
         if kwargs:
@@ -214,7 +201,9 @@ class ORJSONDecoder:
 
         if object_pairs_hook is not None:
             # todo: maybe raise here, so we catch it early...
-            logging.error(f"{type(self).__name__} called with object_pairs_hook={object_pairs_hook!r}")
+            logging.error(
+                f"{type(self).__name__} called with object_pairs_hook={object_pairs_hook!r}"
+            )
 
         self._object_hook = object_hook
 
