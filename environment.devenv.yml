@@ -76,9 +76,6 @@ dependencies:
   - gettext  # [ not osx ]
 
   - pip:
-    # flask extras
-    - Flask-JSGlue
-
     # homemade dependencies
     - tiffslide
     - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado  # [ not PADO_VISUALIZE_DEVEL ]
