@@ -84,9 +84,9 @@
 
 .pagination-container {
   margin-top: 2em;
-  display:flex; 
-  flex-direction: row; 
-  justify-content: center; 
+  display:flex;
+  flex-direction: row;
+  justify-content: center;
   align-items: center;
 
   .page-picker {
@@ -94,7 +94,7 @@
     display: inline-block;
     margin-right: 1em;
     padding: 2px;
-  
+
     select {
       margin: 0px 8px;
       padding: 8px 8px;
@@ -103,12 +103,12 @@
   }
 
   .pagination {
-    white-space : nowrap; 
+    white-space : nowrap;
     width: 200px;
     height: 30px;
     overflow-x: scroll;
     background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, $color-primary-light 25%, $color-primary-light 75%, rgba(255, 255, 255, 1) 100%);
-  
+
     a.active {
       background-color: $color-primary-dark;
       color: white;
@@ -240,7 +240,6 @@ span.filter-label {
 }
 
 iframe {
-  border: none; 
+  border: none;
   width: 100%;
 }
-

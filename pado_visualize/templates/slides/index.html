@@ -27,9 +27,9 @@
         <form id='filter_form' >
           <li class="filter-form-list">
             <label for="filename_filter_checkbox"></label>
-            <input 
-              id = "filename_filter_checkbox" 
-              type="checkbox" 
+            <input
+              id = "filename_filter_checkbox"
+              type="checkbox"
               onclick="EnableFilter(this)"
               class="filter-checkbox"
             >
@@ -37,10 +37,10 @@
               Filename:
             </span>
             <div class='filter-widget-container'>
-              <input 
-                type="text" 
-                id="filename_filter_widget" 
-                name="filename" 
+              <input
+                type="text"
+                id="filename_filter_widget"
+                name="filename"
                 disabled="disabled"
                 value=""
               />
@@ -48,19 +48,19 @@
           </li>
           <li class="filter-form-list">
             <label for="metadata_filter_checkbox"></label>
-            <input 
-              id = "metadata_filter_checkbox" 
-              type="checkbox" 
+            <input
+              id = "metadata_filter_checkbox"
+              type="checkbox"
               onclick="EnableFilter(this)"
             >
             <span class="filter-label">
               Metadata:
             </span>
             <div class="filter-widget-container">
-              <select 
-                id="metadata_filter_widget" 
-                name="metadata_key" 
-                disabled="disabled" 
+              <select
+                id="metadata_filter_widget"
+                name="metadata_key"
+                disabled="disabled"
                 onclick="EnableMetadataOptions(this)"
                 value=""
               >
@@ -68,9 +68,9 @@
                   <option value="{{ attribute }}">{{ attribute }}</option>
                 {% endfor %}
               </select>
-              <select 
-                id="metadata_filter_widget_options" 
-                name="metadata_values" 
+              <select
+                id="metadata_filter_widget_options"
+                name="metadata_values"
                 disabled="disabled"
                 class="custom-multiselect"
                 multiple
@@ -90,10 +90,10 @@
   {% endblock filter_bar %}
 
   {% block thumbnails %}
-    <iframe 
-      src="{{ url_for('slides.thumbnails', page=idx, page_size=page_size) }}" 
-      scrolling="auto" 
-      onload="resizeIframe(this);" 
+    <iframe
+      src="{{ url_for('slides.thumbnails', page=idx, page_size=page_size) }}"
+      scrolling="auto"
+      onload="resizeIframe(this);"
       id="thumbnails"></iframe>
   {% endblock thumbnails %}
 
@@ -200,4 +200,3 @@
     }
   </script>
 {% endblock page_scripts %}
-
