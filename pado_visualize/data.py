@@ -7,11 +7,9 @@ from enum import auto
 from functools import wraps
 from typing import Any
 from typing import Callable
-from typing import Generic
 from typing import NoReturn
 from typing import Optional
 from typing import Sequence
-from typing import TypeVar
 
 import geopandas as gpd
 import pandas as pd
@@ -32,6 +30,7 @@ __all__ = [
     "DatasetState",
     "initialize_dataset",
 ]
+
 
 # noinspection PyPep8Naming
 class lockless_cached_property:
@@ -232,7 +231,7 @@ class DatasetProxy:
         def _model_name(x):
             try:
                 dct = json.loads(x)
-            except:
+            except json.JSONDecodeError:
                 return None
             else:
                 for key in ["annotator", "model"]:
@@ -245,7 +244,7 @@ class DatasetProxy:
         def _classification(x):
             try:
                 dct = json.loads(x)
-            except:
+            except json.JSONDecodeError:
                 return None
             else:
                 if dct.get("model", "").startswith("aig"):
