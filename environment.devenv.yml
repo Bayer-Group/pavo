@@ -75,8 +75,10 @@ dependencies:
   - gettext=0.19.8.1=hd1a6beb_1007  # [ osx ]
   - gettext  # [ not osx ]
 
+  # homemade dependencies on conda
+  - tiffslide
+
   - pip:
     # homemade dependencies
-    - tiffslide
     - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado  # [ not PADO_VISUALIZE_DEVEL ]
     - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
