@@ -28,7 +28,7 @@ def index():
         "num_annotations": 0,
     }
     if dataset.state == DatasetState.READY:
-        description = dataset.describe(output_format='json')
+        description = dataset.describe()
 
     return render_template("home/index.html", info=description, page_title="Home")
 
