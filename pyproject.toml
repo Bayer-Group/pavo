@@ -30,3 +30,28 @@ exclude_lines = [
   "if TYPE_CHECKING:",
   "if MYPY:",
 ]
+
+[tool.black]
+target-version = ['py37']
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.mypy_cache
+    | \.venv
+    | venv.*
+    | build
+    | dist
+    | ci
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+py_version = "37"
+force_single_line = true
+add_imports = ["from __future__ import annotations"]
+extend_skip = ["setup.py", "docs/source/conf.py"]

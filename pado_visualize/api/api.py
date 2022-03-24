@@ -1,4 +1,6 @@
-from flask import Blueprint 
+from __future__ import annotations
+
+from flask import Blueprint
 from flask import jsonify
 from flask import request 
 from werkzeug.exceptions import BadRequest
