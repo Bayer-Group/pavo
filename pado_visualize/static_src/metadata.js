@@ -143,7 +143,7 @@ function setupLineUp(options) {
       const actions = col.actions;
       return {
         template: `
-          <div class="icon-container"> 
+          <div class="icon-container">
             <span id="action0" class='button fas fa-search'></span>
             <span id="action1" class='button fas fa-search-plus'></span>
           </div>
@@ -170,7 +170,7 @@ function setupLineUp(options) {
       const actions = col.groupActions;
       return {
         template: `
-          <div class="icon-container"> 
+          <div class="icon-container">
             <span id="action0" class='button fas fa-search fa-2x'></span>
             <span id="action1" class='button fas fa-search-plus fa-2x'></span>
           </div>`,
@@ -203,7 +203,7 @@ function setupLineUp(options) {
     create(col) {
       return {
         template: `
-          <div class="icon-container"> 
+          <div class="icon-container">
             <span id="annotator_icon_id" class='fas' > </span>
           </div>
         `,
