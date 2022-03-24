@@ -13,8 +13,9 @@ from setuptools.command.develop import develop
 # noinspection PyAttributeOutsideInit
 class BuildFrontendCommand(Command):
     """build_js subcommand for npm building the frontend"""
+
     user_options = [
-        ('npm=', None, 'path to npm executable'),
+        ("npm=", None, "path to npm executable"),
     ]
 
     def initialize_options(self):
@@ -22,7 +23,7 @@ class BuildFrontendCommand(Command):
         self.npm = None
 
     def finalize_options(self):
-        self.set_undefined_options('build', ('build_lib', 'build_lib'))
+        self.set_undefined_options("build", ("build_lib", "build_lib"))
         if self.npm is None:
             self.npm = shutil.which("npm")
 
@@ -46,19 +47,16 @@ class BuildFrontendCommand(Command):
 
 
 # noinspection PyUnresolvedReferences
-distutils.command.build.build.sub_commands.append(('build_js', None))
+distutils.command.build.build.sub_commands.append(("build_js", None))
 
 
 class DevelopWithJS(develop):
-
     def run(self) -> None:
         super().run()
         npm = shutil.which("npm")
 
         if not npm:
-            warnings.warn(
-                "installing pado_visualize from source requires npm"
-            )
+            warnings.warn("installing pado_visualize from source requires npm")
             return
         # compile all javascript sources
         self.spawn([npm, "install"])
@@ -67,9 +65,7 @@ class DevelopWithJS(develop):
 
 def all_files_at(path, suffix):
     p = pathlib.Path(path)
-    return [
-        os.fspath(f.relative_to(p.parent)) for f in p.glob(f"**/*.{suffix}")
-    ]
+    return [os.fspath(f.relative_to(p.parent)) for f in p.glob(f"**/*.{suffix}")]
 
 
 setup(
@@ -85,5 +81,5 @@ setup(
     cmdclass={
         "build_js": BuildFrontendCommand,
         "develop": DevelopWithJS,
-    }
+    },
 )
