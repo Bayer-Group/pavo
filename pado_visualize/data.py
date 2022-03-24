@@ -2,6 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
+from datetime import datetime
+from datetime import timezone
 from enum import Enum
 from enum import auto
 from functools import wraps
@@ -71,6 +75,10 @@ class DatasetProxy:
         self.state = DatasetState.NOT_CONFIGURED
         self._ds: Optional[PadoDataset] = None
         self._cache_path = None
+        self._modified_file = os.path.join(
+            tempfile.gettempdir(), ".pado_visualize.timestamp"
+        )
+        self._modified_time = None
 
     def init_app(self, app: Flask) -> None:
         """initialize the dataset proxy with the Flask app instance"""
@@ -80,6 +88,7 @@ class DatasetProxy:
 
         self.urlpath = urlpaths[0] if urlpaths else None
         if self.urlpath:
+            self.trigger_refresh()
             self._ds = PadoDataset(self.urlpath, mode="r")
             self.state = DatasetState.READY
 
@@ -120,18 +129,21 @@ class DatasetProxy:
     def index(self) -> Sequence[ImageId]:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         return list(self._ds.index)
 
     @lockless_cached_property
     def metadata(self) -> MetadataProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         return self._ds.metadata
 
     @lockless_cached_property
     def images(self) -> ImageProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         if self._cache_path is None:
             return self._ds.images
         else:
@@ -145,17 +157,20 @@ class DatasetProxy:
     def annotations(self) -> AnnotationProvider:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         return self._ds.annotations
 
     @lockless_cached_property
     def predictions(self) -> PredictionProxy:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         return self._ds.predictions
 
     def describe(self) -> dict[str, Any]:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         try:
             description = self.__dict__["_describe"]
         except KeyError:
@@ -175,6 +190,7 @@ class DatasetProxy:
         """
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
+        self._check_refresh()
         try:
             return self.__dict__["_tabular_records"]
         except KeyError:
@@ -324,6 +340,50 @@ class DatasetProxy:
         ), f"expected {sorted(OUTPUT_COLUMNS)!r} got {table.columns.sort_values().to_list()!r}"
         tabular_records = self.__dict__["_tabular_records"] = table
         return tabular_records
+
+    # --- refreshing ---
+
+    def trigger_refresh(self) -> datetime:
+        with open(self._modified_file, "a"):
+            pass
+        ts = os.stat(self._modified_file).st_mtime
+        return datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
+
+    def _check_refresh(self):
+        ts = os.stat(self._modified_file).st_mtime
+        dt = datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
+        if dt > self._modified_time:
+            self._modified_time = max([self._last_change(), dt])
+            self._ds = PadoDataset(self.urlpath, mode="r")
+            self._clear_caches()
+
+    def _last_change(self) -> datetime:
+        # noinspection PyProtectedMember
+        fs, root = self._ds._fs, self._ds._root
+        try:
+            return max(
+                x["LastModified"]
+                for x in fs.ls(root, detail=True, refresh=True)
+                if "LastModified" in x
+            )
+        except ValueError:
+            return datetime.fromtimestamp(0, tz=timezone.utc)
+
+    def _clear_caches(self):
+        caches = [
+            "index",
+            "images",
+            "metadata",
+            "annotations",
+            "predictions",
+            "_describe",
+            "_tabular_records",
+        ]
+        for key in caches:
+            try:
+                del self.__dict__[key]
+            except KeyError:
+                pass
 
 
 # interface used throughout the app
