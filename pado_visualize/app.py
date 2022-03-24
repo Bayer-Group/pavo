@@ -16,7 +16,12 @@ from pado_visualize.extensions import register_extensions
 __all__ = ["create_app"]
 
 
-def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = False, config_only: bool = False) -> Flask:
+def create_app(
+    *,
+    configured_app: Optional[Flask] = None,
+    is_worker: bool = False,
+    config_only: bool = False,
+) -> Flask:
     """create a Flask app instance
 
     Parameters
@@ -26,13 +31,16 @@ def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = Fals
         based config loading. This is mostly for commandline overwriting.
     is_worker:
         allows to skip blueprint definitions
+    config_only:
+        return the app directly after configuring
 
     """
     configure_logging()
 
-    # allow two step initialization (for cli interface)
+    # allow two-step initialization (for cli interface)
     if configured_app is None:
         from pado_visualize.config import initialize_config
+
         app = Flask("pado_visualize")
         _ = initialize_config(app)
     else:
@@ -52,20 +60,22 @@ def create_app(*, configured_app: Optional[Flask] = None, is_worker: bool = Fals
 
 def configure_logging() -> None:
     """configure as early as possible in case we want customization"""
-    dictConfig({
-        'version': 1,
-        'root': {
-            'level': 'INFO',
-        },
-    })
+    dictConfig(
+        {
+            "version": 1,
+            "root": {
+                "level": "INFO",
+            },
+        }
+    )
     for logger_name in [
-        'pado_visualize.data.caches',
-        'pado_visualize.data.dataset',
+        "pado_visualize.data.caches",
+        "pado_visualize.data.dataset",
     ]:
         logger = logging.getLogger(logger_name)
         backend_handler = logging.StreamHandler(sys.stderr)
         backend_handler.setFormatter(
-            logging.Formatter('%(name)s::%(levelname)s: %(message)s')
+            logging.Formatter("%(name)s::%(levelname)s: %(message)s")
         )
         logger.addHandler(backend_handler)
 
@@ -77,8 +87,9 @@ def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
 
     if is_worker:
         # register the worker tasks
-        import pado_visualize.home.tasks
-        import pado_visualize.slides.tasks
+        import pado_visualize.home.tasks  # noqa: F401
+        import pado_visualize.slides.tasks  # noqa: F401
+
         return
 
     # --- views ---
@@ -86,16 +97,18 @@ def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
     from pado_visualize.metadata.views import blueprint as metadata_blueprint
     from pado_visualize.slides.views import blueprint as slides_blueprint
 
-    # --- api ---
-    from pado_visualize.api.api import blueprint as api_blueprint
-
     app.register_blueprint(home_blueprint, url_prefix="/")
     app.register_blueprint(metadata_blueprint, url_prefix="/metadata")
     app.register_blueprint(slides_blueprint, url_prefix="/slides")
-    app.register_blueprint(api_blueprint, url_prefix='/api')
+
+    # --- api ---
+    from pado_visualize.api.api import blueprint as api_blueprint
+
+    app.register_blueprint(api_blueprint, url_prefix="/api")
 
     # --- oauth ---
     from pado_visualize.oauth import make_blueprint
+
     oauth_blueprint = make_blueprint(app)
     if oauth_blueprint:
         app.register_blueprint(oauth_blueprint, url_prefix="/oauth")
