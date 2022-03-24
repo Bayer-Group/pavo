@@ -4,7 +4,8 @@ from __future__ import annotations
 import json
 from enum import Enum
 from enum import auto
-from functools import lru_cache, wraps
+from functools import wraps
+from typing import Any
 from typing import Callable
 from typing import NoReturn
 from typing import Optional
@@ -31,7 +32,6 @@ __all__ = [
     "DatasetState",
     "initialize_dataset",
 ]
-
 
 # noinspection PyPep8Naming
 class lockless_cached_property:
@@ -138,13 +138,15 @@ class DatasetProxy:
             raise DatasetNotReadyException(self.state)
         return self._ds.predictions
 
-    @lru_cache
-    def describe(self, output_format: str) -> str:
+    def describe(self) -> dict[str, Any]:
         if self.state != DatasetState.READY:
             raise DatasetNotReadyException(self.state)
-        return self._ds.describe(output_format)
+        try:
+            description = self.__dict__["_describe"]
+        except KeyError:
+            description = self.__dict__["_describe"] = self._ds.describe(output_format="json")
+        return description
 
-    @lru_cache
     def get_tabular_records(self) -> pd.DataFrame:
         """tabular representation of the dataset including metadata and annotations
         
@@ -154,6 +156,13 @@ class DatasetProxy:
         (ImageId, classification, area, annotator_type, annotator_name, 
         compound_name, organ, species)
         """
+        if self.state != DatasetState.READY:
+            raise DatasetNotReadyException(self.state)
+        try:
+            return self.__dict__["_tabular_records"]
+        except KeyError:
+            pass  # cache miss
+
         # NOTE: currently the returned dataframe contains the following columns:
         OUTPUT_COLUMNS = [
             'image_id',
@@ -279,7 +288,8 @@ class DatasetProxy:
         table = table.reset_index()
 
         assert table.columns.sort_values().to_list() == sorted(OUTPUT_COLUMNS), f"expected {sorted(OUTPUT_COLUMNS)!r} got {table.columns.sort_values().to_list()!r}"
-        return table
+        tabular_records = self.__dict__["_tabular_records"] = table
+        return tabular_records
 
 
 # interface used throughout the app
