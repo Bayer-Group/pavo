@@ -275,19 +275,19 @@ function setupLineUp(options) {
     .column(
       LineUpJS.buildCategoricalColumn("annotation_type")
         .renderer("annotation_type", "catdistributionbar")
-        .label("Annotation")
-        .width(160)
+        .label("Type")
+        .width(100)
     )
     .column(
       LineUpJS.buildCategoricalColumn("annotator_type")
         .renderer("annotator_type", "categorical", "categorical")
-        .label("Annotator Type")
-        .width(160)
+        .label("Source")
+        .width(100)
     )
     .column(
       LineUpJS.buildCategoricalColumn("annotator_name")
         .renderer("categorical", "categorical", "categorical")
-        .label("Annotator Name")
+        .label("Annotator")
         .width(160)
     )
     .column(
