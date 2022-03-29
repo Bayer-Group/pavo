@@ -219,6 +219,8 @@ function setupLineUp(options) {
             icon.classList.add("fa-laptop-code");
           } else if (annotator_type === "human") {
             icon.classList.add("fa-user");
+          } else if (annotator_type === "dataset") {
+            icon.classList.add("fa-file-alt");
           } else if (annotator_type === "unknown") {
             icon.classList.add("fa-question");
           }
