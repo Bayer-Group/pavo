@@ -20,6 +20,7 @@ import geopandas as gpd
 import pandas as pd
 from flask import Flask
 from fsspec.implementations.cached import SimpleCacheFileSystem
+from itsdangerous import base64_encode
 from pado import PadoDataset
 from pado.annotations import AnnotationProvider
 from pado.images import ImageId
@@ -200,6 +201,7 @@ class DatasetProxy:
         # NOTE: currently the returned dataframe contains the following columns:
         OUTPUT_COLUMNS = [
             "image_id",
+            "image_url",
             "classification",
             "annotation_type",
             "annotation_area",
@@ -306,6 +308,9 @@ class DatasetProxy:
 
         # === join and validate ===============================================
         table = pd.concat([mdf, adf, pdf], axis=0)
+        table["image_url"] = table["image_id"].apply(
+            lambda x: base64_encode(x.encode()).decode()
+        )
 
         assert set(table.columns) == set(
             OUTPUT_COLUMNS
