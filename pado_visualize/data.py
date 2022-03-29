@@ -9,6 +9,7 @@ from datetime import timezone
 from enum import Enum
 from enum import auto
 from functools import wraps
+from operator import itemgetter
 from typing import Any
 from typing import Callable
 from typing import NoReturn
@@ -208,7 +209,17 @@ class DatasetProxy:
             "organ",
             "species",
             "annotation",
+            "annotation_type",
         ]
+
+        def _special_title(x: str) -> str:
+            if x.lower().startswith("tg"):
+                return f"TG-{x[2:].title()}"
+            if x.startswith("ai"):
+                return f"AI{x[2:]}"
+            if len(x) <= 2:
+                return x.upper()
+            return x
 
         def _aggreate(x: pd.Series) -> pd.Series:
             """treat strings differently to integers/floats when aggregating"""
@@ -238,106 +249,100 @@ class DatasetProxy:
                 else:
                     return x.fillna("unknown")
 
-        adf = self._ds.annotations.df.copy()
+        # === prepare metadata df for joining =================================
         mdf = self._ds.metadata.df.copy()
 
-        pdf = self._ds.predictions.images.df.copy()
-        pdf["annotator_type"] = "model"
+        mdf = mdf[["finding_type", "compound_name", "species", "organ"]].reset_index()
+        mdf.rename(
+            columns={
+                "index": "image_id",
+                "finding_type": "classification",
+            },
+            inplace=True,
+        )
+        mdf["annotator_name"] = _special_title(self._ds.metadata.identifier)
+        mdf["annotator_type"] = "dataset"
+        mdf["annotation_area"] = None
+        mdf["annotation_count"] = None
+        mdf["annotation"] = False
+        mdf["classification"] = mdf["classification"].fillna("None")
+        mdf["annotation_type"] = "slide"
 
-        def _model_name(x):
-            try:
-                dct = json.loads(x)
-            except json.JSONDecodeError:
-                return None
-            else:
-                for key in ["annotator", "model"]:
-                    if key in dct:
-                        return dct[key]
-                return "-"
+        _organ_map = (
+            mdf[["image_id", "organ"]].drop_duplicates().set_index("image_id")["organ"]
+        )
+        _species_map = (
+            mdf[["image_id", "species"]]
+            .drop_duplicates()
+            .set_index("image_id")["species"]
+        )
+        _compound_map = (
+            mdf[["image_id", "compound_name"]]
+            .drop_duplicates()
+            .set_index("image_id")["compound_name"]
+        )
 
-        pdf["annotator_name"] = pdf["extra_metadata"].apply(_model_name)
+        # === prepare the annotation df for joining ===========================
+        adf = self._ds.annotations.df.copy()
 
-        def _classification(x):
-            try:
-                dct = json.loads(x)
-            except json.JSONDecodeError:
-                return None
-            else:
-                if dct.get("model", "").startswith("aig"):
-                    return "Mitosis"
-                if dct.get("model", None) == "segmentation-model":
-                    return "Mitosis"
-                if dct.get("annotator", None) == "multiclass_segmentation_model_v0.1":
-                    return "MultiClass"
-                return "?"
-
-        pdf["classification"] = pdf.extra_metadata.apply(_classification)
-        pdf["area"] = 0.0
-
-        pdf = pdf[
-            ["image_id", "classification", "area", "annotator_type", "annotator_name"]
-        ]
-
-        # get area of annotations
         if "area" not in adf.columns:
             gs = gpd.GeoSeries.from_wkt(adf["geometry"])
             geo_adf = gpd.GeoDataFrame(adf, geometry=gs)
             adf["area"] = geo_adf.geometry.area
 
-        # get the relevant columns of adf
         adf["annotator_type"] = adf["annotator"].apply(lambda x: x["type"])
-        adf["annotator_name"] = adf["annotator"].apply(lambda x: x["name"])
+        adf["annotator_name"] = adf["annotator"].apply(
+            lambda x: _special_title(x["name"])
+        )
         adf = adf[
             ["image_id", "classification", "area", "annotator_type", "annotator_name"]
         ]
-
-        adf = pd.concat([adf, pdf])
-
-        # get the set of shared rows for annotations and metadata
-        common_index = mdf.index.intersection(adf.index)
-        if common_index.empty:
-            return pd.DataFrame(columns=OUTPUT_COLUMNS)
-        else:
-            adf = adf.loc[common_index]
-            mdf = mdf.loc[common_index]
-
-        # prepare annotations df for joining
-        grouped_adf_area = adf.groupby(["image_id", "classification"])["area"]
-        grouped_adf_other = adf.drop("area", axis=1).groupby(
-            ["image_id", "classification"]
+        adf = (
+            adf.groupby(
+                ["image_id", "classification", "annotator_type", "annotator_name"]
+            )["area"]
+            .agg(["sum", "count"])
+            .rename(columns={"sum": "annotation_area", "count": "annotation_count"})
+            .reset_index()
         )
-        adf = pd.concat(
-            [
-                grouped_adf_other.aggregate(_aggreate),
-                grouped_adf_area.agg(["count", "sum"]).rename(
-                    columns={"count": "annotation_count", "sum": "annotation_area"}
-                ),
-            ],
-            axis=1,
-            sort=False,
-        )
-        # adf = adf.groupby(['image_id', 'classification']).aggregate(_aggreate)
+        adf["organ"] = adf["image_id"].map(_organ_map)
+        adf["species"] = adf["image_id"].map(_species_map)
+        adf["compound_name"] = adf["image_id"].map(_compound_map)
+        adf["annotation"] = True
+        adf["annotation_type"] = "contour"
 
-        # prepare metadata df for joining
-        mdf = mdf[["compound_name", "organ", "species", "finding_type"]]
-        mdf["index"] = mdf.index
-        mdf.rename(columns={"finding_type": "classification"}, inplace=True)
-        mdf = mdf.groupby(["index", "classification"]).aggregate(_aggreate)
+        # === prepare prediction dataframe for joining ========================
+        pdf = self._ds.predictions.images.df.copy()
+        _model_metadata = pdf["extra_metadata"].apply(json.loads)
 
-        # join annotations and metadata (the multi-index was neccesary to perform this join)
-        table = pd.concat([adf, mdf], axis=1, sort=False)
-        table.index.names = ["image_id", "classification"]
+        def _model_name(x):
+            v = x["iteration"]
+            return x["model"] if v == "v0" else f"{x['model']}-{v}"
 
-        # add some final information and remove nan values
-        table["annotation"] = ~table["annotation_area"].isna()
-        table = table.groupby(table.index.get_level_values(0)).transform(
-            _fill_nan_by_column_type
-        )
-        table = table.reset_index()
+        pdf = pdf[["image_id"]]
+        pdf["classification"] = _model_metadata.apply(itemgetter("classes"))
+        pdf["annotation"] = True
+        pdf["annotator_name"] = _model_metadata.apply(_model_name)
+        pdf["annotator_type"] = "model"
+        pdf["organ"] = pdf["image_id"].map(_organ_map)
+        pdf["species"] = pdf["image_id"].map(_species_map)
+        pdf["compound_name"] = pdf["image_id"].map(_compound_map)
 
-        assert table.columns.sort_values().to_list() == sorted(
+        pdf["annotation_type"] = "heatmap"  # fixme: segmentation vs others...
+        pdf["annotation_area"] = None  # fixme: calculate
+        pdf["annotation_count"] = None  # fixme: calculate
+
+        pdf = pdf.explode("classification")
+        pdf = pdf.loc[pdf["classification"] != "other", :]
+        pdf["classification"] = pdf["classification"].str.title()
+
+        # === join and validate ===============================================
+        table = pd.concat([mdf, adf, pdf], axis=0)
+
+        assert set(table.columns) == set(
             OUTPUT_COLUMNS
-        ), f"expected {sorted(OUTPUT_COLUMNS)!r} got {table.columns.sort_values().to_list()!r}"
+        ), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
+
         tabular_records = self.__dict__["_tabular_records"] = table
         return tabular_records
 
