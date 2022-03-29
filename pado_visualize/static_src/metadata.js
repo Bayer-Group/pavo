@@ -291,16 +291,28 @@ function setupLineUp(options) {
         .width(160)
     )
     .column(
-      LineUpJS.buildNumberColumn("annotation_area")
-        .label("Annotation Area")
+        LineUpJS.buildCategoricalColumn("annotation_metric")
+        .renderer("annotation_metric", "categorical", "categorical")
+        .label("Metric")
+        .width(100)
+    )
+    .column(
+      LineUpJS.buildNumberColumn("annotation_value")
+        .label("Score")
         .renderer("brightness", "histogram")
-        .width(160)
+        .width(100)
+    )
+    .column(
+      LineUpJS.buildNumberColumn("annotation_area")
+        .label("Area")
+        .renderer("brightness", "histogram")
+        .width(100)
     )
     .column(
       LineUpJS.buildNumberColumn("annotation_count")
-        .label("Annotation Count")
+        .label("Count")
         .renderer("brightness", "histogram")
-        .width(160)
+        .width(100)
     )
     .column(
       LineUpJS.buildCategoricalColumn("compound_name")
@@ -339,14 +351,15 @@ function setupLineUp(options) {
         .aggregate()
         // .column("Action")
         .groupBy("image_url")
-        // .sortBy("annotation")
         .column("image_url")
         .column("classification")
         .column("annotation_type")
         .column("annotator_type")
         .column("annotator_name")
+        .column("annotation_metric")
         .column("annotation_area")
         .column("annotation_count")
+        .column("annotation_value")
         .column("compound_name")
         .column("species")
         .column("organ")
@@ -362,6 +375,11 @@ function setupLineUp(options) {
       slide: "fa-ticket-alt",
       heatmap: "fa-chess-board",
       contour: "fa-draw-polygon",
+    }))
+    .registerRenderer("annotation_metric", new IconRenderer({
+      area: "fa-percentage",
+      score: "fa-list-ol",
+      count: "fa-shapes",
     }))
     .sidePanel(true, true)
     .singleSelection()

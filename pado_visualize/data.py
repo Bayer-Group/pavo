@@ -204,13 +204,15 @@ class DatasetProxy:
             "image_url",
             "classification",
             "annotation_type",
-            "annotation_area",
-            "annotation_count",
             "annotator_type",
             "annotator_name",
             "compound_name",
             "organ",
             "species",
+            "annotation_area",
+            "annotation_count",
+            "annotation_metric",
+            "annotation_value",
         ]
 
         def _special_title(x: str) -> str:
@@ -221,6 +223,10 @@ class DatasetProxy:
             if len(x) <= 2:
                 return x.upper()
             return x
+
+        def _model_name(x: dict) -> str:
+            v = x["iteration"]
+            return x["model"] if v == "v0" else f"{x['model']}-{v}"
 
         # === prepare metadata df for joining =================================
         mdf = self._ds.metadata.df.copy()
@@ -239,6 +245,8 @@ class DatasetProxy:
         mdf["annotation_count"] = None
         mdf["classification"] = mdf["classification"].fillna("None")
         mdf["annotation_type"] = "slide"
+        mdf["annotation_metric"] = None
+        mdf["annotation_value"] = None
 
         _organ_map = (
             mdf[["image_id", "organ"]].drop_duplicates().set_index("image_id")["organ"]
@@ -282,32 +290,60 @@ class DatasetProxy:
         adf["compound_name"] = adf["image_id"].map(_compound_map)
         adf["annotation_type"] = "contour"
 
-        # === prepare prediction dataframe for joining ========================
-        pdf = self._ds.predictions.images.df.copy()
-        _model_metadata = pdf["extra_metadata"].apply(json.loads)
+        count_mask = adf["classification"].str.lower().str.contains("mitosis")
+        adf["annotation_metric"] = None
+        adf.loc[~count_mask, "annotation_metric"] = "area"
+        adf.loc[count_mask, "annotation_area"] = None
+        adf.loc[count_mask, "annotation_metric"] = "count"
+        adf.loc[~count_mask, "annotation_count"] = None
+        adf["annotation_value"] = None
 
-        def _model_name(x):
-            v = x["iteration"]
-            return x["model"] if v == "v0" else f"{x['model']}-{v}"
+        # === prepare image prediction dataframe for joining ==================
+        ipdf = self._ds.predictions.images.df.copy()
+        _model_metadata = ipdf["extra_metadata"].apply(json.loads)
 
-        pdf = pdf[["image_id"]]
-        pdf["classification"] = _model_metadata.apply(itemgetter("classes"))
-        pdf["annotator_name"] = _model_metadata.apply(_model_name)
-        pdf["annotator_type"] = "model"
-        pdf["organ"] = pdf["image_id"].map(_organ_map)
-        pdf["species"] = pdf["image_id"].map(_species_map)
-        pdf["compound_name"] = pdf["image_id"].map(_compound_map)
+        ipdf = ipdf[["image_id"]]
+        ipdf["classification"] = _model_metadata.apply(itemgetter("classes"))
+        ipdf["annotator_name"] = _model_metadata.apply(_model_name)
+        ipdf["annotator_type"] = "model"
+        ipdf["organ"] = ipdf["image_id"].map(_organ_map)
+        ipdf["species"] = ipdf["image_id"].map(_species_map)
+        ipdf["compound_name"] = ipdf["image_id"].map(_compound_map)
 
-        pdf["annotation_type"] = "heatmap"  # fixme: segmentation vs others...
-        pdf["annotation_area"] = None  # fixme: calculate
-        pdf["annotation_count"] = None  # fixme: calculate
+        ipdf["annotation_type"] = "heatmap"  # fixme: segmentation vs others...
+        ipdf["annotation_metric"] = "area"  # fixme
+        ipdf["annotation_value"] = None
+        ipdf["annotation_area"] = 100.0  # fixme: calculate
+        ipdf["annotation_count"] = None  # fixme: calculate
 
-        pdf = pdf.explode("classification")
-        pdf = pdf.loc[pdf["classification"] != "other", :]
-        pdf["classification"] = pdf["classification"].str.title()
+        ipdf = ipdf.explode("classification")
+        ipdf = ipdf.loc[ipdf["classification"] != "other", :]
+        ipdf["classification"] = ipdf["classification"].str.title()
+
+        # === prepare metadata prediction dataframe for joining ===============
+        mpdf = self._ds.predictions.metadata.df
+        _model_metadata = mpdf["model_extra_json"].apply(json.loads)
+        _row_data = mpdf["row_json"].apply(json.loads)
+        mpdf = mpdf[["image_id"]]
+        mpdf["classification"] = _row_data.apply(
+            itemgetter("classification")
+        ).str.title()
+        mpdf["annotator_name"] = _model_metadata.apply(_model_name)
+        mpdf["annotator_type"] = "model"
+        mpdf["organ"] = mpdf["image_id"].map(_organ_map)
+        mpdf["species"] = mpdf["image_id"].map(_species_map)
+        mpdf["compound_name"] = mpdf["image_id"].map(_compound_map)
+
+        mpdf["annotation_type"] = "slide"
+        mpdf["annotation_area"] = None  # fixme: calculate
+        mpdf["annotation_count"] = None  # fixme: calculate
+        mpdf["annotation_metric"] = _row_data.apply(itemgetter("metric"))
+        mpdf["annotation_value"] = _row_data.apply(itemgetter("value"))
+
+        mpdf = mpdf.loc[mpdf["classification"] != "Other", :]
 
         # === join and validate ===============================================
-        table = pd.concat([mdf, adf, pdf], axis=0)
+        table = pd.concat([mdf, adf, ipdf, mpdf], axis=0)
         table["image_url"] = table["image_id"].apply(
             lambda x: base64_encode(x.encode()).decode()
         )
