@@ -191,9 +191,10 @@ function setupLineUp(options) {
     }
   }
 
-  class AnnotatorRenderer {
-    constructor() {
-      this.title = "AnnotatorRenderer";
+  class IconRenderer {
+    constructor(iconMap) {
+      this.title = "IconRenderer";
+      this.iconMap = new Map(Object.entries(iconMap));
     }
 
     canRender(col) {
@@ -208,21 +209,14 @@ function setupLineUp(options) {
           </div>
         `,
         update: (node, row, i, group) => {
-          const annotator_type = row.v["annotator_type"];
+          const annotator_type = row.v[col.desc.column];
 
           const icon = node.children[0];
-          icon.classList.remove("fa-laptop-code");
-          icon.classList.remove("fa-user");
-          icon.classList.remove("fa-question");
+          icon.classList.remove( ...this.iconMap.values() );
 
-          if (annotator_type === "model") {
-            icon.classList.add("fa-laptop-code");
-          } else if (annotator_type === "human") {
-            icon.classList.add("fa-user");
-          } else if (annotator_type === "dataset") {
-            icon.classList.add("fa-file-alt");
-          } else if (annotator_type === "unknown") {
-            icon.classList.add("fa-question");
+          const iconClass = this.iconMap.get(annotator_type);
+          if (iconClass) {
+            icon.classList.add(iconClass);
           }
         },
       };
@@ -279,14 +273,14 @@ function setupLineUp(options) {
         .width(160)
     )
     .column(
-      LineUpJS.buildBooleanColumn("annotation")
-        .renderer("upset", "catdistributionbar")
+      LineUpJS.buildCategoricalColumn("annotation_type")
+        .renderer("annotation_type", "catdistributionbar")
         .label("Annotation")
         .width(160)
     )
     .column(
       LineUpJS.buildCategoricalColumn("annotator_type")
-        .renderer("annotator", "categorical", "categorical")
+        .renderer("annotator_type", "categorical", "categorical")
         .label("Annotator Type")
         .width(160)
     )
@@ -343,12 +337,12 @@ function setupLineUp(options) {
     .ranking(
       LineUpJS.buildRanking()
         .aggregate()
-        .column("Action")
+        // .column("Action")
         .groupBy("image_url")
-        .sortBy("annotation")
+        // .sortBy("annotation")
         .column("image_url")
         .column("classification")
-        .column("annotation")
+        .column("annotation_type")
         .column("annotator_type")
         .column("annotator_name")
         .column("annotation_area")
@@ -359,7 +353,16 @@ function setupLineUp(options) {
     )
     .registerRenderer("thumbnail", new ThumbnailRenderer())
     .registerRenderer("myaction", new MyActionRenderer())
-    .registerRenderer("annotator", new AnnotatorRenderer())
+    .registerRenderer("annotator_type", new IconRenderer({
+      human: "fa-user-md",
+      dataset: "fa-file-alt",
+      model: "fa-laptop-code",
+    }))
+    .registerRenderer("annotation_type", new IconRenderer({
+      slide: "fa-ticket-alt",
+      heatmap: "fa-chess-board",
+      contour: "fa-draw-polygon",
+    }))
     .sidePanel(true, true)
     .singleSelection()
     .groupRowHeight(groupRowHeight)

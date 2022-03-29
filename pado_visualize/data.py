@@ -201,6 +201,7 @@ class DatasetProxy:
         OUTPUT_COLUMNS = [
             "image_id",
             "classification",
+            "annotation_type",
             "annotation_area",
             "annotation_count",
             "annotator_type",
@@ -208,8 +209,6 @@ class DatasetProxy:
             "compound_name",
             "organ",
             "species",
-            "annotation",
-            "annotation_type",
         ]
 
         def _special_title(x: str) -> str:
@@ -220,34 +219,6 @@ class DatasetProxy:
             if len(x) <= 2:
                 return x.upper()
             return x
-
-        def _aggreate(x: pd.Series) -> pd.Series:
-            """treat strings differently to integers/floats when aggregating"""
-            if isinstance(x[0], int):
-                return x.mean()
-            elif isinstance(x[0], float):
-                return x.mean()
-            else:
-                # FIXME this is required to aggregate a group but it is assuming that the entire group has the
-                # same value in this non int/float column. This is actually not true!
-                return x[0]
-
-        def _fill_nan_by_column_type(x: pd.Series) -> pd.Series:
-            """fill nans in joined table depending on the name of the column"""
-            if "area" in x.name or "count" in x.name:
-                return x
-            elif "annotator" in x.name:
-                return x.fillna("none")
-            else:
-                # FIXME this will probably cause bugs. When you concatenate and there are NaNs pandas will
-                # automatically upcast the entire column to float. So the string columns in this
-                # joined database have a float type. To avoid an extremely rigid solution handling each
-                # by its name, I resorted to finding the first unique item in the group and assuming that
-                # it is a string.
-                if x.dropna().shape[0] > 0:
-                    return x.fillna(str(x.dropna().unique()[0]))
-                else:
-                    return x.fillna("unknown")
 
         # === prepare metadata df for joining =================================
         mdf = self._ds.metadata.df.copy()
@@ -264,7 +235,6 @@ class DatasetProxy:
         mdf["annotator_type"] = "dataset"
         mdf["annotation_area"] = None
         mdf["annotation_count"] = None
-        mdf["annotation"] = False
         mdf["classification"] = mdf["classification"].fillna("None")
         mdf["annotation_type"] = "slide"
 
@@ -308,7 +278,6 @@ class DatasetProxy:
         adf["organ"] = adf["image_id"].map(_organ_map)
         adf["species"] = adf["image_id"].map(_species_map)
         adf["compound_name"] = adf["image_id"].map(_compound_map)
-        adf["annotation"] = True
         adf["annotation_type"] = "contour"
 
         # === prepare prediction dataframe for joining ========================
@@ -321,7 +290,6 @@ class DatasetProxy:
 
         pdf = pdf[["image_id"]]
         pdf["classification"] = _model_metadata.apply(itemgetter("classes"))
-        pdf["annotation"] = True
         pdf["annotator_name"] = _model_metadata.apply(_model_name)
         pdf["annotator_type"] = "model"
         pdf["organ"] = pdf["image_id"].map(_organ_map)
