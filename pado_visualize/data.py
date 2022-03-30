@@ -362,6 +362,7 @@ class DatasetProxy:
         )
 
         mpdf["annotation_type"] = "slide"
+        mpdf.loc[_mask, "annotation_type"] = "heatmap"
         mpdf["annotation_area"] = _score * 100
         mpdf.loc[~_mask, "annotation_area"] = None
         mpdf["annotation_count"] = None  # fixme: calculate
@@ -373,11 +374,12 @@ class DatasetProxy:
         mpdf = mpdf.loc[mpdf["classification"] != "Other", :]
 
         # === transfer area score for segmentation models =====================
-        ipdf.drop(ipdf[ipdf["annotator_name"] == "AIgnostics-v3"].index, inplace=True)
-        ipdf.drop(
-            ipdf[ipdf["annotator_name"] == "MultiClassSegmentation-v0.1"].index,
-            inplace=True,
-        )
+        ipdf = ipdf.loc[
+            ~(
+                (ipdf["annotator_name"] == "AIgnostics-v3")
+                | (ipdf["annotator_name"] == "MultiClassSegmentation-v0.1")
+            )
+        ]
 
         # === join and validate ===============================================
         table = pd.concat([mdf, adf, ipdf, mpdf], axis=0)
