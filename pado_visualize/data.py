@@ -26,6 +26,7 @@ from pado.annotations import AnnotationProvider
 from pado.images import ImageId
 from pado.images import ImageProvider
 from pado.images.providers import LocallyCachedImageProvider
+from pado.io.files import fsopen
 from pado.metadata import MetadataProvider
 from pado.predictions.proxy import PredictionProxy
 
@@ -228,6 +229,22 @@ class DatasetProxy:
             v = x["iteration"]
             return x["model"] if v == "v0" else f"{x['model']}-{v}"
 
+        def _recover_area_df() -> pd.Series:
+            try:
+                fs, get_fspath = self._ds._fs, self._ds._get_fspath
+                pth = get_fspath("precomputed.tissue.parquet")
+                with fsopen(fs, pth) as f:
+                    _t = pd.read_parquet(f)
+                    tissue = gpd.GeoSeries.from_wkb(_t["tissue"])
+                return tissue.area.groupby(tissue.index).sum()
+            except BaseException:
+                index = self._ds.index
+                data = []
+                for iid in index:
+                    dims = self._ds.images[iid].dimensions
+                    data.append(dims.x * dims.y)
+                return pd.Series(data, index=list(map(str, index)))
+
         # === prepare metadata df for joining =================================
         mdf = self._ds.metadata.df.copy()
 
@@ -290,6 +307,10 @@ class DatasetProxy:
         adf["compound_name"] = adf["image_id"].map(_compound_map)
         adf["annotation_type"] = "contour"
 
+        _tissue = _recover_area_df()
+        _tissue_area = adf["image_id"].map(_tissue)
+        adf["annotation_area"] = adf["annotation_area"] / _tissue_area * 100
+
         count_mask = adf["classification"].str.lower().str.contains("mitosis")
         adf["annotation_metric"] = None
         adf.loc[~count_mask, "annotation_metric"] = "area"
@@ -313,7 +334,7 @@ class DatasetProxy:
         ipdf["annotation_type"] = "heatmap"  # fixme: segmentation vs others...
         ipdf["annotation_metric"] = "area"  # fixme
         ipdf["annotation_value"] = None
-        ipdf["annotation_area"] = 100.0  # fixme: calculate
+        ipdf["annotation_area"] = None  # provided via MetadataPredictionProvider
         ipdf["annotation_count"] = None  # fixme: calculate
 
         ipdf = ipdf.explode("classification")
@@ -334,13 +355,29 @@ class DatasetProxy:
         mpdf["species"] = mpdf["image_id"].map(_species_map)
         mpdf["compound_name"] = mpdf["image_id"].map(_compound_map)
 
+        _metric = _row_data.apply(itemgetter("metric"))
+        _score = _row_data.apply(itemgetter("value"))
+        _mask = (mpdf["annotator_name"] == "AIgnostics-v3") | (
+            mpdf["annotator_name"] == "MultiClassSegmentation-v0.1"
+        )
+
         mpdf["annotation_type"] = "slide"
-        mpdf["annotation_area"] = None  # fixme: calculate
+        mpdf["annotation_area"] = _score * 100
+        mpdf.loc[~_mask, "annotation_area"] = None
         mpdf["annotation_count"] = None  # fixme: calculate
-        mpdf["annotation_metric"] = _row_data.apply(itemgetter("metric"))
-        mpdf["annotation_value"] = _row_data.apply(itemgetter("value"))
+        mpdf["annotation_metric"] = _metric
+        mpdf.loc[_mask, "annotation_metric"] = "area"
+        mpdf["annotation_value"] = _score
+        mpdf.loc[_mask, "annotation_value"] = None
 
         mpdf = mpdf.loc[mpdf["classification"] != "Other", :]
+
+        # === transfer area score for segmentation models =====================
+        ipdf.drop(ipdf[ipdf["annotator_name"] == "AIgnostics-v3"].index, inplace=True)
+        ipdf.drop(
+            ipdf[ipdf["annotator_name"] == "MultiClassSegmentation-v0.1"].index,
+            inplace=True,
+        )
 
         # === join and validate ===============================================
         table = pd.concat([mdf, adf, ipdf, mpdf], axis=0)
