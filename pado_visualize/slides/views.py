@@ -20,6 +20,9 @@ from pado.io.files import fsopen
 from pado.io.files import urlpathlike_get_fs_cls
 from pado.io.files import urlpathlike_get_path
 from pado.io.files import urlpathlike_get_storage_args_options
+from pado.predictions.providers import ImagePrediction
+from pado.predictions.providers import ImagePredictionProvider
+from pado.predictions.providers import ImagePredictions
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
 from pado_visualize.data import DatasetState
@@ -35,7 +38,6 @@ from pado_visualize.utils import int_ge_1
 
 if TYPE_CHECKING:
     from pado.images import ImageId
-    from pado.predictions.providers import ImagePredictionProvider
 
 
 # view blueprint for slide endpoints
@@ -128,6 +130,21 @@ def thumbnail(image_id: ImageId, size: int):
 # --- viewer endpoints ------------------------------------------------
 
 
+def _model_name(x: dict) -> str:
+    v = x["iteration"]
+    name = x["model"]
+    if name == "MultiClassSegmentation":
+        name = "MultiClassSeg"
+    return name if v == "v0" else f"{name}-{v}"
+
+
+def _tooltip(x: dict) -> str:
+    t = [f"classes={','.join(x['classes'])}"]
+    for key, value in x.get("modifiers", {}).items():
+        t.append(f"{key}={value!r}")
+    return " ".join(t)
+
+
 @blueprint.route("/viewer/<image_id:image_id>/osd")
 def viewer_openseadragon(image_id: ImageId):
     """the landing page for the openseadragon viewer"""
@@ -139,9 +156,16 @@ def viewer_openseadragon(image_id: ImageId):
 
     # get a list of the image_predictions
     image_predictions = []
-    for idx, ip in enumerate(dataset.predictions.images.get(image_id, [])):
-        name = "-".join(str(v) for v in ip.extra_metadata.values()).replace(" ", "-")
-        tooltip = " ".join(f"{k}={v!r}" for k, v in ip.extra_metadata.items())
+    ipp = dataset.predictions.images
+    assert isinstance(ipp, ImagePredictionProvider)
+    ip_item = dataset.predictions.images.get(image_id, ImagePredictions())
+    assert isinstance(ip_item, ImagePredictions)
+
+    for idx, ip in enumerate(ip_item):
+        assert isinstance(ip, ImagePrediction)
+
+        name = _model_name(ip.extra_metadata)
+        tooltip = _tooltip(ip.extra_metadata)
         image_predictions.append({"idx": idx, "name": name, "tooltip": tooltip})
 
     # metadata

@@ -389,7 +389,7 @@ function setupLineUp(options) {
   // build lineup
   const lineup = builder.build(luElement);
 
-  /*
+
   // add listeners
   lineup.on("selectionChanged", selectionChangedListener);
   lineup.on("groupSelectionChanged", selectionChangedListener);
@@ -404,7 +404,7 @@ function setupLineUp(options) {
     // Simulate an HTTP redirect:
     window.location.href = `/slides/viewer/${imageId}/osd`;
   }
-  */
+
 }
 
 export default {
