@@ -321,7 +321,7 @@ class DatasetProxy:
         ipdf["classification"] = ipdf["classification"].str.title()
 
         # === prepare metadata prediction dataframe for joining ===============
-        mpdf = self._ds.predictions.metadata.df
+        mpdf = self._ds.predictions.metadata.df.copy()
         _model_metadata = mpdf["model_extra_json"].apply(json.loads)
         _row_data = mpdf["row_json"].apply(json.loads)
         mpdf = mpdf[["image_id"]]
