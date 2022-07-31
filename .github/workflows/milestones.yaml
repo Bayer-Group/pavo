@@ -1,0 +1,12 @@
+name: "MLR Memorable Milestones"
+on:
+  schedule:
+  - cron: "*/30 * * * *"
+
+jobs:
+  memorable-milestones:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: bayer-int/mlr-memorable-milestones@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
