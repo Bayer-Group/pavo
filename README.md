@@ -1,5 +1,7 @@
 # PADO_VISUALIZE: PAthological Data Obsession &mdash; VISUALIZE
 
+[![Milestones](https://img.shields.io/badge/mlr%20milestones-pavo-brightgreen)](https://github.com/bayer-int/pathdrive-pavo/milestones?direction=asc&sort=due_date&state=open)
+
 Welcome to `pado_visualize` :wave:, a visualization tool for
 [pado datasets](https://github.com/bayer-science-for-a-better-life/pado).
 
@@ -11,7 +13,7 @@ We strive to make your lives as easy as possible: If setting up
 documentation is confusing, it's a bug in `pado_visualize`.
 Always feel free to report any issues or feature requests in the issue tracker!
 
-Development 
+Development
 [happens on github](https://github.com/bayer-science-for-a-better-life/pado_visualize)
 :octocat:
 
