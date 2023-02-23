@@ -1,17 +1,17 @@
 #
-# Conda devenv environment for pado_visualize.
+# Conda devenv environment for pavo.
 #
-# Create the environment, do not install pado_visualize in development mode:
+# Create the environment, do not install pavo in development mode:
 #   conda devenv
 # equivalent to:
-#   PADO_VISUALIZE_DEVEL="" conda devenv
+#   PAVO_DEVEL="" conda devenv
 # Create the environment, install pado in development mode:
-#   PADO_VISUALIZE_DEVEL=TRUE conda devenv
+#   PAVO_DEVEL=TRUE conda devenv
 #
 
-{% set PADO_VISUALIZE_DEVEL = os.environ.get('PADO_VISUALIZE_DEVEL', False) %}
+# {% set PAVO_DEVEL = os.environ.get('PAVO_DEVEL', False) %}
 
-name: pado_visualize
+name: pavo
 
 channels:
   - conda-forge
@@ -77,8 +77,8 @@ dependencies:
 
   # homemade dependencies on conda
   - tiffslide
+  - pado
 
   - pip:
     # homemade dependencies
-    - git+ssh://git@github.com/bayer-science-for-a-better-life/pado.git#egg=pado  # [ not PADO_VISUALIZE_DEVEL ]
-    - "-e ."  # [ PADO_VISUALIZE_DEVEL ]
+    - "-e ."  # [ PAVO_DEVEL ]

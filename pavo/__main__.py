@@ -1,6 +1,6 @@
-"""pado-visualize cli interface
+"""pavo cli interface
 
-useful commands for interacting with pado-visualize
+useful commands for interacting with pavo
 
 """
 from __future__ import annotations
@@ -17,9 +17,9 @@ from typing import NoReturn
 import typer
 from flask import Flask
 
-from pado_visualize import __version__
-from pado_visualize.app import create_app
-from pado_visualize.config import initialize_config
+from pavo import __version__
+from pavo.app import create_app
+from pavo.config import initialize_config
 
 # --- formatting utils ---
 
@@ -30,17 +30,17 @@ def echo_header(title, width=80):
     typer.secho(line, color=typer.colors.CYAN)
 
 
-# === pado-visualize cli interface ============================================
+# === pavo cli interface ============================================
 
 cli = typer.Typer(
-    name="pado-visualize",
+    name="pavo",
     epilog="#### visualize pado datasets ####",
 )
 
 
 @cli.command("version")
 def version():
-    """show the pado-visualize version"""
+    """show the pavo version"""
     typer.echo(__version__)
 
 
@@ -77,7 +77,7 @@ def searchtree() -> None:
 
 @cli_config.command(name="show")
 def config_show() -> None:
-    """show the current pado-visualize configuration"""
+    """show the current pavo configuration"""
     # get the configured app
     app = create_app(is_worker=False)
     settings = app.dynaconf
@@ -119,7 +119,7 @@ def dev_js(
             stderr=subprocess.DEVNULL,
         )
         if ret != 0:
-            typer.echo("pado-visualize is not in a git repository!", err=True)
+            typer.echo("pavo is not in a git repository!", err=True)
             typer.secho(
                 "You probably didn't install in development mode and should run again in your dev environment"
             )
@@ -151,7 +151,7 @@ def dev_run(
         overrides["DATASET_PATHS"] = dataset
 
     # acquire the configuration
-    app = Flask("pado_visualize")
+    app = Flask("pavo")
     settings = initialize_config(
         app=app, override_config=overrides, force_env="development"
     ).settings
@@ -185,7 +185,7 @@ def prod_run(
     sanity_check: bool = typer.Option(True, help="check some settings before launch")
 ) -> None:
     """run production webserver"""
-    app = Flask("pado_visualize")
+    app = Flask("pavo")
     settings = initialize_config(app=app, force_env="production").settings
 
     if sanity_check:
@@ -207,7 +207,7 @@ def prod_run(
         "--http", f"{settings.SERVER}:{settings.PORT}",
         "--env", f"{settings.ENV_SWITCHER_FOR_DYNACONF}=production",
         "--manage-script-name",
-        "--mount", "/=pado_visualize.app:create_app()",
+        "--mount", "/=pavo.app:create_app()",
         "--lazy-apps",
         "--master",
         "--buffer-size", "8192",

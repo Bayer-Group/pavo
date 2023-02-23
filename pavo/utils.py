@@ -1,4 +1,4 @@
-"""some pado_visualize utility objects"""
+"""some pavo utility objects"""
 from __future__ import annotations
 
 import hashlib
@@ -15,16 +15,16 @@ from typing import TypeVar
 from flask import url_for
 from itsdangerous import base64_decode
 from itsdangerous import base64_encode
+from pado import __version__ as _pado_version
+from pado._repr import is_mpp_count
+from pado._repr import is_number
+from pado._repr import number_to_str
+from pado.images import ImageId
+from tiffslide import __version__ as _tiffslide_version
 from werkzeug.routing import BaseConverter
 from werkzeug.routing import ValidationError
 
-from pado._repr import number_to_str
-from pado._repr import is_mpp_count
-from pado._repr import is_number
-from pado import __version__ as _pado_version
-from pado.images import ImageId
-from pado_visualize._version import version as _pado_visualize_version
-from tiffslide import __version__ as _tiffslide_version
+from pavo._version import version as _pavo_version
 
 _T = TypeVar("_T")
 
@@ -44,6 +44,7 @@ __all__ = [
 
 
 # --- endpoint handling ---
+
 
 class ImageIdConverter(BaseConverter):
     """a converter for image ids from pado"""
@@ -71,25 +72,29 @@ class ImageIdConverter(BaseConverter):
         return base64_encode(image_id_str.encode()).decode()
 
 
-_version_hash = hashlib.sha256(_pado_visualize_version.encode()).hexdigest()[:8]
+_version_hash = hashlib.sha256(_pavo_version.encode()).hexdigest()[:8]
 
 
 @wraps(url_for)
 def url_for_versioned(endpoint, **values):
     """use in templates to add a ?v=hash to urls"""
-    assert 'v' not in values
-    values['v'] = _version_hash
+    assert "v" not in values
+    values["v"] = _version_hash
     return url_for(endpoint, **values)
 
 
 # --- request types ---
 
+
 def ranged_type(
     cls: Type[_T],
-    gt: _T = None, ge: _T = None,
-    lt: _T = None, le: _T = None,
+    gt: _T = None,
+    ge: _T = None,
+    lt: _T = None,
+    le: _T = None,
 ) -> Callable[[Any], _T]:
     """check if type can be cast to and is in range"""
+
     def _type(x):
         value = cls(x)  # might raise
         if lt is not None:
@@ -105,6 +110,7 @@ def ranged_type(
             if value < ge:
                 raise ValueError(f"bound: {value!r} >= {gt!r}")
         return value
+
     return _type
 
 
@@ -130,10 +136,11 @@ def check_numeric_list(lst: list | None) -> list | None:
 
 @lru_cache()
 def get_instance_name() -> str | None:
-    """return a name to identify the pado_visualize instance"""
-    name = os.getenv("PADOVIS_INSTANCE_NAME")
+    """return a name to identify the pavo instance"""
+    name = os.getenv("PAVO_INSTANCE_NAME")
     if name is None:
         from flask import current_app
+
         if current_app.config.env == "development":
             try:
                 name = f"{getuser()!s}@{platform.uname().node!s}"
@@ -144,9 +151,9 @@ def get_instance_name() -> str | None:
 
 @lru_cache()
 def get_instance_version() -> dict:
-    """return pado_visualize instance version information"""
+    """return pavo instance version information"""
     return {
-        "pado_visualize": _pado_visualize_version,
+        "pavo": _pavo_version,
         "pado": _pado_version,
         "tiffslide": _tiffslide_version,
     }

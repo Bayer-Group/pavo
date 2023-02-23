@@ -9,14 +9,14 @@ from flask import jsonify
 from flask import render_template
 from flask import url_for
 
-from pado_visualize.data import DatasetState
-from pado_visualize.data import dataset
-from pado_visualize.extensions import celery
-from pado_visualize.oauth import login_required
-from pado_visualize.home.tasks import ping_worker_task
+from pavo.data import DatasetState
+from pavo.data import dataset
+from pavo.extensions import celery
+from pavo.home.tasks import ping_worker_task
+from pavo.oauth import login_required
 
 # view blueprint for home endpoints
-blueprint = Blueprint('home', __name__)
+blueprint = Blueprint("home", __name__)
 
 
 @blueprint.route("/")
@@ -37,24 +37,28 @@ def index():
 
 @blueprint.route("/health")
 def health():
-    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
 
 
 @blueprint.route("/worker/ping")
 def ping_worker():
     result: AsyncResult = ping_worker_task.apply_async()
-    return jsonify({
-        'status': 200,
-        'id': result.id,
-        'link': url_for('home.pong_worker', task_id=result.id)
-    })
+    return jsonify(
+        {
+            "status": 200,
+            "id": result.id,
+            "link": url_for("home.pong_worker", task_id=result.id),
+        }
+    )
 
 
 @blueprint.route("/worker/<string:task_id>/pong")
 def pong_worker(task_id):
     result = AsyncResult(task_id, app=celery)
-    return jsonify({
-        'id': task_id,
-        'status': result.state,
-        'info': str(result.info),
-    })
+    return jsonify(
+        {
+            "id": task_id,
+            "status": result.state,
+            "info": str(result.info),
+        }
+    )

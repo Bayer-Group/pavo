@@ -1,15 +1,15 @@
 /**
- * @fileOverview The webpack configuration for pado_visualize
- * This file should take care of translating the pado_visualize/static_src
- * folder to shippable sources in pado_visualize/static
+ * @fileOverview The webpack configuration for pavo
+ * This file should take care of translating the pavo/static_src
+ * folder to shippable sources in pavo/static
  */
 // are we in development mode?
 // const devMode = process.env.NODE_ENV !== "production";
 
 // path related config
 const path = require("path");
-const srcDir = [__dirname, "pado_visualize", "static_src"];
-const outDir = [__dirname, "pado_visualize", "static"];
+const srcDir = [__dirname, "pavo", "static_src"];
+const outDir = [__dirname, "pavo", "static"];
 
 // css plugin config (see https://github.com/webpack-contrib/css-loader#recommend)
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
