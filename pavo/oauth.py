@@ -1,4 +1,4 @@
-"""pado_visualize.oauth
+"""pavo.oauth
 
 basis for flask danced backed authentication
 
@@ -38,7 +38,7 @@ def make_blueprint(app: Flask) -> Optional[Blueprint]:
             client_secret=app.config.OAUTH_AZURE_CLIENT_SECRET,
             scope=app.config.OAUTH_AZURE_SCOPE,
             tenant=app.config.OAUTH_AZURE_TENANT_ID,
-            redirect_to='home.index',
+            redirect_to="home.index",
         )
 
     else:
@@ -47,6 +47,7 @@ def make_blueprint(app: Flask) -> Optional[Blueprint]:
 
 def login_required(endpoint):
     """simple login decorator"""
+
     # noinspection PyUnresolvedReferences
     @functools.wraps(endpoint)
     def _endpoint(*args, **kwargs):
@@ -59,4 +60,5 @@ def login_required(endpoint):
         if not oidc_proxy.authorized:
             return redirect(url_for("azure.login"))
         return endpoint(*args, **kwargs)
+
     return _endpoint

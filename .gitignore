@@ -19,14 +19,14 @@ node_modules/
 *.log
 
 # static is generated
-pado_visualize/static/**/*
-pado_visualize/_version.py
+pavo/static/**/*
+pavo/_version.py
 webpack-output-manifest.json
 
 
-# pado_visualize config
-.pado_visualize.local.toml
-.pado_visualize.secrets.toml
+# pavo config
+.pavo.local.toml
+.pavo.secrets.toml
 *.secrets.toml
 .env
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from celery import Task
 
-from pado_visualize.extensions import celery
+from pavo.extensions import celery
 
 
 @celery.task(bind=True)

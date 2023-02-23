@@ -1,15 +1,16 @@
-"""background tasks in pado_visualize
+"""background tasks in pavo
 
 TODO: autolaunch those on cmdline invocation
 
 """
 from __future__ import annotations
 
-from typing import Optional
 from typing import TYPE_CHECKING
+from typing import Optional
 
 from celery import Celery
 from celery import Task
+
 # from celery.signals import celeryd_init
 
 if TYPE_CHECKING:
@@ -19,7 +20,8 @@ if TYPE_CHECKING:
 def initialize_celery(app: Optional[Flask] = None) -> Celery:
     """create the base object for queue based background tasks"""
     if app is None:
-        from pado_visualize.app import create_app
+        from pavo.app import create_app
+
         app = create_app(is_worker=True)
 
     # noinspection PyAbstractClass
@@ -35,6 +37,7 @@ def initialize_celery(app: Optional[Flask] = None) -> Celery:
             """
             with app.app_context():
                 import fsspec.asyn
+
                 # Clear reference to the loop and thread.
                 # See https://github.com/dask/gcsfs/issues/379#issuecomment-839929801
                 # Only relevant for fsspec >= 0.9.0
@@ -49,7 +52,7 @@ def initialize_celery(app: Optional[Flask] = None) -> Celery:
         task_cls=ContextTask,
     )
     c.conf.update(app.config)
-    assert not hasattr(app, 'celery')
+    assert not hasattr(app, "celery")
     app.celery = c  # set attribute on app instance
     return c
 
@@ -71,5 +74,5 @@ celery = initialize_celery()
 
 # @celery.on_after_finalize.connect
 # def setup_one_off_tasks(sender, **kwargs):
-#     from pado_visualize.slides.tasks import slide_build_thumbnail_index_task
+#     from pavo.slides.tasks import slide_build_thumbnail_index_task
 #     slide_build_thumbnail_index_task.apply_async()
