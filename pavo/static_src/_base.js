@@ -1,4 +1,4 @@
-/* common pado_visualize javascripty things */
+/* common pavo javascripty things */
 import "normalize.css";
 import "./css/base.scss";
 import "core-js/stable";

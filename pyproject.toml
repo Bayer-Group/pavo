@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "pado_visualize/_version.py"
+write_to = "pavo/_version.py"
 version_scheme = "post-release"
 
 
@@ -20,7 +20,7 @@ addopts = [
 
 
 [tool.coverage.run]
-source = ["pado_visualize"]
+source = ["pavo"]
 
 
 [tool.coverage.report]

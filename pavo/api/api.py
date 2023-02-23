@@ -5,10 +5,10 @@ from flask import jsonify
 from flask import request
 from werkzeug.exceptions import BadRequest
 
-from pado_visualize.api.utils import get_filtered_image_ids
-from pado_visualize.api.utils import insert_annotation_prediction
-from pado_visualize.api.utils import insert_image_prediction
-from pado_visualize.data import dataset
+from pavo.api.utils import get_filtered_image_ids
+from pavo.api.utils import insert_annotation_prediction
+from pavo.api.utils import insert_image_prediction
+from pavo.data import dataset
 
 blueprint = Blueprint("api", __name__)
 
@@ -22,6 +22,7 @@ def refresh_dataset():
 
 
 # ---- prediction endpoints ---------------------------------------------------
+
 
 # TODO: implement tests for this endpoint
 # TODO: add authorisation

@@ -1,4 +1,4 @@
-"""pado_visualize.data provides access to pado datasets"""
+"""pavo.data provides access to pado datasets"""
 from __future__ import annotations
 
 import json
@@ -78,9 +78,7 @@ class DatasetProxy:
         self.state = DatasetState.NOT_CONFIGURED
         self._ds: Optional[PadoDataset] = None
         self._cache_path = None
-        self._modified_file = os.path.join(
-            tempfile.gettempdir(), ".pado_visualize.timestamp"
-        )
+        self._modified_file = os.path.join(tempfile.gettempdir(), ".pavo.timestamp")
         self._modified_time = None
 
     def init_app(self, app: Flask) -> None:

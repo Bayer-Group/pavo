@@ -20,8 +20,8 @@
 <div class="pado-sidebar container">
   <div class="header">
     <a href="{{ url_for('home.index') }}">
-      <h2>Pado Visualize</h2>
-      <h3>Pathological Data Obsession</h3>
+      <h2>Pavo</h2>
+      <h3>Pathological Visualization Obsession</h3>
       {% if instance_name %}<span class="host">{{ pado_instance_name() or "" }}</span>{% endif %}
       <img alt="logo" title="{{ version_info() }}" src="{{ url_for('static', filename='images/pathological-heart.jpg') }}">
     </a>

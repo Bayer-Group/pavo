@@ -4,10 +4,10 @@ from flask import Blueprint
 from flask import jsonify
 from flask import render_template
 
-from pado_visualize.data import dataset
-from pado_visualize.metadata.utils import get_valid_metadata_attribute_options
-from pado_visualize.metadata.utils import get_valid_metadata_attributes
-from pado_visualize.oauth import login_required
+from pavo.data import dataset
+from pavo.metadata.utils import get_valid_metadata_attribute_options
+from pavo.metadata.utils import get_valid_metadata_attributes
+from pavo.oauth import login_required
 
 # view blueprint for metadata endpoints
 blueprint = Blueprint("metadata", __name__)

@@ -25,16 +25,16 @@ from pado.predictions.providers import ImagePredictionProvider
 from pado.predictions.providers import ImagePredictions
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
-from pado_visualize.data import DatasetState
-from pado_visualize.data import dataset
-from pado_visualize.extensions import cache
-from pado_visualize.metadata.utils import get_all_metadata_attribute_options
-from pado_visualize.slides.utils import get_paginated_images
-from pado_visualize.slides.utils import thumbnail_fs_and_path
-from pado_visualize.slides.utils import thumbnail_image
-from pado_visualize.utils import check_numeric_list
-from pado_visualize.utils import int_ge_0
-from pado_visualize.utils import int_ge_1
+from pavo.data import DatasetState
+from pavo.data import dataset
+from pavo.extensions import cache
+from pavo.metadata.utils import get_all_metadata_attribute_options
+from pavo.slides.utils import get_paginated_images
+from pavo.slides.utils import thumbnail_fs_and_path
+from pavo.slides.utils import thumbnail_image
+from pavo.utils import check_numeric_list
+from pavo.utils import int_ge_0
+from pavo.utils import int_ge_1
 
 if TYPE_CHECKING:
     from pado.images import ImageId
@@ -312,7 +312,6 @@ def serve_geojson_annotations(image_id):
 
 @blueprint.route("/viewer/<image_id:image_id>/annotations.json")
 def serve_w3c_annotations(image_id):
-
     try:
         annotations: Annotations = dataset.annotations[image_id]
     except KeyError:
