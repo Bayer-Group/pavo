@@ -1,4 +1,4 @@
-"""flask extensions custom to pado_visualize"""
+"""flask extensions custom to pavo"""
 from __future__ import annotations
 
 import logging
@@ -33,17 +33,17 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
 
     if not is_worker:
         # register the image id converter
-        from pado_visualize.utils import ImageIdConverter
+        from pavo.utils import ImageIdConverter
 
         app.url_map.converters["image_id"] = ImageIdConverter
 
         # register jinja2 globals
-        from pado_visualize.utils import get_instance_name
-        from pado_visualize.utils import get_instance_version
-        from pado_visualize.utils import is_mpp_count
-        from pado_visualize.utils import is_number
-        from pado_visualize.utils import number_to_str
-        from pado_visualize.utils import url_for_versioned
+        from pavo.utils import get_instance_name
+        from pavo.utils import get_instance_version
+        from pavo.utils import is_mpp_count
+        from pavo.utils import is_number
+        from pavo.utils import number_to_str
+        from pavo.utils import url_for_versioned
 
         app.jinja_env.globals["url_for_versioned"] = url_for_versioned
         app.jinja_env.globals["pado_is_number"] = is_number

@@ -10,14 +10,14 @@ from flask.cli import FlaskGroup
 from flask.cli import with_appcontext
 from tqdm import tqdm
 
-from pado_visualize.app import create_app
-from pado_visualize.data import dataset
-from pado_visualize.slides.utils import thumbnail_image
+from pavo.app import create_app
+from pavo.data import dataset
+from pavo.slides.utils import thumbnail_image
 
 
 @click.group(cls=FlaskGroup, create_app=create_app)
 def cli():
-    """pado_visualize's commandline interface"""
+    """pavo's commandline interface"""
 
 
 @cli.command()
@@ -40,7 +40,7 @@ def tasks_list():
     """launch the celery task monitor"""
     os.execvpe(
         "python",
-        ["python", "-m", "celery", "-A", "pado_visualize.worker", "events"],
+        ["python", "-m", "celery", "-A", "pavo.worker", "events"],
         os.environ,
     )
 

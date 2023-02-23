@@ -10,8 +10,8 @@ from typing import Optional
 from flask import Flask
 from flask import g
 
-from pado_visualize.data import initialize_dataset
-from pado_visualize.extensions import register_extensions
+from pavo.data import initialize_dataset
+from pavo.extensions import register_extensions
 
 __all__ = ["create_app"]
 
@@ -39,9 +39,9 @@ def create_app(
 
     # allow two-step initialization (for cli interface)
     if configured_app is None:
-        from pado_visualize.config import initialize_config
+        from pavo.config import initialize_config
 
-        app = Flask("pado_visualize")
+        app = Flask("pavo")
         _ = initialize_config(app)
     else:
         app = configured_app
@@ -69,8 +69,8 @@ def configure_logging() -> None:
         }
     )
     for logger_name in [
-        "pado_visualize.data.caches",
-        "pado_visualize.data.dataset",
+        "pavo.data.caches",
+        "pavo.data.dataset",
     ]:
         logger = logging.getLogger(logger_name)
         backend_handler = logging.StreamHandler(sys.stderr)
@@ -83,31 +83,31 @@ def configure_logging() -> None:
 def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
     """register all blueprints on the Flask app"""
     # Note: this pattern prevents circular imports, which often occur in larger Flask apps
-    # Note: allows us to provide plugin style addons to pado_visualize in the future...
+    # Note: allows us to provide plugin style addons to pavo in the future...
 
     if is_worker:
         # register the worker tasks
-        import pado_visualize.home.tasks  # noqa: F401
-        import pado_visualize.slides.tasks  # noqa: F401
+        import pavo.home.tasks  # noqa: F401
+        import pavo.slides.tasks  # noqa: F401
 
         return
 
     # --- views ---
-    from pado_visualize.home.views import blueprint as home_blueprint
-    from pado_visualize.metadata.views import blueprint as metadata_blueprint
-    from pado_visualize.slides.views import blueprint as slides_blueprint
+    from pavo.home.views import blueprint as home_blueprint
+    from pavo.metadata.views import blueprint as metadata_blueprint
+    from pavo.slides.views import blueprint as slides_blueprint
 
     app.register_blueprint(home_blueprint, url_prefix="/")
     app.register_blueprint(metadata_blueprint, url_prefix="/metadata")
     app.register_blueprint(slides_blueprint, url_prefix="/slides")
 
     # --- api ---
-    from pado_visualize.api.api import blueprint as api_blueprint
+    from pavo.api.api import blueprint as api_blueprint
 
     app.register_blueprint(api_blueprint, url_prefix="/api")
 
     # --- oauth ---
-    from pado_visualize.oauth import make_blueprint
+    from pavo.oauth import make_blueprint
 
     oauth_blueprint = make_blueprint(app)
     if oauth_blueprint:

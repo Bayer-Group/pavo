@@ -1,42 +1,35 @@
 from __future__ import annotations
 
-import enum
 import hashlib
 import io
 import math
 import os
-import shutil
-from collections import OrderedDict
-from functools import lru_cache
-from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import List
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
 from typing import Sequence
-from typing import TYPE_CHECKING
 from typing import Tuple
 
 import fsspec
-from PIL import Image as PILImage
-from filelock import FileLock
-from filelock import Timeout as FileLockTimeout
 from flask import current_app
-from werkzeug.datastructures import ImmutableMultiDict
-
 from pado.images import Image
 from pado.images import ImageId
 from pado.io.files import fsopen
 from pado.io.files import urlpathlike_to_fs_and_path
-from pado.io.files import urlpathlike_to_string
 from pado.types import UrlpathLike
-from pado_visualize.api.utils import get_filtered_image_ids
+from PIL import Image as PILImage
+from werkzeug.datastructures import ImmutableMultiDict
+
+from pavo.api.utils import get_filtered_image_ids
 
 if TYPE_CHECKING:
-    from pado_visualize.data import DatasetProxy
+    from pavo.data import DatasetProxy
 
 
 # --- pagination --------------------------------------------------------------
+
 
 class ImageIdImagePair(NamedTuple):
     id: ImageId
@@ -49,7 +42,9 @@ class PaginatedItems(NamedTuple):
     items: List[ImageIdImagePair]
 
 
-def get_paginated_images(ds: DatasetProxy, page: int, page_size: int, filter: dict = None) -> PaginatedItems:
+def get_paginated_images(
+    ds: DatasetProxy, page: int, page_size: int, filter: dict = None
+) -> PaginatedItems:
     """return filtered and paginated Images"""
     if filter is None:
         filter = {}
@@ -61,7 +56,10 @@ def get_paginated_images(ds: DatasetProxy, page: int, page_size: int, filter: di
     return PaginatedItems(
         page=page,
         pages=math.ceil(len(ds_index) / page_size),
-        items=[ImageIdImagePair(id=image_id, image=ds_images[image_id]) for image_id in image_ids],
+        items=[
+            ImageIdImagePair(id=image_id, image=ds_images[image_id])
+            for image_id in image_ids
+        ],
     )
 
 
@@ -75,12 +73,14 @@ def thumbnail_fs_and_path(
     size: int,
     *,
     sizes: Sequence[int] = THUMBNAIL_SIZES,
-    fmt: str = 'png',
-    base_path: Optional[UrlpathLike] = None
+    fmt: str = "png",
+    base_path: Optional[UrlpathLike] = None,
 ) -> Tuple[fsspec.AbstractFileSystem, str]:
     """return a filesystem and path to the thumbnail image"""
-    fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
-    # 
+    fs, cache_path = urlpathlike_to_fs_and_path(
+        base_path or current_app.config["CACHE_PATH"]
+    )
+    #
     urlhash = image_id.to_url_id()
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
     path = f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{size:d}x{size:d}.{fmt}"
@@ -93,18 +93,20 @@ def thumbnail_image(
     *,
     sizes: Sequence[int] = THUMBNAIL_SIZES,
     force: bool = False,
-    base_path: Optional[UrlpathLike] = None
+    base_path: Optional[UrlpathLike] = None,
 ) -> None:
     """thumbnail the image"""
-    fs, cache_path = urlpathlike_to_fs_and_path(base_path or current_app.config["CACHE_PATH"])
-    # 
+    fs, cache_path = urlpathlike_to_fs_and_path(
+        base_path or current_app.config["CACHE_PATH"]
+    )
+    #
     urlhash = image_id.to_url_id()
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
 
     def mkpth(s):
         return os.path.join(
             cache_path,
-            f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{s[0]:d}x{s[1]:d}.png"
+            f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{s[0]:d}x{s[1]:d}.png",
         )
 
     _sizes = sorted(zip(sizes, sizes), reverse=True)
@@ -118,7 +120,7 @@ def thumbnail_image(
         img = base_thumb.copy()
         img.thumbnail(size)
 
-        square = PILImage.new('RGBA', size, (255, 255, 255, 0))
+        square = PILImage.new("RGBA", size, (255, 255, 255, 0))
         square.paste(img, ((size[0] - img.size[0]) // 2, (size[1] - img.size[1]) // 2))
 
         with io.BytesIO() as f:
@@ -140,6 +142,7 @@ def thumbnail_image(
 
 
 # --- filtering ---------------------------------------------------------------
+
 
 def formdata_to_filter(formdata: ImmutableMultiDict) -> Mapping[str, str]:
     """converts form data into a filter dictionary"""

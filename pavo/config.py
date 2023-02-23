@@ -26,9 +26,9 @@ def initialize_config(
 ) -> FlaskDynaconf:
     """apply configuration to the flask server"""
     dynaconf_config = dict(
-        ENVVAR_PREFIX="PADOVIS",
-        settings_file=[".pado_visualize.toml", ".pado_visualize.secrets.toml"],
-        core_loaders=['TOML'],
+        ENVVAR_PREFIX="PAVO",
+        settings_file=[".pavo.toml", ".pavo.secrets.toml"],
+        core_loaders=["TOML"],
         preload=[],
         validators=[
             Validator("dataset_paths", is_type_of=(list, tuple, str)),
@@ -36,13 +36,13 @@ def initialize_config(
         default_settings_paths=[],
     )
 
-    dynaconf_config["ENV_SWITCHER"] = "PADOVIS_ENV"
+    dynaconf_config["ENV_SWITCHER"] = "PAVO_ENV"
     dynaconf_config["ENVIRONMENTS"] = True
     dynaconf_config["load_dotenv"] = True
 
     if force_env:
         # fixme: dynaconf_config['env'] = force_env
-        os.environ["PADOVIS_ENV"] = force_env
+        os.environ["PAVO_ENV"] = force_env
 
     flask_config = FlaskDynaconf(app=None, **dynaconf_config)
     flask_config.init_app(app)

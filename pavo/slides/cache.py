@@ -10,13 +10,12 @@ from pathlib import Path
 
 from filelock import FileLock
 from filelock import Timeout as FileLockTimeout
-
 from pado.io.files import urlpathlike_to_fs_and_path
 from pado.io.files import urlpathlike_to_string
 from pado.types import UrlpathLike
 
-
 # --- slide caching -----------------------------------------------------------
+
 
 class CacheState(enum.Enum):
     MISS = enum.auto()
@@ -25,7 +24,7 @@ class CacheState(enum.Enum):
 
 
 class LocalWholeSlideCache:
-    """caches images locally """
+    """caches images locally"""
 
     def __init__(self, root: str | Path, maxsize: int = 100 * 2**30):
         self.root = os.fspath(root)
@@ -50,10 +49,7 @@ class LocalWholeSlideCache:
         fs, path = urlpathlike_to_fs_and_path(urlpath)
         lpath = os.path.join(self.root, lhash, path)
 
-        if not (
-                os.path.isfile(lpath)
-                and os.stat(lpath).st_size == fs.size(path)
-        ):
+        if not (os.path.isfile(lpath) and os.stat(lpath).st_size == fs.size(path)):
             # todo: speed up for specific fs implementations
             #  - s3: s5cmd maybe
             #  - gs: gsutil with all options?
