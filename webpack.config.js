@@ -80,9 +80,9 @@ module.exports = {
       patterns: [
         {
           from: path.posix.join(
-            path.relative(
-              path.resolve(__dirname),
-              path.dirname(require.resolve("openseadragon"))
+            path.posix.relative(
+              path.posix.resolve(__dirname),
+              path.posix.dirname(require.resolve("openseadragon"))
             ),
             "images",
             "*.png"
