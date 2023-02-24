@@ -1,3 +1,7 @@
 include pyproject.toml
 exclude .gitignore
+prune .github
 graft pavo/templates
+global-exclude .DS_Store
+global-exclude *.pyc
+global-exclude *.so
