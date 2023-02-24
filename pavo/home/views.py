@@ -13,7 +13,6 @@ from pavo.data import DatasetState
 from pavo.data import dataset
 from pavo.extensions import celery
 from pavo.home.tasks import ping_worker_task
-from pavo.oauth import login_required
 
 # view blueprint for home endpoints
 blueprint = Blueprint("home", __name__)
@@ -22,7 +21,6 @@ blueprint = Blueprint("home", __name__)
 @blueprint.route("/")
 @blueprint.route("/index.htm")
 @blueprint.route("/index.html")
-@login_required
 def index():
     description = {
         "path": current_app.config["DATASET_PATHS"],

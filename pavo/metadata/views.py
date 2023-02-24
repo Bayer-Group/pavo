@@ -7,14 +7,12 @@ from flask import render_template
 from pavo.data import dataset
 from pavo.metadata.utils import get_valid_metadata_attribute_options
 from pavo.metadata.utils import get_valid_metadata_attributes
-from pavo.oauth import login_required
 
 # view blueprint for metadata endpoints
 blueprint = Blueprint("metadata", __name__)
 
 
 @blueprint.route("/metadata")
-@login_required
 def index():
     table = dataset.get_tabular_records()
     return render_template(
