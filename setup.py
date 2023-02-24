@@ -1,10 +1,10 @@
-import distutils.command.build
 import json
 import os
 import pathlib
 import shutil
 import warnings
 
+import setuptools.command.build
 from setuptools import Command
 from setuptools import setup
 from setuptools.command.develop import develop
@@ -47,7 +47,7 @@ class BuildFrontendCommand(Command):
 
 
 # noinspection PyUnresolvedReferences
-distutils.command.build.build.sub_commands.append(("build_js", None))
+setuptools.command.build.build.sub_commands.append(("build_js", None))
 
 
 class DevelopWithJS(develop):
