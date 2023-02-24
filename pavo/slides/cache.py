@@ -33,7 +33,7 @@ class LocalWholeSlideCache:
         self._mapping = OrderedDict()
 
     @staticmethod
-    @lru_cache()
+    @lru_cache
     def _lhash(urlpath: UrlpathLike) -> str:
         """return a hash from an urlpath (used as base dir)"""
         # note: this needs to be a name that can be created as a directory
