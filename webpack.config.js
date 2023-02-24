@@ -79,7 +79,11 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve(path.dirname(require.resolve("openseadragon")), "images", "*.png"),
+          from: path.posix.join(
+            path.dirname(require.resolve("openseadragon")),
+            "images",
+            "*.png"
+          ),
           to: "images/openseadragon/[name][ext]",
         },
       ],
