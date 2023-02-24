@@ -16,7 +16,6 @@ from typing import NoReturn
 from typing import Optional
 from typing import Sequence
 
-import geopandas as gpd
 import pandas as pd
 from flask import Flask
 from fsspec.implementations.cached import SimpleCacheFileSystem
@@ -197,6 +196,10 @@ class DatasetProxy:
         except KeyError:
             pass  # cache miss
 
+        # === lazy import geopandas when needed ===============================
+        from geopandas import GeoDataFrame
+        from geopandas import GeoSeries
+
         # NOTE: currently the returned dataframe contains the following columns:
         OUTPUT_COLUMNS = [
             "image_id",
@@ -233,7 +236,7 @@ class DatasetProxy:
                 pth = get_fspath("precomputed.tissue.parquet")
                 with fsopen(fs, pth) as f:
                     _t = pd.read_parquet(f)
-                    tissue = gpd.GeoSeries.from_wkb(_t["tissue"])
+                    tissue = GeoSeries.from_wkb(_t["tissue"])
                 return tissue.area.groupby(tissue.index).sum()
             except BaseException:
                 index = self._ds.index
@@ -281,8 +284,8 @@ class DatasetProxy:
         adf = self._ds.annotations.df.copy()
 
         if "area" not in adf.columns:
-            gs = gpd.GeoSeries.from_wkt(adf["geometry"])
-            geo_adf = gpd.GeoDataFrame(adf, geometry=gs)
+            gs = GeoSeries.from_wkt(adf["geometry"])
+            geo_adf = GeoDataFrame(adf, geometry=gs)
             adf["area"] = geo_adf.geometry.area
 
         adf["annotator_type"] = adf["annotator"].apply(lambda x: x["type"])
@@ -389,6 +392,7 @@ class DatasetProxy:
             OUTPUT_COLUMNS
         ), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
 
+        # === cache and return ================================================
         tabular_records = self.__dict__["_tabular_records"] = table
         return tabular_records
 
