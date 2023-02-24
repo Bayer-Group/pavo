@@ -106,13 +106,6 @@ def register_blueprints(app: Flask, *, is_worker: bool = True) -> None:
 
     app.register_blueprint(api_blueprint, url_prefix="/api")
 
-    # --- oauth ---
-    from pavo.oauth import make_blueprint
-
-    oauth_blueprint = make_blueprint(app)
-    if oauth_blueprint:
-        app.register_blueprint(oauth_blueprint, url_prefix="/oauth")
-
     # --- plugins ---
     ...  # todo...
 
