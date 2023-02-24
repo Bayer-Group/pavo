@@ -134,7 +134,7 @@ def check_numeric_list(lst: list | None) -> list | None:
     return lst
 
 
-@lru_cache()
+@lru_cache
 def get_instance_name() -> str | None:
     """return a name to identify the pavo instance"""
     name = os.getenv("PAVO_INSTANCE_NAME")
@@ -149,7 +149,7 @@ def get_instance_name() -> str | None:
     return name or None
 
 
-@lru_cache()
+@lru_cache
 def get_instance_version() -> dict:
     """return pavo instance version information"""
     return {
