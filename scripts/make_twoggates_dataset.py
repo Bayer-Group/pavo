@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pado.dataset import PadoDataset
 from pado.images import ImageProvider
-from pado.images.ids import ImageId
 from pado.metadata import MetadataProvider
 from pado.types import UrlpathLike
 from pado_tggates import make_image_provider
@@ -19,17 +18,11 @@ def write_dataset(urlpath: UrlpathLike) -> PadoDataset:
 
     iids = list(ip.keys())
 
-    selected = [
-        iid for iid in iids if iid.last in SELECTED
-    ]
+    selected = [iid for iid in iids if iid.last in SELECTED]
 
-    filtered_ip = ImageProvider({
-        k: ip[k] for k in selected
-    }, identifier=ip.identifier)
+    filtered_ip = ImageProvider({k: ip[k] for k in selected}, identifier=ip.identifier)
 
-    filtered_mp = MetadataProvider({
-        k: mp[k] for k in selected
-    })
+    filtered_mp = MetadataProvider({k: mp[k] for k in selected})
 
     ds.ingest_obj(filtered_ip)
     ds.ingest_obj(filtered_mp)
@@ -37,9 +30,9 @@ def write_dataset(urlpath: UrlpathLike) -> PadoDataset:
 
 
 if __name__ == "__main__":
-    import sys
     import os
     import os.path
+    import sys
 
     path = sys.argv[1]
     if not os.path.isdir(path):
