@@ -13,7 +13,7 @@ from pavo.slides.utils import thumbnail_image
 
 
 @celery.task
-def slide_build_thumbnail_index_task(size: int = 100):
+def slide_build_thumbnail_index_task(size: int = 100) -> dict:
     """build and store an index to the thumbnails"""
     index = dataset.index[:2]
 
@@ -28,7 +28,7 @@ def slide_build_thumbnail_index_task(size: int = 100):
 
 
 @celery.task
-def slide_make_thumbnail_task(image_id: ImageId, size: int):
+def slide_make_thumbnail_task(image_id: ImageId, size: int) -> dict:
     """create a thumnbail and store it"""
     assert size in THUMBNAIL_SIZES
     image_id = ensure_image_id(image_id)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from typing import Dict
 from typing import Tuple
 from typing import Union
@@ -13,4 +14,5 @@ EndpointResponse: TypeAlias = Union[
     Tuple[str, int, Dict[str, str]],
     Response,
     Tuple[Response, int],
+    Dict[str, Any],
 ]

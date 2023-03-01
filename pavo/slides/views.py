@@ -3,8 +3,10 @@ from __future__ import annotations
 import re
 import uuid
 from typing import TYPE_CHECKING
+from typing import Any
 
 from flask import Blueprint
+from flask import Request
 from flask import abort
 from flask import current_app
 from flask import jsonify
@@ -25,6 +27,7 @@ from pado.predictions.providers import ImagePredictionProvider
 from pado.predictions.providers import ImagePredictions
 from tiffslide.deepzoom import MinimalComputeAperioDZGenerator
 
+from pavo._types import EndpointResponse
 from pavo.data import DatasetState
 from pavo.data import dataset
 from pavo.extensions import cache
@@ -46,11 +49,11 @@ blueprint = Blueprint("slides", __name__)
 
 @blueprint.before_request
 @dataset.requires_state(DatasetState.READY, abort, 404, "dataset is not initialized")
-def dataset_ready():
+def dataset_ready() -> None:
     pass
 
 
-def _unpack_filter_params(request):
+def _unpack_filter_params(request: Request) -> tuple[int, int, dict[str, Any]]:
     page = request.args.get("page", 0, type=int_ge_0)
     page_size = request.args.get("page_size", 20, type=int_ge_1)
     allowed_page_sizes = {1, 5, 20, 40, 80, 160, 320}
@@ -59,16 +62,14 @@ def _unpack_filter_params(request):
     filter = {
         "filename": request.args.get("filename", None),
         "metadata_key": request.args.get("metadata_key", None),
-        "metadata_values": check_numeric_list(
-            request.args.getlist("metadata_values", None)
-        ),
+        "metadata_values": check_numeric_list(request.args.getlist("metadata_values")),
     }
 
     return page, page_size, filter
 
 
 @blueprint.route("/")
-def index():
+def index() -> EndpointResponse:
     page, page_size, filter = _unpack_filter_params(request)
     page_images = get_paginated_images(
         dataset, page=page, page_size=page_size, filter=filter
@@ -86,7 +87,7 @@ def index():
 
 
 @blueprint.route("/thumbnails", methods=["GET"])
-def thumbnails():
+def thumbnails() -> EndpointResponse:
     page, page_size, filter = _unpack_filter_params(request)
     page_images = get_paginated_images(
         dataset, page=page, page_size=page_size, filter=filter
@@ -104,7 +105,7 @@ def thumbnails():
 
 
 @blueprint.route("/thumbnail_<image_id:image_id>_<int:size>.jpg")
-def thumbnail(image_id: ImageId, size: int):
+def thumbnail(image_id: ImageId, size: int) -> EndpointResponse:
     if size not in {100, 200}:
         return abort(403, "thumbnail size not in {100, 200}")
 
@@ -146,7 +147,7 @@ def _tooltip(x: dict) -> str:
 
 
 @blueprint.route("/viewer/<image_id:image_id>/osd")
-def viewer_openseadragon(image_id: ImageId):
+def viewer_openseadragon(image_id: ImageId) -> EndpointResponse:
     """the landing page for the openseadragon viewer"""
     show_annotations = bool(request.args.get("show_annotations", 1, int))
     show_image_predictions = request.args.getlist("show_image_predictions", int)
@@ -187,13 +188,13 @@ def viewer_openseadragon(image_id: ImageId):
 
 
 @blueprint.route("/viewer/<image_id:image_id>/deckgl")
-def viewer_deckgl(image_id: ImageId):
+def viewer_deckgl(image_id: ImageId) -> EndpointResponse:
     """the landing page for the deck.gl viewer"""
     return render_template("slides/viewer_deckgl.html", image_id=image_id)
 
 
 @blueprint.route("/cache/<image_id:image_id>/status")
-def cache_status(image_id: ImageId):
+def cache_status(image_id: ImageId) -> EndpointResponse:
     """return a json status message about the current cache state"""
     cache_inactive = current_app.config.get("CACHE_IMAGES_PATH", None) is None
     data = {
@@ -242,7 +243,7 @@ def _slide_get_deep_zoom_from_session(
 
 
 @blueprint.route("/viewer/<image_id:image_id>/osd/image.dzi")
-def slide_dzi(image_id: ImageId):
+def slide_dzi(image_id: ImageId) -> EndpointResponse:
     ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
     try:
         dz = _slide_get_deep_zoom_from_session(image_id, image_prediction_idx=ip_idx)
@@ -256,7 +257,7 @@ def slide_dzi(image_id: ImageId):
 @blueprint.route(
     "/viewer/<image_id:image_id>/osd/image_files/<int:level>/<int:col>_<int:row>.jpeg"
 )
-def slide_tile(image_id, level, col, row):
+def slide_tile(image_id: ImageId, level: int, col: int, row: int) -> EndpointResponse:
     ip_idx = request.args.get("image_prediction_idx", default=None, type=int_ge_0)
     try:
         dz = _slide_get_deep_zoom_from_session(image_id, image_prediction_idx=ip_idx)
@@ -283,7 +284,7 @@ def slide_tile(image_id, level, col, row):
 
 
 @blueprint.route("/viewer/<image_id:image_id>/annotations.geojson")
-def serve_geojson_annotations(image_id):
+def serve_geojson_annotations(image_id: ImageId) -> EndpointResponse:
     try:
         annotations: Annotations = dataset.annotations[image_id]
     except KeyError:
@@ -311,7 +312,7 @@ def serve_geojson_annotations(image_id):
 
 
 @blueprint.route("/viewer/<image_id:image_id>/annotations.json")
-def serve_w3c_annotations(image_id):
+def serve_w3c_annotations(image_id: ImageId) -> EndpointResponse:
     try:
         annotations: Annotations = dataset.annotations[image_id]
     except KeyError:
@@ -321,7 +322,7 @@ def serve_w3c_annotations(image_id):
     return jsonify(w3c_annotations), 200
 
 
-def w3c_like_annotation(annotation: Annotation, prefix="anno"):
+def w3c_like_annotation(annotation: Annotation, prefix: str = "anno") -> dict:
     """make a w3c annotation like annotation
 
     see: https://www.w3.org/TR/annotation-vocab/#annotation

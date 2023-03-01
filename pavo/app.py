@@ -8,6 +8,7 @@ from logging.config import dictConfig
 from typing import Optional
 
 from flask import Flask
+from flask import Response
 from flask import g
 
 from pavo.data import initialize_dataset
@@ -116,11 +117,11 @@ def register_decorators(app: Flask, *, is_worker: bool = True) -> None:
         return
 
     @app.before_request
-    def calculate_timing():
+    def calculate_timing() -> None:
         t0 = time.monotonic()
         g.get_request_duration = lambda: time.monotonic() - t0
 
     @app.after_request
-    def set_timing_header(response):
+    def set_timing_header(response: Response) -> Response:
         response.headers["x-pado-request-duration"] = g.get_request_duration()
         return response
