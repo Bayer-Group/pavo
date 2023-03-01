@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any
 from typing import Optional
 
 from dynaconf import FlaskDynaconf
@@ -25,7 +26,7 @@ def initialize_config(
     force_env: Optional[str] = None,
 ) -> FlaskDynaconf:
     """apply configuration to the flask server"""
-    dynaconf_config = dict(
+    dynaconf_config: dict[str, Any] = dict(
         ENVVAR_PREFIX="PAVO",
         settings_file=[".pavo.toml", ".pavo.secrets.toml"],
         core_loaders=["TOML"],
