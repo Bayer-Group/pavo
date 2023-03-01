@@ -6,6 +6,7 @@ TODO: autolaunch those on cmdline invocation
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import Optional
 
 from celery import Celery
@@ -26,7 +27,7 @@ def initialize_celery(app: Optional[Flask] = None) -> Celery:
 
     # noinspection PyAbstractClass
     class ContextTask(Task):
-        def __call__(self, *args, **kwargs):
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
             """run celery tasks
 
             Notes
@@ -35,7 +36,7 @@ def initialize_celery(app: Optional[Flask] = None) -> Celery:
             - clear the fsspec loop and thread refs
 
             """
-            with app.app_context():
+            with app.app_context():  # type: ignore
                 import fsspec.asyn
 
                 # Clear reference to the loop and thread.
@@ -53,7 +54,8 @@ def initialize_celery(app: Optional[Flask] = None) -> Celery:
     )
     c.conf.update(app.config)
     assert not hasattr(app, "celery")
-    app.celery = c  # set attribute on app instance
+    # set attribute on app instance
+    app.celery = c  # type: ignore
     return c
 
 
