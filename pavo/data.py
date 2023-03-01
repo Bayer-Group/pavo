@@ -310,7 +310,7 @@ class DatasetProxy:
         _model_metadata = ipdf["extra_metadata"].apply(json.loads)
 
         ipdf = ipdf[["image_id"]]
-        ipdf["classification"] = _model_metadata.apply(itemgetter("classes"))
+        ipdf["classification"] = _model_metadata.apply(lambda x: x.get("classes"))
         ipdf["annotator_name"] = _model_metadata.apply(_model_name)
         ipdf["annotator_type"] = "model"
         ipdf["organ"] = ipdf["image_id"].map(_organ_map)
