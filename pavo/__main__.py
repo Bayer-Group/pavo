@@ -24,10 +24,10 @@ from pavo.config import initialize_config
 # --- formatting utils ---
 
 
-def echo_header(title, width=80):
+def echo_header(title: str, width: int = 80) -> None:
     """print an ascii header"""
     line = " ".join(["#", "---", title, "-" * (width - len(title) - 7)])
-    typer.secho(line, color=typer.colors.CYAN)
+    typer.secho(line, fg=typer.colors.CYAN)
 
 
 # === pavo cli interface ============================================
@@ -39,7 +39,7 @@ cli = typer.Typer(
 
 
 @cli.command("version")
-def version():
+def version() -> None:
     """show the pavo version"""
     typer.echo(__version__)
 
@@ -57,7 +57,7 @@ def searchtree() -> None:
 
     # get the configured app
     app = create_app(is_worker=False)
-    settings = app.dynaconf
+    settings = app.dynaconf  # type: ignore
 
     # note: SEARCHTREE is updated after configure
     tree: List[str] = getattr(_files, "SEARCHTREE", [])
@@ -80,7 +80,7 @@ def config_show() -> None:
     """show the current pavo configuration"""
     # get the configured app
     app = create_app(is_worker=False)
-    settings = app.dynaconf
+    settings = app.dynaconf  # type: ignore
 
     echo_header(f"config using env: '{settings.current_env}'")
     for key, value in settings.as_dict().items():
@@ -125,10 +125,10 @@ def dev_js(
             )
             raise typer.Exit(code=1)
         else:
-            typer.secho("running in git repo", color=typer.colors.GREEN)
+            typer.secho("running in git repo", fg=typer.colors.GREEN)
 
     cmd = ["npm", "run", "deploy" if not watch else "watch"]
-    typer.secho(" ".join(cmd), color=typer.colors.YELLOW)
+    typer.secho(" ".join(cmd), fg=typer.colors.YELLOW)
     # fixme: this throws a warning for now due to a multiprocessing cleanup issue...
     os.chdir(repo_dir)
     os.execvp(file="npm", args=cmd)
@@ -162,16 +162,16 @@ def dev_run(
         )
 
     # print some extra info
-    typer.secho(" * Loading datasets:", color=typer.colors.GREEN)
+    typer.secho(" * Loading datasets:", fg=typer.colors.GREEN)
     for ds in settings.dataset_paths:
-        typer.secho(f"   - '{ds!s}'", color=typer.colors.GREEN)
+        typer.secho(f"   - '{ds!s}'", fg=typer.colors.GREEN)
     typer.secho(
-        f" * Using cache_path: '{settings.cache_path!s}'", color=typer.colors.GREEN
+        f" * Using cache_path: '{settings.cache_path!s}'", fg=typer.colors.GREEN
     )
 
     # run development app
     app = create_app(configured_app=app)
-    app.run(host=app.config.SERVER, port=app.config.PORT, debug=app.config.DEBUG)
+    app.run(host=app.config.SERVER, port=app.config.PORT, debug=app.config.DEBUG)  # type: ignore
 
 
 # --- production subcommands --------------------------------------------------
@@ -191,13 +191,13 @@ def prod_run(
     if sanity_check:
         # acquire the configuration
         if not settings.dataset_paths:
-            typer.secho("no dataset_paths defined", err=True, color=typer.colors.RED)
+            typer.secho("no dataset_paths defined", err=True, fg=typer.colors.RED)
             raise typer.Exit(code=1)
         if settings.current_env.lower() != "production":
             typer.secho(
                 f"not running the production env: {settings.current_env!r}",
                 err=True,
-                color=typer.colors.RED,
+                fg=typer.colors.RED,
             )
             raise typer.Exit(code=1)
 
@@ -215,7 +215,7 @@ def prod_run(
     ]
     # fmt: on
 
-    typer.secho("dispatching to uwsgi:", color=typer.colors.GREEN)
+    typer.secho("dispatching to uwsgi:", fg=typer.colors.GREEN)
     os.execvp(file="uwsgi", args=cmd)
 
 
