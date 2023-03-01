@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
+from typing import Callable
 
 import orjson
 from celery import Celery
@@ -53,8 +55,8 @@ def register_extensions(app: Flask, *, is_worker: bool = False) -> None:
         app.jinja_env.globals["pado_instance_version"] = get_instance_version
 
         # use orjson as our default json encoder
-        app.json_encoder = ORJSONEncoder
-        app.json_decoder = ORJSONDecoder
+        app.json_encoder = ORJSONEncoder  # type: ignore
+        app.json_decoder = ORJSONDecoder  # type: ignore
 
 
 # --- constants ---
@@ -72,19 +74,19 @@ class TaskState:
     PENDING = states.PENDING
 
     @classmethod
-    def is_unready(cls, state):
+    def is_unready(cls, state: str) -> bool:
         return state in states.UNREADY_STATES
 
     @classmethod
-    def is_ready(cls, state):
+    def is_ready(cls, state: str) -> bool:
         return state in states.READY_STATES
 
     @classmethod
-    def is_exception(cls, state):
+    def is_exception(cls, state: str) -> bool:
         return state in states.EXCEPTION_STATES
 
     @classmethod
-    def is_propagated(cls, state):
+    def is_propagated(cls, state: str) -> bool:
         return state in states.PROPAGATE_STATES
 
 
@@ -104,16 +106,16 @@ class ORJSONEncoder:
     def __init__(
         self,
         *,
-        skipkeys=False,
-        ensure_ascii=True,
-        check_circular=True,
-        allow_nan=True,
-        indent=None,
-        separators=None,
-        default=None,
-        sort_keys=True,
-        **kwargs,
-    ):
+        skipkeys: bool = False,
+        ensure_ascii: bool = True,
+        check_circular: bool = True,
+        allow_nan: bool = True,
+        indent: bool | None = None,
+        separators: tuple[str, str] | None = None,
+        default: Callable | None = None,
+        sort_keys: bool = True,
+        **kwargs: Any,
+    ) -> None:
         """setting up the orjson config"""
         # checking unused defaults and extra kwargs
         if skipkeys is not False:
@@ -148,7 +150,7 @@ class ORJSONEncoder:
         self._default = default
         self._flags = flags
 
-    def encode(self, obj):
+    def encode(self, obj: object) -> str:
         """encode using orjson"""
         return orjson.dumps(obj, option=self._flags, default=self._default).decode(
             "utf-8"
@@ -174,14 +176,14 @@ class ORJSONDecoder:
     def __init__(
         self,
         *,
-        object_hook=None,
-        parse_float=None,
-        parse_int=None,
-        parse_constant=None,
-        strict=True,
-        object_pairs_hook=None,
-        **kwargs,
-    ):
+        object_hook: Callable | None = None,
+        parse_float: bool | None = None,
+        parse_int: bool | None = None,
+        parse_constant: bool | None = None,
+        strict: bool = True,
+        object_pairs_hook: None = None,
+        **kwargs: Any,
+    ) -> None:
         """parse the orjson decoder config"""
         # checking unused defaults and extra kwargs
         if parse_float is not None:
@@ -207,7 +209,7 @@ class ORJSONDecoder:
 
         self._object_hook = object_hook
 
-    def decode(self, obj):
+    def decode(self, obj: str | bytes) -> Any:
         """decode using orjson"""
         data = orjson.loads(obj)
         if self._object_hook:
