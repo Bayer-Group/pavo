@@ -212,8 +212,8 @@ class DatasetProxy:
             return x
 
         def _model_name(x: dict) -> str:
-            v = x["iteration"]
-            return x["model"] if v == "v0" else f"{x['model']}-{v}"
+            v = x.get("iteration", "0.0.0")
+            return x["model"] if v == "v0" else f"{x.get('model', 'unknown')}-{v}"
 
         def _recover_area_df() -> pd.Series:
             try:

@@ -132,15 +132,13 @@ def thumbnail(image_id: ImageId, size: int) -> EndpointResponse:
 
 
 def _model_name(x: dict) -> str:
-    v = x["iteration"]
-    name = x["model"]
-    if name == "MultiClassSegmentation":
-        name = "MultiClassSeg"
+    v = x.get("iteration", "0.0.0")
+    name = x.get("model", "unknown")
     return name if v == "v0" else f"{name}-{v}"
 
 
 def _tooltip(x: dict) -> str:
-    t = [f"classes={','.join(x['classes'])}"]
+    t = [f"classes={','.join(x.get('classes', []))}"]
     for key, value in x.get("modifiers", {}).items():
         t.append(f"{key}={value!r}")
     return " ".join(t)
