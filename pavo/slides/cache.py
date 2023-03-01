@@ -30,15 +30,32 @@ class LocalWholeSlideCache:
         self.root = os.fspath(root)
         os.makedirs(self.root, exist_ok=True)
         self.maxsize = int(maxsize)
-        self._mapping = OrderedDict()
+        self._mapping: OrderedDict[str, str] = OrderedDict()
+
+    @staticmethod
+    def _make_hashable(urlpath: UrlpathLike) -> str | tuple[str, str]:
+        if isinstance(urlpath, str):
+            return urlpath
+        elif isinstance(urlpath, os.PathLike):
+            return os.fspath(urlpath)
+        else:
+            # noinspection PyProtectedMember
+            return urlpath.path, urlpath.fs._fs_token
 
     @staticmethod
     @lru_cache
-    def _lhash(urlpath: UrlpathLike) -> str:
+    def _lhash(urlpath: str | tuple[str, str]) -> str:
         """return a hash from an urlpath (used as base dir)"""
         # note: this needs to be a name that can be created as a directory
-        s_urlpath = urlpathlike_to_string(urlpath).encode()
-        return hashlib.sha256(s_urlpath).hexdigest()
+        if isinstance(urlpath, tuple):
+            pth, fs_token = urlpath
+            # noinspection PyProtectedMember
+            s = hashlib.sha256(fs_token.encode())
+            s.update(pth.encode())
+            return s.hexdigest()
+        else:
+            s_urlpath = urlpathlike_to_string(urlpath).encode()
+            return hashlib.sha256(s_urlpath).hexdigest()
 
     def _llock(self, lhash: str) -> str:
         """return the local lock filename"""
@@ -58,8 +75,8 @@ class LocalWholeSlideCache:
         return lpath
 
     def get(self, urlpath: UrlpathLike, *, timeout: float = -1) -> str:
-        """return a cached local path for a urlpath"""
-        lhash = self._lhash(urlpath)
+        """return a cached local path for an urlpath"""
+        lhash = self._lhash(self._make_hashable(urlpath))
         try:
             lpath = self._mapping[lhash]
         except KeyError:
@@ -71,12 +88,12 @@ class LocalWholeSlideCache:
             except FileLockTimeout:
                 raise TimeoutError(lhash)
         else:
-            self._mapping.move_to_end(urlpath)
+            self._mapping.move_to_end(lhash)
         return lpath
 
     def test(self, urlpath: UrlpathLike) -> CacheState:
         """return if urlpath in cache"""
-        lhash = self._lhash(urlpath)
+        lhash = self._lhash(self._make_hashable(urlpath))
         if lhash in self._mapping:
             return CacheState.HIT
         else:
@@ -94,7 +111,7 @@ class LocalWholeSlideCache:
         """return the current size of the cache"""
         return sum(map(os.path.getsize, self._mapping.values()))
 
-    def enforce_size_limit(self):
+    def enforce_size_limit(self) -> None:
         """remove oldest files until size limit is enforced"""
         if self.maxsize < 0:
             return
