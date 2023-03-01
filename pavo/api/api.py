@@ -3,8 +3,10 @@ from __future__ import annotations
 from flask import Blueprint
 from flask import jsonify
 from flask import request
+from pado.images.ids import ImageId
 from werkzeug.exceptions import BadRequest
 
+from pavo._types import EndpointResponse
 from pavo.api.utils import get_filtered_image_ids
 from pavo.api.utils import insert_annotation_prediction
 from pavo.api.utils import insert_image_prediction
@@ -16,7 +18,7 @@ blueprint = Blueprint("api", __name__)
 
 
 @blueprint.route("/refresh", methods=["GET"])
-def refresh_dataset():
+def refresh_dataset() -> EndpointResponse:
     dt = dataset.trigger_refresh()
     return {"status": 200, "datetime": dt.isoformat()}
 
@@ -28,7 +30,7 @@ def refresh_dataset():
 # TODO: add authorisation
 # TODO: allow filtering by annotation type in get request
 @blueprint.route("/<image_id:image_id>/predictions", methods=["GET", "POST"])
-def manage_predictions(image_id):
+def manage_predictions(image_id: ImageId) -> EndpointResponse:
     """endpoint to manipulate image predictions"""
 
     prediction_types = ("annotation", "image")
@@ -63,10 +65,13 @@ def manage_predictions(image_id):
 
         return jsonify(predictions_df.to_dict(orient="records")), 200
 
+    else:
+        raise RuntimeError(f"unknown method {request.method!r}")
+
 
 # ---- filter dataset endpoints -----------------------------------------------
 @blueprint.route("/image_ids", methods=["GET"])
-def filter_by():
+def filter_by() -> EndpointResponse:
     """return image_ids which match some filter
 
     The filter object must be passed as a json object in the request body.
