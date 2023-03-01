@@ -6,6 +6,7 @@ from typing import Set
 from pado.annotations import Annotation
 from pado.images import ImageId
 
+from pavo._types import EndpointResponse
 from pavo.data import DatasetProxy
 from pavo.data import dataset
 from pavo.metadata.utils import get_valid_metadata_attribute_options
@@ -75,7 +76,9 @@ def filter_by_metadata(
 
 
 # ---- prediction api helper functions ----------------------------------------
-def insert_annotation_prediction(prediction_record: dict, image_id: ImageId):
+def insert_annotation_prediction(
+    prediction_record: dict, image_id: ImageId
+) -> EndpointResponse:
     """inserts an annotation style prediction into an image's list of annotations"""
 
     if prediction_record["annotator"]["type"] != "model":
@@ -91,6 +94,6 @@ def insert_annotation_prediction(prediction_record: dict, image_id: ImageId):
     return "", 200
 
 
-def insert_image_prediction():
+def insert_image_prediction() -> EndpointResponse:
     # TODO: upload a large image style prediction here
     return "not implemented", 200

@@ -9,6 +9,7 @@ from flask import jsonify
 from flask import render_template
 from flask import url_for
 
+from pavo._types import EndpointResponse
 from pavo.data import DatasetState
 from pavo.data import dataset
 from pavo.extensions import celery
@@ -21,7 +22,7 @@ blueprint = Blueprint("home", __name__)
 @blueprint.route("/")
 @blueprint.route("/index.htm")
 @blueprint.route("/index.html")
-def index():
+def index() -> EndpointResponse:
     description = {
         "path": current_app.config["DATASET_PATHS"],
         "num_images": 0,
@@ -34,12 +35,12 @@ def index():
 
 
 @blueprint.route("/health")
-def health():
+def health() -> EndpointResponse:
     return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
 
 
 @blueprint.route("/worker/ping")
-def ping_worker():
+def ping_worker() -> EndpointResponse:
     result: AsyncResult = ping_worker_task.apply_async()
     return jsonify(
         {
@@ -51,7 +52,7 @@ def ping_worker():
 
 
 @blueprint.route("/worker/<string:task_id>/pong")
-def pong_worker(task_id):
+def pong_worker(task_id: str) -> EndpointResponse:
     result = AsyncResult(task_id, app=celery)
     return jsonify(
         {
