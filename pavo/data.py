@@ -398,7 +398,9 @@ class DatasetProxy:
             self._clear_caches()
 
     def _last_change(self) -> datetime:
-        ds = self.get_ds()
+        ds = self._ds
+        if ds is None:
+            return datetime.fromtimestamp(0, tz=timezone.utc)
         # noinspection PyProtectedMember
         fs, root = ds._fs, ds._root
         try:
