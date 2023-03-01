@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import os
+from typing import NoReturn
 
 import click
 import redis
@@ -16,13 +17,13 @@ from pavo.slides.utils import thumbnail_image
 
 
 @click.group(cls=FlaskGroup, create_app=create_app)
-def cli():
+def cli() -> None:
     """pavo's commandline interface"""
 
 
 @cli.command()
 @with_appcontext
-def clear_redis():
+def clear_redis() -> None:
     """delete all entries from the redis queues..."""
     print("redis cleanup: flushall")
     for url in [current_app.config["broker_url"], current_app.config["result_backend"]]:
@@ -36,7 +37,7 @@ def clear_redis():
 
 
 @cli.command()
-def tasks_list():
+def tasks_list() -> NoReturn:
     """launch the celery task monitor"""
     os.execvpe(
         "python",
@@ -48,7 +49,7 @@ def tasks_list():
 @cli.command()
 @click.option("--threads", default=6, type=int, show_default=True)
 @with_appcontext
-def create_thumbnails(threads):
+def create_thumbnails(threads: int) -> None:
     """precompute all thumbnail images"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
         ip = dataset.images
@@ -71,7 +72,7 @@ def create_thumbnails(threads):
 @click.option("--image-id", type=str)
 @click.option("--output", default=None, type=str)
 @with_appcontext
-def create_deepzoom(image_id, output):
+def create_deepzoom(image_id: str, output: str) -> None:
     """create a deepzoom image on disk at the output location"""
     raise NotImplementedError("todo")
 
