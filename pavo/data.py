@@ -12,9 +12,11 @@ from functools import wraps
 from operator import itemgetter
 from typing import Any
 from typing import Callable
+from typing import Generic
 from typing import NoReturn
 from typing import Optional
 from typing import Sequence
+from typing import TypeVar
 
 import pandas as pd
 from flask import Flask
@@ -37,17 +39,19 @@ __all__ = [
     "initialize_dataset",
 ]
 
+RT = TypeVar("RT")
+
 
 # noinspection PyPep8Naming
-class lockless_cached_property:
+class lockless_cached_property(Generic[RT]):
     # https://bugs.python.org/issue43468
-    def __init__(self, func):
+    def __init__(self, func: Callable[..., RT]) -> None:
         self.func = func
         self.__doc__ = func.__doc__
 
-    def __get__(self, instance, cls=None):
+    def __get__(self, instance: object, cls: type | None = None) -> RT:
         if instance is None:
-            return self
+            return self  # type: ignore
         val = instance.__dict__[self.func.__name__] = self.func(instance)
         return val
 
@@ -71,14 +75,14 @@ class DatasetProxy:
     urlpath: Optional[str]
     state: DatasetState
 
-    def __init__(self):
+    def __init__(self) -> None:
         """default instantiation in not configured state"""
         self.urlpath = None
         self.state = DatasetState.NOT_CONFIGURED
         self._ds: Optional[PadoDataset] = None
         self._cache_path = None
         self._modified_file = os.path.join(tempfile.gettempdir(), ".pavo.timestamp")
-        self._modified_time = None
+        self._modified_time: datetime | None = None
 
     def init_app(self, app: Flask) -> None:
         """initialize the dataset proxy with the Flask app instance"""
@@ -95,17 +99,17 @@ class DatasetProxy:
     def requires_state(
         self,
         state: DatasetState,
-        failure: Callable[[...], NoReturn],
-        *args,
-        **kwargs,
-    ):
+        failure: Callable[..., NoReturn],
+        *args: Any,
+        **kwargs: Any,
+    ) -> Callable:
         """use as a decorator: calls failure in case of wrong state"""
         if not isinstance(state, DatasetState):
             raise ValueError("requires_state can't be used without arguments")
 
-        def decorator(fn):
+        def decorator(fn: Callable) -> Callable:
             @wraps(fn)
-            def wrapper(*fn_args, **fn_kwargs):
+            def wrapper(*fn_args: Any, **fn_kwargs: Any) -> Any:
                 if self.state != state:
                     failure(*args, **kwargs)
                     raise AssertionError(
@@ -118,65 +122,48 @@ class DatasetProxy:
 
         return decorator
 
-    # type annotations until https://youtrack.jetbrains.com/issue/PY-47698 is fixed
-    index: Sequence[ImageId]
-    metadata: MetadataProvider
-    images: ImageProvider
-    annotations: AnnotationProvider
-    predictions: PredictionProxy
+    def get_ds(self) -> PadoDataset:
+        if self.state != DatasetState.READY:
+            raise DatasetNotReadyException(self.state)
+        self._check_refresh()
+        if self._ds is None:
+            raise RuntimeError("dataset is None")
+        return self._ds
 
     @lockless_cached_property
     def index(self) -> Sequence[ImageId]:
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
-        return list(self._ds.index)
+        return list(self.get_ds().index)
 
     @lockless_cached_property
     def metadata(self) -> MetadataProvider:
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
-        return self._ds.metadata
+        return self.get_ds().metadata
 
     @lockless_cached_property
     def images(self) -> ImageProvider:
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
+        ds = self.get_ds()
         if self._cache_path is None:
-            return self._ds.images
+            return ds.images
         else:
             return LocallyCachedImageProvider(
-                self._ds.images,
+                ds.images,
                 cache_cls=SimpleCacheFileSystem,
                 cache_storage=self._cache_path,
             )
 
     @lockless_cached_property
     def annotations(self) -> AnnotationProvider:
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
-        return self._ds.annotations
+        return self.get_ds().annotations
 
     @lockless_cached_property
     def predictions(self) -> PredictionProxy:
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
-        return self._ds.predictions
+        return self.get_ds().predictions
 
     def describe(self) -> dict[str, Any]:
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
+        ds = self.get_ds()
         try:
             description = self.__dict__["_describe"]
         except KeyError:
-            description = self.__dict__["_describe"] = self._ds.describe(
-                output_format="json"
-            )
+            description = self.__dict__["_describe"] = ds.describe(output_format="json")
         return description
 
     def get_tabular_records(self) -> pd.DataFrame:
@@ -188,9 +175,7 @@ class DatasetProxy:
         (ImageId, classification, area, annotator_type, annotator_name,
         compound_name, organ, species)
         """
-        if self.state != DatasetState.READY:
-            raise DatasetNotReadyException(self.state)
-        self._check_refresh()
+        ds = self.get_ds()
         try:
             return self.__dict__["_tabular_records"]
         except KeyError:
@@ -232,22 +217,22 @@ class DatasetProxy:
 
         def _recover_area_df() -> pd.Series:
             try:
-                fs, get_fspath = self._ds._fs, self._ds._get_fspath
+                fs, get_fspath = ds._fs, ds._get_fspath
                 pth = get_fspath("precomputed.tissue.parquet")
                 with fsopen(fs, pth) as f:
                     _t = pd.read_parquet(f)
                     tissue = GeoSeries.from_wkb(_t["tissue"])
                 return tissue.area.groupby(tissue.index).sum()
             except BaseException:
-                index = self._ds.index
+                index = ds.index
                 data = []
                 for iid in index:
-                    dims = self._ds.images[iid].dimensions
+                    dims = ds.images[iid].dimensions
                     data.append(dims.x * dims.y)
                 return pd.Series(data, index=list(map(str, index)))
 
         # === prepare metadata df for joining =================================
-        mdf = self._ds.metadata.df.copy()
+        mdf = ds.metadata.df.copy()
 
         mdf = mdf[["finding_type", "compound_name", "species", "organ"]].reset_index()
         mdf.rename(
@@ -257,7 +242,7 @@ class DatasetProxy:
             },
             inplace=True,
         )
-        mdf["annotator_name"] = _special_title(self._ds.metadata.identifier)
+        mdf["annotator_name"] = _special_title(ds.metadata.identifier)
         mdf["annotator_type"] = "dataset"
         mdf["annotation_area"] = None
         mdf["annotation_count"] = None
@@ -281,7 +266,7 @@ class DatasetProxy:
         )
 
         # === prepare the annotation df for joining ===========================
-        adf = self._ds.annotations.df.copy()
+        adf = ds.annotations.df.copy()
 
         if "area" not in adf.columns:
             gs = GeoSeries.from_wkt(adf["geometry"])
@@ -321,7 +306,7 @@ class DatasetProxy:
         adf["annotation_value"] = None
 
         # === prepare image prediction dataframe for joining ==================
-        ipdf = self._ds.predictions.images.df.copy()
+        ipdf = ds.predictions.images.df.copy()
         _model_metadata = ipdf["extra_metadata"].apply(json.loads)
 
         ipdf = ipdf[["image_id"]]
@@ -343,7 +328,7 @@ class DatasetProxy:
         ipdf["classification"] = ipdf["classification"].str.title()
 
         # === prepare metadata prediction dataframe for joining ===============
-        mpdf = self._ds.predictions.metadata.df.copy()
+        mpdf = ds.predictions.metadata.df.copy()
         _model_metadata = mpdf["model_extra_json"].apply(json.loads)
         _row_data = mpdf["row_json"].apply(json.loads)
         mpdf = mpdf[["image_id"]]
@@ -404,7 +389,7 @@ class DatasetProxy:
         ts = os.stat(self._modified_file).st_mtime
         return datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
 
-    def _check_refresh(self):
+    def _check_refresh(self) -> None:
         ts = os.stat(self._modified_file).st_mtime
         dt = datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc)
         if self._modified_time is None or dt > self._modified_time:
@@ -413,8 +398,9 @@ class DatasetProxy:
             self._clear_caches()
 
     def _last_change(self) -> datetime:
+        ds = self.get_ds()
         # noinspection PyProtectedMember
-        fs, root = self._ds._fs, self._ds._root
+        fs, root = ds._fs, ds._root
         try:
             return max(
                 x["LastModified"]
@@ -424,7 +410,7 @@ class DatasetProxy:
         except ValueError:
             return datetime.fromtimestamp(0, tz=timezone.utc)
 
-    def _clear_caches(self):
+    def _clear_caches(self) -> None:
         caches = [
             "index",
             "images",
@@ -450,5 +436,5 @@ def initialize_dataset(app: Flask) -> DatasetProxy:
     global dataset
     dataset.init_app(app)
     assert not hasattr(app, "dataset")
-    app.dataset = dataset
+    app.dataset = dataset  # type: ignore
     return dataset
