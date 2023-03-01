@@ -4,6 +4,7 @@ from flask import Blueprint
 from flask import jsonify
 from flask import render_template
 
+from pavo._types import EndpointResponse
 from pavo.data import dataset
 from pavo.metadata.utils import get_valid_metadata_attribute_options
 from pavo.metadata.utils import get_valid_metadata_attributes
@@ -13,7 +14,7 @@ blueprint = Blueprint("metadata", __name__)
 
 
 @blueprint.route("/metadata")
-def index():
+def index() -> EndpointResponse:
     table = dataset.get_tabular_records()
     return render_template(
         "metadata/index.html",
@@ -26,13 +27,13 @@ def index():
 
 
 @blueprint.route("/metadata/attributes", methods=["GET"])
-def metadata_attributes():
+def metadata_attributes() -> EndpointResponse:
     """returns columns of the metadata dataframe"""
     return jsonify(get_valid_metadata_attributes()), 200
 
 
 @blueprint.route("/metadata/<attribute>/valid_attributes", methods=["GET"])
-def valid_metadata_options(attribute):
+def valid_metadata_options(attribute: str) -> EndpointResponse:
     """returns a set of unique options for a single metadata attribute in the dataframe"""
     try:
         return jsonify(get_valid_metadata_attribute_options(attribute)), 200

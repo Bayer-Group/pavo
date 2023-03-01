@@ -43,7 +43,7 @@ class PaginatedItems(NamedTuple):
 
 
 def get_paginated_images(
-    ds: DatasetProxy, page: int, page_size: int, filter: dict = None
+    ds: DatasetProxy, page: int, page_size: int, filter: dict | None = None
 ) -> PaginatedItems:
     """return filtered and paginated Images"""
     if filter is None:
@@ -103,7 +103,7 @@ def thumbnail_image(
     urlhash = image_id.to_url_id()
     sizeshash = hashlib.sha256(repr(tuple(sizes)).encode()).hexdigest()[:4]
 
-    def mkpth(s):
+    def mkpth(s: tuple[int, int]) -> str:
         return os.path.join(
             cache_path,
             f"thumbnails/{urlhash[:1]}/{urlhash[:2]}/{urlhash[:3]}/thumb.{urlhash}.{sizeshash}.{s[0]:d}x{s[1]:d}.png",

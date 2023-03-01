@@ -7,7 +7,7 @@ from pavo.extensions import celery
 
 
 @celery.task(bind=True)
-def ping_worker_task(self: Task):
+def ping_worker_task(self: Task) -> dict:
     r = self.request
     return {
         "id": r.id,
