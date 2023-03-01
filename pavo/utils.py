@@ -52,14 +52,14 @@ class ImageIdConverter(BaseConverter):
     regex = "[^/]+"
     weight = 100
 
-    def to_python(self, value) -> ImageId:
+    def to_python(self, value: str | bytes) -> ImageId:
         try:
             image_id_str = base64_decode(value).decode()
             return ImageId.from_str(image_id_str)
         except (ValueError, TypeError):
             raise ValidationError(value)
 
-    def to_url(self, value):
+    def to_url(self, value: ImageId | tuple[str, ...] | str) -> str:
         if isinstance(value, ImageId):
             image_id_str = value.to_str()
         elif isinstance(value, (tuple, list)):
@@ -76,7 +76,7 @@ _version_hash = hashlib.sha256(_pavo_version.encode()).hexdigest()[:8]
 
 
 @wraps(url_for)
-def url_for_versioned(endpoint, **values):
+def url_for_versioned(endpoint: str, **values: Any) -> str:
     """use in templates to add a ?v=hash to urls"""
     assert "v" not in values
     values["v"] = _version_hash
@@ -88,26 +88,26 @@ def url_for_versioned(endpoint, **values):
 
 def ranged_type(
     cls: Type[_T],
-    gt: _T = None,
-    ge: _T = None,
-    lt: _T = None,
-    le: _T = None,
+    gt: _T | None = None,
+    ge: _T | None = None,
+    lt: _T | None = None,
+    le: _T | None = None,
 ) -> Callable[[Any], _T]:
     """check if type can be cast to and is in range"""
 
-    def _type(x):
-        value = cls(x)  # might raise
+    def _type(x: Any) -> _T:
+        value = cls(x)  # type: ignore
         if lt is not None:
-            if lt >= value:
+            if lt >= value:  # type: ignore
                 raise ValueError(f"bound: {value!r} < {lt!r}")
         if le is not None:
-            if le > value:
+            if le > value:  # type: ignore
                 raise ValueError(f"bound: {value!r} <= {le!r}")
         if gt is not None:
-            if value <= gt:
+            if value <= gt:  # type: ignore
                 raise ValueError(f"bound: {value!r} > {gt!r}")
         if ge is not None:
-            if value < ge:
+            if value < ge:  # type: ignore
                 raise ValueError(f"bound: {value!r} >= {gt!r}")
         return value
 
@@ -141,7 +141,7 @@ def get_instance_name() -> str | None:
     if name is None:
         from flask import current_app
 
-        if current_app.config.env == "development":
+        if current_app.config.env == "development":  # type: ignore
             try:
                 name = f"{getuser()!s}@{platform.uname().node!s}"
             except (OSError, KeyError, ValueError):
