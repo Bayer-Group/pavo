@@ -211,22 +211,22 @@ def prod_run(
             )
             raise typer.Exit(code=1)
 
+    if shutil.which("gunicorn") is None:
+        typer.secho("[ERROR] gunicorn not found", fg=typer.colors.BRIGHT_RED, err=True)
+        raise typer.Exit(code=1)
+
     # fmt: off
     cmd = [
-        "uwsgi",
-        "--http", f"{settings.SERVER}:{settings.PORT}",
+        "gunicorn",
+        f"--bind={settings.SERVER}:{settings.PORT}",
+        f"--workers={int(settings.GUNICORN_NUM_WORKERS)}",
         "--env", f"{settings.ENV_SWITCHER_FOR_DYNACONF}=production",
-        "--manage-script-name",
-        "--mount", "/=pavo.app:create_app()",
-        "--lazy-apps",
-        "--master",
-        "--buffer-size", "8192",
-        "--processes", str(settings.UWSGI_NUM_PROCESSES)
+        "pavo.app:create_app()",
     ]
     # fmt: on
 
-    typer.secho("dispatching to uwsgi:", fg=typer.colors.GREEN)
-    os.execvp(file="uwsgi", args=cmd)
+    typer.secho("dispatching to gunicorn:", fg=typer.colors.GREEN)
+    os.execvp(file="gunicorn", args=cmd)
 
 
 if __name__ == "__main__":
