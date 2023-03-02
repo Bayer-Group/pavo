@@ -1,7 +1,5 @@
 # PAVO: PAthological Visualization Obsession
 
-[![Milestones](https://img.shields.io/badge/mlr%20milestones-pavo-brightgreen)](https://github.com/bayer-int/pathdrive-pavo/milestones?direction=asc&sort=due_date&state=open)
-
 Welcome to `pavo` :wave:, a visualization tool for
 [pado datasets](https://github.com/bayer-group/pado).
 
@@ -39,10 +37,6 @@ If there are any questions open an issue, and we'll do our best to help!
 Note that in this environment `pavo` is already installed in
 development mode, so go ahead and hack.
 
-Make sure to have a running instance of redis on your development machine. On
-OSX install via homebrew `brew install redis && brew services start redis`. On
-Ubuntu `sudo apt install redis && sudo systemctl start redis`.
-
 - Run tests via `pytest`
 - Run the static type analysis via `mypy pavo`
 - Launch a development instance via `pavo development run`
@@ -50,6 +44,7 @@ Ubuntu `sudo apt install redis && sudo systemctl start redis`.
 
 ## Contributing Guidelines
 
+- Check the [contribution guidelines](CONTRIBUTING.md)
 - Please use [numpy docstrings](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard).
 - When contributing code, please try to use Pull Requests.
 - tests go hand in hand with modules on ```tests``` packages at the same level. We use ```pytest```.
