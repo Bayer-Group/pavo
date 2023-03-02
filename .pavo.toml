@@ -29,6 +29,4 @@ DEBUG = true
 
 [production]
 DEBUG = false
-
-# todo: uwsgi config should live in its own file
-UWSGI_NUM_PROCESSES = 6
+GUNICORN_NUM_WORKERS = 6

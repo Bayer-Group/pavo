@@ -69,15 +69,12 @@ dependencies:
   - typer
 
   - geopandas
-  - uwsgi
-
-  # fixme: this should be removed as soon as hd1a6beb_1008 is not the newest version anymore
-  - gettext=0.19.8.1=hd1a6beb_1007  # [ osx ]
-  - gettext  # [ not osx ]
+  - gettext
+  - gunicorn
 
   # homemade dependencies on conda
-  - tiffslide
-  - pado
+  - tiffslide>=2
+  - pado>=0.12
 
   - pip:
     # homemade dependencies
