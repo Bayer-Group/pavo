@@ -35,6 +35,7 @@ def echo_header(title: str, width: int = 80) -> None:
 cli = typer.Typer(
     name="pavo",
     epilog="#### visualize pado datasets ####",
+    no_args_is_help=True,
 )
 
 
@@ -46,7 +47,10 @@ def version() -> None:
 
 # --- configuration subcommands -----------------------------------------------
 
-cli_config = typer.Typer()
+cli_config = typer.Typer(
+    help="configuration subcommands",
+    no_args_is_help=True,
+)
 cli.add_typer(cli_config, name="config")
 
 
@@ -56,7 +60,7 @@ def searchtree() -> None:
     from dynaconf.utils import files as _files
 
     # get the configured app
-    app = create_app(is_worker=False)
+    app = create_app(is_worker=False, config_only=True)
     settings = app.dynaconf  # type: ignore
 
     # note: SEARCHTREE is updated after configure
@@ -79,7 +83,7 @@ def searchtree() -> None:
 def config_show() -> None:
     """show the current pavo configuration"""
     # get the configured app
-    app = create_app(is_worker=False)
+    app = create_app(is_worker=False, config_only=True)
     settings = app.dynaconf  # type: ignore
 
     echo_header(f"config using env: '{settings.current_env}'")
@@ -89,7 +93,10 @@ def config_show() -> None:
 
 # --- development subcommands -------------------------------------------------
 
-cli_dev = typer.Typer()
+cli_dev = typer.Typer(
+    help="development subcommands",
+    no_args_is_help=True,
+)
 cli.add_typer(cli_dev, name="development")
 
 
@@ -176,7 +183,10 @@ def dev_run(
 
 # --- production subcommands --------------------------------------------------
 
-cli_prod = typer.Typer()
+cli_prod = typer.Typer(
+    help="production subcommands",
+    no_args_is_help=True,
+)
 cli.add_typer(cli_prod, name="production")
 
 
