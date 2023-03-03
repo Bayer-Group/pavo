@@ -23,45 +23,31 @@ dependencies:
   # dev related
   - nodejs=16.*  # revisit when upgrading js deps
   - pre-commit
+  - black
   - pytest
   - pytest-cov
   - mypy
-  - supervisor
 
   # webapp related
   - celery
   - click
-  - diskcache
   - dynaconf
   - filelock
-  - flask>=2
   - flask-caching>=1.8.0
-  - flask-dance
-  - flower
+  - flask>=2
+  - itsdangerous
   - redis-py
   - werkzeug
-  - pyopenssl
 
   # data deps
-  - numpy
   - pandas
-  - rasterio
 
   # tiffslide deps
   - fsspec
-  - imagecodecs
   - pillow
-  - tifffile>=2020.10.1
-  - zarr
 
   # pado deps
-  - platformdirs
   - orjson
-  - toml
-  - pyarrow
-  - shapely
-  - pydantic
-  - geojson-pydantic
 
   # utils
   - tqdm
@@ -69,7 +55,6 @@ dependencies:
   - typer
 
   - geopandas
-  - gettext
   - gunicorn
 
   # homemade dependencies on conda
