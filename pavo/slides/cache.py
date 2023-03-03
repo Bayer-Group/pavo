@@ -49,7 +49,6 @@ class LocalWholeSlideCache:
         # note: this needs to be a name that can be created as a directory
         if isinstance(urlpath, tuple):
             pth, fs_token = urlpath
-            # noinspection PyProtectedMember
             s = hashlib.sha256(fs_token.encode())
             s.update(pth.encode())
             return s.hexdigest()
