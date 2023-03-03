@@ -16,12 +16,22 @@ Development
 :octocat:
 
 
-## :warning: :dragon: Here be dragons :dragon: :warning:
+## Installation
 
-This is an early release version, so expect things to break. In its current
-version we are targeting unix operating system and experienced developers.
-Feedback and contributions are very welcome :heart: <br>
-If there are any questions open an issue, and we'll do our best to help!
+To install pavo clone the repo and run `pip install .` Note that you need
+a "nodejs==16.*" installation to be able to build from source.
+
+
+## Usage
+
+`pavo` is used to visualize `pado` datasets. If you have a `pado` dataset
+just run:
+
+```shell
+pavo production run /path/to/your/dataset
+```
+
+and access the web ui under the printed address.
 
 
 ## Development Environment Setup
