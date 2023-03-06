@@ -17,7 +17,7 @@
     /*
     Load data using Jinja magic
     */
-    const metadata = JSON.parse('{{ metadata | tojson | safe}}');
+    const metadata = {{ metadata | safe }};
     pavo.metadata.setupLineUp({
       id: "lineup",
       metadata: metadata

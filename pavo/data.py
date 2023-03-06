@@ -166,7 +166,7 @@ class DatasetProxy:
             description = self.__dict__["_describe"] = ds.describe(output_format="json")
         return description
 
-    def get_tabular_records(self) -> pd.DataFrame:
+    def get_tabular_records_df(self) -> pd.DataFrame:
         """tabular representation of the dataset including metadata and annotations
 
         Each row is either a finding from the metadata provider or from the
@@ -177,7 +177,7 @@ class DatasetProxy:
         """
         ds = self.get_ds()
         try:
-            return self.__dict__["_tabular_records"]
+            return self.__dict__["_tabular_records_df"]
         except KeyError:
             pass  # cache miss
 
@@ -378,8 +378,14 @@ class DatasetProxy:
         ), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
 
         # === cache and return ================================================
-        tabular_records = self.__dict__["_tabular_records"] = table
-        return tabular_records
+        tabular_records_df = self.__dict__["_tabular_records_df"] = table
+        return tabular_records_df
+
+    def get_tabular_records_json(self) -> str:
+        """return tabular records df as json"""
+        recs = self.get_tabular_records_df().to_json(orient="records")
+        recs_json = self.__dict__["_tabular_records_json"] = recs
+        return recs_json
 
     # --- refreshing ---
 
@@ -420,7 +426,8 @@ class DatasetProxy:
             "annotations",
             "predictions",
             "_describe",
-            "_tabular_records",
+            "_tabular_records_df",
+            "_tabular_records_json",
         ]
         for key in caches:
             try:

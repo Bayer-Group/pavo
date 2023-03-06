@@ -15,11 +15,11 @@ blueprint = Blueprint("metadata", __name__)
 
 @blueprint.route("/metadata")
 def index() -> EndpointResponse:
-    table = dataset.get_tabular_records()
+    table_json = dataset.get_tabular_records_json()
     return render_template(
         "metadata/index.html",
         page_title="Metadata",
-        metadata=table.to_dict("records"),
+        metadata=table_json,
     )
 
 
