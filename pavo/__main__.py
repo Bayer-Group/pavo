@@ -81,11 +81,15 @@ def searchtree() -> None:
 
 
 @cli_config.command(name="show")
-def config_show() -> None:
+def config_show(
+    production: bool = typer.Option(False, help="show prod config"),
+) -> None:
     """show the current pavo configuration"""
-    # get the configured app
-    app = create_app(is_worker=False, config_only=True)
-    settings = app.dynaconf  # type: ignore
+    app = Flask("pavo")
+    settings = initialize_config(
+        app=app,
+        force_env="production" if production else "development",
+    ).settings
 
     echo_header(f"config using env: '{settings.current_env}'")
     for key, value in settings.as_dict().items():
