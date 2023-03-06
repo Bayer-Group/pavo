@@ -17,7 +17,6 @@ def get_valid_metadata_attribute_options(
     metadata_attribute: str, ds: DatasetProxy = dataset
 ) -> List[str]:
     """return all the options given for a single attribute present in the metadata provider"""
-
     try:
         return list(dataset.metadata.df[metadata_attribute].unique())
     except KeyError as e:
