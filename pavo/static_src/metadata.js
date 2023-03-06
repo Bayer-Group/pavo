@@ -51,6 +51,7 @@ function setupLineUp(options) {
   const defaultOptions = {
     id: null,
     metadata: [],
+    extraColumns: [],
   };
   const luOptions = Object.assign({}, defaultOptions, options);
   const luElement = document.getElementById(luOptions.id);
@@ -319,33 +320,41 @@ function setupLineUp(options) {
         .label("Count")
         .renderer("brightness", "histogram")
         .width(100)
-    )
-    .column(
-      LineUpJS.buildCategoricalColumn("compound_name")
-        .renderer("categorical", "categorical", "categorical")
-        .label("Compound")
-        .width(160)
-    )
-    .column(
-      LineUpJS.buildCategoricalColumn("organ")
-        .renderer("categorical", "categorical", "categorical")
-        .label("Organ")
-        .width(160)
-    )
-    .column(
-      LineUpJS.buildCategoricalColumn("species")
-        .renderer("categorical", "categorical", "categorical")
-        .label("Species")
-        .width(160)
-    )
-    .column(
-      LineUpJS.buildActionsColumn()
-        .renderer("myaction", "myaction")
-        .groupActions([openSeaDragonGroupAction, DeckGLGroupAction])
-        .actions([openSeaDragonRowAction, DeckGLRowAction])
-        .label("Action")
-        .width(160)
     );
+
+  for (const {
+    columnName,
+    columnType,
+    columnLabel,
+    columnWidth = 160,
+  } of luOptions.extraColumns) {
+    if (columnType === "categorical") {
+      builder.column(
+        LineUpJS.buildCategoricalColumn(columnName)
+          .renderer("categorical", "categorical", "categorical")
+          .label(columnLabel)
+          .width(columnWidth)
+      );
+    } else if (columnType === "numerical") {
+      builder.column(
+        LineUpJS.buildNumberColumn(columnName)
+          .label(columnLabel)
+          .renderer("brightness", "histogram")
+          .width(columnWidth)
+      );
+    } else {
+      console.log("unsupported columnType", columnType, "for", columnName);
+    }
+  }
+
+  builder.column(
+    LineUpJS.buildActionsColumn()
+      .renderer("myaction", "myaction")
+      .groupActions([openSeaDragonGroupAction, DeckGLGroupAction])
+      .actions([openSeaDragonRowAction, DeckGLRowAction])
+      .label("Action")
+      .width(160)
+  );
 
   // configure builder
   // fixme: these two constants should be reachable from within the renderer;
