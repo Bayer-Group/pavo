@@ -3,7 +3,6 @@ import "./css/metadata.scss";
 
 import * as LineUpJS from "lineupjs";
 
-
 /**
  * clear a node
  */
@@ -15,8 +14,7 @@ function clearNode(node) {
   }
 }
 
-
-function getGroupedRowsHeight(numRows, rowHeight= 25, marginHeight = 2) {
+function getGroupedRowsHeight(numRows, rowHeight = 25, marginHeight = 2) {
   return `${numRows * (rowHeight + marginHeight)}px`;
 }
 
@@ -46,7 +44,6 @@ function getOptimalThumbnailSize(nodeHeight, nodeWidth, numImages) {
   return Math.max(sx, sy);
 }
 
-
 /**
  * setup our lineup viewer
  */
@@ -65,6 +62,7 @@ function setupLineUp(options) {
       this.title = "ThumbnailRenderer";
     }
 
+    // noinspection JSUnusedGlobalSymbols
     canRender(col) {
       return col instanceof LineUpJS.StringColumn;
     }
@@ -79,7 +77,10 @@ function setupLineUp(options) {
           if (col.isGroupedBy() === 0) {
             // we're grouping by image, display the first node and expand the view
             if (i === 0) {
-              const multiRowSize = getGroupedRowsHeight(group.order.length, rowHeight);
+              const multiRowSize = getGroupedRowsHeight(
+                group.order.length,
+                rowHeight
+              );
               node.style.height = multiRowSize;
               img.style.maxHeight = multiRowSize;
               img.style.maxWidth = multiRowSize;
@@ -88,7 +89,6 @@ function setupLineUp(options) {
               // the other rows should show nothing
               node.style.display = "none";
             }
-
           } else {
             // we're grouping something else
             const singleRowSize = getGroupedRowsHeight(1, rowHeight);
@@ -96,7 +96,6 @@ function setupLineUp(options) {
             img.style.maxHeight = singleRowSize;
             img.style.maxWidth = singleRowSize;
             node.style.display = "flex";
-
           }
         },
       };
@@ -112,8 +111,14 @@ function setupLineUp(options) {
             const height = groupRowHeight;
             const width = col.getWidth();
 
-            const uniqueImageUrls = [...new Set(rows.map(row => row.v["image_url"]))]
-            const thumbnailSize = getOptimalThumbnailSize(height, width, uniqueImageUrls.length);
+            const uniqueImageUrls = [
+              ...new Set(rows.map((row) => row.v["image_url"])),
+            ];
+            const thumbnailSize = getOptimalThumbnailSize(
+              height,
+              width,
+              uniqueImageUrls.length
+            );
 
             for (const imageUrl of uniqueImageUrls) {
               let img = document.createElement("img");
@@ -127,7 +132,6 @@ function setupLineUp(options) {
         },
       };
     }
-
   }
 
   class MyActionRenderer {
@@ -135,6 +139,7 @@ function setupLineUp(options) {
       this.title = "MyActionRenderer";
     }
 
+    // noinspection JSUnusedGlobalSymbols
     canRender(col) {
       return col instanceof LineUpJS.ActionColumn;
     }
@@ -150,7 +155,7 @@ function setupLineUp(options) {
         `,
         update: (n, d) => {
           const children = n.childNodes;
-          children.forEach(function (ni, i) {
+          children.forEach(function (ni) {
             if (ni.tagName === "SPAN") {
               ni.onclick = function (event) {
                 event.preventDefault();
@@ -176,7 +181,7 @@ function setupLineUp(options) {
           </div>`,
         update: (n, group) => {
           const children = n.childNodes;
-          children.forEach(function (ni, i) {
+          children.forEach(function (ni) {
             if (ni.tagName === "SPAN") {
               ni.onclick = function (event) {
                 event.preventDefault();
@@ -197,6 +202,7 @@ function setupLineUp(options) {
       this.iconMap = new Map(Object.entries(iconMap));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     canRender(col) {
       return col instanceof LineUpJS.CategoricalColumn;
     }
@@ -208,11 +214,11 @@ function setupLineUp(options) {
             <span id="annotator_icon_id" class='fas' > </span>
           </div>
         `,
-        update: (node, row, i, group) => {
+        update: (node, row) => {
           const annotator_type = row.v[col.desc.column];
 
           const icon = node.children[0];
-          icon.classList.remove( ...this.iconMap.values() );
+          icon.classList.remove(...this.iconMap.values());
 
           const iconClass = this.iconMap.get(annotator_type);
           if (iconClass) {
@@ -291,7 +297,7 @@ function setupLineUp(options) {
         .width(160)
     )
     .column(
-        LineUpJS.buildCategoricalColumn("annotation_metric")
+      LineUpJS.buildCategoricalColumn("annotation_metric")
         .renderer("annotation_metric", "categorical", "categorical")
         .label("Metric")
         .width(100)
@@ -366,21 +372,30 @@ function setupLineUp(options) {
     )
     .registerRenderer("thumbnail", new ThumbnailRenderer())
     .registerRenderer("myaction", new MyActionRenderer())
-    .registerRenderer("annotator_type", new IconRenderer({
-      human: "fa-user-md",
-      dataset: "fa-file-alt",
-      model: "fa-laptop-code",
-    }))
-    .registerRenderer("annotation_type", new IconRenderer({
-      slide: "fa-ticket-alt",
-      heatmap: "fa-chess-board",
-      contour: "fa-draw-polygon",
-    }))
-    .registerRenderer("annotation_metric", new IconRenderer({
-      area: "fa-percentage",
-      score: "fa-list-ol",
-      count: "fa-shapes",
-    }))
+    .registerRenderer(
+      "annotator_type",
+      new IconRenderer({
+        human: "fa-user-md",
+        dataset: "fa-file-alt",
+        model: "fa-laptop-code",
+      })
+    )
+    .registerRenderer(
+      "annotation_type",
+      new IconRenderer({
+        slide: "fa-ticket-alt",
+        heatmap: "fa-chess-board",
+        contour: "fa-draw-polygon",
+      })
+    )
+    .registerRenderer(
+      "annotation_metric",
+      new IconRenderer({
+        area: "fa-percentage",
+        score: "fa-list-ol",
+        count: "fa-shapes",
+      })
+    )
     .sidePanel(true, true)
     .singleSelection()
     .groupRowHeight(groupRowHeight)
@@ -388,7 +403,6 @@ function setupLineUp(options) {
 
   // build lineup
   const lineup = builder.build(luElement);
-
 
   // add listeners
   lineup.on("selectionChanged", selectionChangedListener);
@@ -404,7 +418,6 @@ function setupLineUp(options) {
     // Simulate an HTTP redirect:
     window.location.href = `/slides/viewer/${imageId}/osd`;
   }
-
 }
 
 export default {
