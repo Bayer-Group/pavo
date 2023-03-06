@@ -74,9 +74,10 @@ def searchtree() -> None:
     echo_header("loaded config files")
     for location in tree:
         for file in settings.settings_file:
-            f = os.path.join(location, file)
-            if os.path.isfile(f):
-                typer.echo(f)
+            for f in [file, _files.get_local_filename(file)]:
+                f = os.path.join(location, f)
+                if os.path.isfile(f):
+                    typer.echo(f)
 
 
 @cli_config.command(name="show")
