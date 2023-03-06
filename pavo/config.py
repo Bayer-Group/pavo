@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Optional
 
 from dynaconf import FlaskDynaconf
 from dynaconf import Validator
-from flask import Flask
+
+if TYPE_CHECKING:
+    from flask import Flask
 
 _module_root = Path(__file__).parent
 

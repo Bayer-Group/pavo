@@ -11,9 +11,6 @@ from flask import Flask
 from flask import Response
 from flask import g
 
-from pavo.data import initialize_dataset
-from pavo.extensions import register_extensions
-
 __all__ = ["create_app"]
 
 
@@ -49,6 +46,10 @@ def create_app(
 
     if config_only:
         return app
+
+    # delayed import
+    from pavo.data import initialize_dataset
+    from pavo.extensions import register_extensions
 
     initialize_dataset(app)
 
