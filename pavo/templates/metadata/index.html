@@ -14,13 +14,12 @@
 {% block page_scripts %}
   <script src="{{ url_for('static', filename='metadata.js') }}"></script>
   <script type="text/javascript">
-    /*
-    Load data using Jinja magic
-    */
     const metadata = {{ metadata | safe }};
+    const extraColumns = {{ extra_columns | safe }};
     pavo.metadata.setupLineUp({
       id: "lineup",
-      metadata: metadata
+      metadata: metadata,
+      extraColumns: extraColumns,
     });
   </script>
 {% endblock page_scripts %}

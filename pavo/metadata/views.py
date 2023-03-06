@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import Literal
+from typing import NamedTuple
+
+import orjson
 from flask import Blueprint
 from flask import jsonify
 from flask import render_template
@@ -16,11 +20,34 @@ blueprint = Blueprint("metadata", __name__)
 @blueprint.route("/metadata")
 def index() -> EndpointResponse:
     table_json = dataset.get_tabular_records_json()
+    xcols_json = get_extra_columns_json()
     return render_template(
         "metadata/index.html",
         page_title="Metadata",
         metadata=table_json,
+        extra_columns=xcols_json,
     )
+
+
+class ExtraColumn(NamedTuple):
+    """metadata column configuration"""
+
+    columnName: str
+    columnType: Literal["categorical", "numerical"]
+    columnLabel: str
+    columnWidth: int = 160
+
+
+def get_extra_columns_json() -> str:
+    """default behavior"""
+    # note: this builds on the default test data we use for dev
+    # todo: make configurable
+    cols = [
+        ExtraColumn("compound_name", "categorical", "Compound"),
+        ExtraColumn("organ", "categorical", "Organ"),
+        ExtraColumn("species", "categorical", "Species"),
+    ]
+    return orjson.dumps([c._asdict() for c in cols]).decode()
 
 
 # ---- metadata endpoints -----------------------------------------------------
