@@ -323,10 +323,10 @@ function setupLineUp(options) {
     );
 
   for (const {
-    columnName,
-    columnType,
-    columnLabel,
-    columnWidth = 160,
+    name: columnName,
+    type: columnType,
+    label: columnLabel,
+    width: columnWidth = 160,
   } of luOptions.extraColumns) {
     if (columnType === "categorical") {
       builder.column(
@@ -360,25 +360,26 @@ function setupLineUp(options) {
   // fixme: these two constants should be reachable from within the renderer;
   const rowHeight = 25;
   const groupRowHeight = 150;
+
+  const ranking = LineUpJS.buildRanking()
+    .aggregate()
+    // .column("Action")
+    .groupBy("image_url")
+    .column("image_url")
+    .column("classification")
+    .column("annotation_type")
+    .column("annotator_type")
+    .column("annotator_name")
+    .column("annotation_metric")
+    .column("annotation_area")
+    .column("annotation_count")
+    .column("annotation_value");
+  for (const { name: columnName } of luOptions.extraColumns) {
+    ranking.column(columnName);
+  }
+
   builder
-    .ranking(
-      LineUpJS.buildRanking()
-        .aggregate()
-        // .column("Action")
-        .groupBy("image_url")
-        .column("image_url")
-        .column("classification")
-        .column("annotation_type")
-        .column("annotator_type")
-        .column("annotator_name")
-        .column("annotation_metric")
-        .column("annotation_area")
-        .column("annotation_count")
-        .column("annotation_value")
-        .column("compound_name")
-        .column("species")
-        .column("organ")
-    )
+    .ranking(ranking)
     .registerRenderer("thumbnail", new ThumbnailRenderer())
     .registerRenderer("myaction", new MyActionRenderer())
     .registerRenderer(

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import warnings
 from datetime import datetime
 from datetime import timezone
 from enum import Enum
@@ -27,9 +28,12 @@ from pado.annotations import AnnotationProvider
 from pado.images import ImageId
 from pado.images import ImageProvider
 from pado.images.providers import LocallyCachedImageProvider
-from pado.io.files import fsopen
+from pado.io.paths import search_dataset
 from pado.metadata import MetadataProvider
 from pado.predictions.proxy import PredictionProxy
+from pandas import DataFrame
+
+from pavo._types import ConfigMetadataExtraColumn
 
 __all__ = [
     "dataset",
@@ -54,6 +58,105 @@ class lockless_cached_property(Generic[RT]):
             return self  # type: ignore
         val = instance.__dict__[self.func.__name__] = self.func(instance)
         return val
+
+
+def _parse_extra_columns(value: Any) -> list[ConfigMetadataExtraColumn]:
+    """ensure config value is ok"""
+    if not isinstance(value, list):
+        raise TypeError(
+            f"requires list[ConfigMetadataExtraColumn], got type: {type(value).__name__!r}"
+        )
+    out = []
+    for idx, v in enumerate(value):
+        name = v["name"]
+        label = v["label"]
+        type_ = v["type"]
+        width = v.get("width", 160)
+        if not isinstance(name, str):
+            raise TypeError(f"extra_column[{idx}] {name=!r} is not of type str")
+        if not isinstance(label, str):
+            raise TypeError(f"extra_column[{idx}] {label=!r} is not of type str")
+        if type_ not in {"categorical", "numerical"}:
+            raise TypeError(
+                f"extra_column[{idx}] {type_=!r} must be 'categorical' or 'numerical'"
+            )
+        if width and not isinstance(width, int):
+            raise TypeError(f"extra_column[{idx}] {width=!r} is not of type int")
+        out.append(
+            ConfigMetadataExtraColumn(
+                name=name,
+                type=type_,
+                label=label,
+                width=width,
+            )
+        )
+    return out
+
+
+# noinspection PyMethodMayBeStatic
+class _Normalize:
+    """normization of metadata"""
+
+    def column_names_inplace(self, mdf: DataFrame) -> None:
+        mdf.rename(
+            columns={
+                "finding_type": "classification",
+            },
+            inplace=True,
+        )
+
+    def annotator_name(self, x: str) -> str:
+        """take care of legacy names"""
+        if x.lower().startswith("tg"):
+            return f"TG-{x[2:].title()}"
+        elif x.startswith("ai"):
+            return f"AI{x[2:]}"
+        elif len(x) <= 2:
+            return x.upper()
+        else:
+            return x
+
+    def model_name(self, x: dict) -> str:
+        """construct a compatible model name"""
+        v = x.get("iteration", "0.0.0")
+        m = x.get("model", "unknown")
+        if v == "v0":
+            return m
+        else:
+            return f"{m}-{v}"
+
+
+# noinspection PyMethodMayBeStatic
+class _Hotfixes:
+    """collection of hot fixes for metadata"""
+
+    def load_tissue_area(self, ds: PadoDataset) -> pd.Series:
+        """load tissue area from precomputed df"""
+        from geopandas import GeoSeries
+
+        try:
+            (of,) = search_dataset(ds, "precomputed.tissue.parquet")
+            with of as f:
+                _t = pd.read_parquet(f)
+                tissue = GeoSeries.from_wkb(_t["tissue"])
+            return tissue.area.groupby(tissue.index).sum()
+        except BaseException:
+            index = ds.index
+            data = []
+            for iid in index:
+                dims = ds.images[iid].dimensions
+                data.append(dims.x * dims.y)
+            return pd.Series(data, index=list(map(str, index)))
+
+    def ensure_area_column(self, df: DataFrame) -> None:
+        """ensure the area column is available in df"""
+        from geopandas import GeoDataFrame
+        from geopandas import GeoSeries
+
+        if "area" not in df.columns:
+            gs = GeoSeries.from_wkt(df["geometry"])
+            geo_adf = GeoDataFrame(df, geometry=gs)
+            df["area"] = geo_adf.geometry.area
 
 
 class DatasetState(Enum):
@@ -81,6 +184,8 @@ class DatasetProxy:
         self.state = DatasetState.NOT_CONFIGURED
         self._ds: Optional[PadoDataset] = None
         self._cache_path = None
+        self._metadata_extra_column_mode: str | None = None
+        self._metadata_extra_columns: list[ConfigMetadataExtraColumn] | None = None
         self._modified_file = os.path.join(tempfile.gettempdir(), ".pavo.timestamp")
         self._modified_time: datetime | None = None
 
@@ -89,6 +194,11 @@ class DatasetProxy:
         urlpaths = app.config.get("DATASET_PATHS", [])
         assert len(urlpaths) <= 1, "todo: support for multiple datasets"
         self._cache_path = app.config.get("CACHE_IMAGES_PATH", None)
+
+        self._metadata_extra_column_mode = app.config.get("METADATA_EXTRA_COLUMN_MODE")
+        self._metadata_extra_columns = _parse_extra_columns(
+            app.config.get("METADATA_EXTRA_COLUMNS", [])
+        )
 
         self.urlpath = urlpaths[0] if urlpaths else None
         if self.urlpath:
@@ -181,11 +291,6 @@ class DatasetProxy:
         except KeyError:
             pass  # cache miss
 
-        # === lazy import geopandas when needed ===============================
-        from geopandas import GeoDataFrame
-        from geopandas import GeoSeries
-
-        # NOTE: currently the returned dataframe contains the following columns:
         OUTPUT_COLUMNS = [
             "image_id",
             "image_url",
@@ -193,56 +298,34 @@ class DatasetProxy:
             "annotation_type",
             "annotator_type",
             "annotator_name",
-            "compound_name",
-            "organ",
-            "species",
             "annotation_area",
             "annotation_count",
             "annotation_metric",
             "annotation_value",
         ]
 
-        def _special_title(x: str) -> str:
-            if x.lower().startswith("tg"):
-                return f"TG-{x[2:].title()}"
-            if x.startswith("ai"):
-                return f"AI{x[2:]}"
-            if len(x) <= 2:
-                return x.upper()
-            return x
-
-        def _model_name(x: dict) -> str:
-            v = x.get("iteration", "0.0.0")
-            return x["model"] if v == "v0" else f"{x.get('model', 'unknown')}-{v}"
-
-        def _recover_area_df() -> pd.Series:
-            try:
-                fs, get_fspath = ds._fs, ds._get_fspath
-                pth = get_fspath("precomputed.tissue.parquet")
-                with fsopen(fs, pth) as f:
-                    _t = pd.read_parquet(f)
-                    tissue = GeoSeries.from_wkb(_t["tissue"])
-                return tissue.area.groupby(tissue.index).sum()
-            except BaseException:
-                index = ds.index
-                data = []
-                for iid in index:
-                    dims = ds.images[iid].dimensions
-                    data.append(dims.x * dims.y)
-                return pd.Series(data, index=list(map(str, index)))
+        xcolumns = []
+        for xcol_dct in self._metadata_extra_columns or []:
+            xcolumns.append(xcol_dct["name"])
 
         # === prepare metadata df for joining =================================
-        mdf = ds.metadata.df.copy()
+        normalize = _Normalize()
+        hotfixes = _Hotfixes()
 
-        mdf = mdf[["finding_type", "compound_name", "species", "organ"]].reset_index()
-        mdf.rename(
-            columns={
-                "index": "image_id",
-                "finding_type": "classification",
-            },
-            inplace=True,
-        )
-        mdf["annotator_name"] = _special_title(ds.metadata.identifier)
+        mdf = ds.metadata.df.copy()
+        normalize.column_names_inplace(mdf)
+        available_xcolumns = [c for c in xcolumns if c in mdf.columns]
+
+        if set(available_xcolumns) != set(xcolumns):
+            if self._metadata_extra_column_mode == "ignore_missing":
+                warnings.warn("requested columns are not available in dataframe")
+            else:
+                raise ValueError()
+        OUTPUT_COLUMNS.extend(available_xcolumns)
+
+        mdf = mdf[["classification", *available_xcolumns]]
+        mdf = mdf.reset_index(names="image_id")
+        mdf["annotator_name"] = normalize.annotator_name(ds.metadata.identifier)
         mdf["annotator_type"] = "dataset"
         mdf["annotation_area"] = None
         mdf["annotation_count"] = None
@@ -251,31 +334,19 @@ class DatasetProxy:
         mdf["annotation_metric"] = None
         mdf["annotation_value"] = None
 
-        _organ_map = (
-            mdf[["image_id", "organ"]].drop_duplicates().set_index("image_id")["organ"]
-        )
-        _species_map = (
-            mdf[["image_id", "species"]]
-            .drop_duplicates()
-            .set_index("image_id")["species"]
-        )
-        _compound_map = (
-            mdf[["image_id", "compound_name"]]
-            .drop_duplicates()
-            .set_index("image_id")["compound_name"]
-        )
+        _xcolumn_map = {
+            c: mdf[["image_id", c]].drop_duplicates().set_index("image_id")[c]
+            for c in available_xcolumns
+        }
 
         # === prepare the annotation df for joining ===========================
         adf = ds.annotations.df.copy()
 
-        if "area" not in adf.columns:
-            gs = GeoSeries.from_wkt(adf["geometry"])
-            geo_adf = GeoDataFrame(adf, geometry=gs)
-            adf["area"] = geo_adf.geometry.area
+        hotfixes.ensure_area_column(adf)
 
         adf["annotator_type"] = adf["annotator"].apply(lambda x: x["type"])
         adf["annotator_name"] = adf["annotator"].apply(
-            lambda x: _special_title(x["name"])
+            lambda x: normalize.annotator_name(x["name"])
         )
         adf = adf[
             ["image_id", "classification", "area", "annotator_type", "annotator_name"]
@@ -288,12 +359,11 @@ class DatasetProxy:
             .rename(columns={"sum": "annotation_area", "count": "annotation_count"})
             .reset_index()
         )
-        adf["organ"] = adf["image_id"].map(_organ_map)
-        adf["species"] = adf["image_id"].map(_species_map)
-        adf["compound_name"] = adf["image_id"].map(_compound_map)
+        for xcol in available_xcolumns:
+            adf[xcol] = adf["image_id"].map(_xcolumn_map[xcol])
         adf["annotation_type"] = "contour"
 
-        _tissue = _recover_area_df()
+        _tissue = hotfixes.load_tissue_area(ds)
         _tissue_area = adf["image_id"].map(_tissue)
         adf["annotation_area"] = adf["annotation_area"] / _tissue_area * 100
 
@@ -311,11 +381,10 @@ class DatasetProxy:
 
         ipdf = ipdf[["image_id"]]
         ipdf["classification"] = _model_metadata.apply(lambda x: x.get("classes"))
-        ipdf["annotator_name"] = _model_metadata.apply(_model_name)
+        ipdf["annotator_name"] = _model_metadata.apply(normalize.model_name)
         ipdf["annotator_type"] = "model"
-        ipdf["organ"] = ipdf["image_id"].map(_organ_map)
-        ipdf["species"] = ipdf["image_id"].map(_species_map)
-        ipdf["compound_name"] = ipdf["image_id"].map(_compound_map)
+        for xcol in available_xcolumns:
+            ipdf[xcol] = ipdf["image_id"].map(_xcolumn_map[xcol])
 
         ipdf["annotation_type"] = "heatmap"  # fixme: segmentation vs others...
         ipdf["annotation_metric"] = "area"  # fixme
@@ -335,11 +404,10 @@ class DatasetProxy:
         mpdf["classification"] = _row_data.apply(
             itemgetter("classification")
         ).str.title()
-        mpdf["annotator_name"] = _model_metadata.apply(_model_name)
+        mpdf["annotator_name"] = _model_metadata.apply(normalize.model_name)
         mpdf["annotator_type"] = "model"
-        mpdf["organ"] = mpdf["image_id"].map(_organ_map)
-        mpdf["species"] = mpdf["image_id"].map(_species_map)
-        mpdf["compound_name"] = mpdf["image_id"].map(_compound_map)
+        for xcol in available_xcolumns:
+            mpdf[xcol] = mpdf["image_id"].map(_xcolumn_map[xcol])
 
         _metric = _row_data.apply(itemgetter("metric"))
         _score = _row_data.apply(itemgetter("value"))
@@ -373,9 +441,8 @@ class DatasetProxy:
             lambda x: base64_encode(x.encode()).decode()
         )
 
-        assert set(table.columns) == set(
-            OUTPUT_COLUMNS
-        ), f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}"
+        if set(table.columns) != set(OUTPUT_COLUMNS):
+            raise RuntimeError(f"expected {OUTPUT_COLUMNS!r} got {table.columns!r}")
 
         # === cache and return ================================================
         tabular_records_df = self.__dict__["_tabular_records_df"] = table
