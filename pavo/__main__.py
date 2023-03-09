@@ -19,6 +19,7 @@ from flask import Flask
 
 from pavo import __version__
 from pavo.app import create_app
+from pavo.config import default_config_as_file
 from pavo.config import initialize_config
 
 # --- formatting utils ---
@@ -94,6 +95,13 @@ def config_show(
     echo_header(f"config using env: '{settings.current_env}'")
     for key, value in settings.as_dict().items():
         typer.echo(f"{key}={value!r}")
+
+
+@cli_config.command(name="default")
+def config_default() -> None:
+    """output the default pavo configuration"""
+    with default_config_as_file() as fn:
+        typer.echo(fn.read_text())
 
 
 # --- development subcommands -------------------------------------------------

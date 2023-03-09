@@ -25,6 +25,7 @@ webpack-output-manifest.json
 
 
 # pavo config
+.pavo.toml
 .pavo.local.toml
 .pavo.secrets.toml
 *.secrets.toml

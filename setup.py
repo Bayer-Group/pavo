@@ -76,6 +76,7 @@ setup(
     package_data={
         "pavo": [
             *all_files_at("pavo/templates", suffix="html"),
+            ".pavo.default.toml",
         ]
     },
     cmdclass={
