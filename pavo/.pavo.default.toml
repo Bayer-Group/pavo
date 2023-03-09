@@ -1,27 +1,17 @@
-# pado_visualize config
-# =====================
-#
-# todo: we should ship the defaults in the module
-#
+# pavo default config
+# ===================
 [default]
 SERVER = "127.0.0.1"
 PORT = 8000
 
-# celery workers
-broker_url = "redis://localhost:6379/0"
-broker_connection_max_retry = 3  # note: https://github.com/celery/celery/issues/4556
-result_backend = "redis://localhost:6379/1"
-
 # flask-caching
-CACHE_PATH = "/tmp/pado_visualize_cache"
+CACHE_PATH = "/tmp/pavo_cache"
 CACHE_TYPE = "SimpleCache"
 CACHE_DEFAULT_TIMEOUT = 300
 
-# no auth. tyvm.
-OAUTH_PROVIDER = "none"
-
 # the datasets
 DATASET_PATHS = []
+DATASET_STORAGE_OPTIONS = []
 
 # columns
 metadata_extra_column_mode = "ignore_missing"
@@ -30,7 +20,6 @@ metadata_extra_columns = [
     { name = "organ", type = "categorical", label = "Organ" },
     { name = "species", type = "categorical", label = "Species" },
 ]
-
 
 [development]
 DEBUG = true
