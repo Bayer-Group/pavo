@@ -19,6 +19,8 @@ channels:
 dependencies:
   - python=3.9  # let's not carry the 3.6, 3.7, 3.8 baggage for now
   - pip
+  - importlib_resources
+  - typing_extensions
 
   # dev related
   - nodejs=16.*  # revisit when upgrading js deps
@@ -38,9 +40,11 @@ dependencies:
   - itsdangerous
   - redis-py
   - werkzeug
+  - gunicorn
 
   # data deps
   - pandas
+  - geopandas
 
   # tiffslide deps
   - fsspec
@@ -54,8 +58,6 @@ dependencies:
   - s3fs
   - typer
 
-  - geopandas
-  - gunicorn
 
   # homemade dependencies on conda
   - tiffslide>=2
