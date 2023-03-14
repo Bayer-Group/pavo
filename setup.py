@@ -39,6 +39,8 @@ class BuildFrontendCommand(Command):
             files = json.load(f).values()
         # copy outputs to the build directory
         for file in files:
+            if file.endswith(".map"):
+                continue
             f_src = os.path.join("pavo", "static", file)
             f_dst = os.path.join(self.build_lib, "pavo", "static", file)
             d_dst = os.path.dirname(f_dst)
