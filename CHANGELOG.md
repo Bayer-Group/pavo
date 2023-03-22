@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - ...
 ...
 
+## [0.3.0] - 2022-03-22
+### Changed
+- pavo: let user pick between gunicorn or waitress for prod
+
 ## [0.2.2] - 2022-03-14
 ### Changed
 - pavo: don't ship source map in wheel
@@ -36,7 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial release of `pado_visualize`
 
 
-[Unreleased]: https://github.com/bayer-int/pathdrive-pavo/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/bayer-int/pathdrive-pavo/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/bayer-int/pathdrive-pavo/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/bayer-int/pathdrive-pavo/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/bayer-int/pathdrive-pavo/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/bayer-int/pathdrive-pavo/compare/v0.1.0...v0.2.0
