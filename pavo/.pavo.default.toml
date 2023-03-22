@@ -26,4 +26,6 @@ DEBUG = true
 
 [production]
 DEBUG = false
+WSGI_SERVER = "auto"
 GUNICORN_NUM_WORKERS = 6
+WAITRESS_NUM_THREADS = 6

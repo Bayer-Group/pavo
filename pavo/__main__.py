@@ -207,7 +207,10 @@ cli.add_typer(cli_prod, name="production")
 def prod_run(
     sanity_check: bool = typer.Option(True, help="check some settings before launch")
 ) -> None:
-    """run production webserver"""
+    """run production webserver
+
+    NOTE: the production webserver is configured via the .pavo.toml config file!
+    """
     app = Flask("pavo")
     settings = initialize_config(app=app, force_env="production").settings
 
@@ -224,22 +227,65 @@ def prod_run(
             )
             raise typer.Exit(code=1)
 
-    if shutil.which("gunicorn") is None:
-        typer.secho("[ERROR] gunicorn not found", fg=typer.colors.BRIGHT_RED, err=True)
+    if settings.wsgi_server == "gunicorn" or (
+        settings.wsgi_server == "auto" and shutil.which("gunicorn") is not None
+    ):
+        if shutil.which("gunicorn") is None:
+            typer.secho(
+                "[ERROR] gunicorn not found", fg=typer.colors.BRIGHT_RED, err=True
+            )
+            raise typer.Exit(code=1)
+
+        # fmt: off
+        cmd = [
+            "gunicorn",
+            f"--bind={settings.SERVER}:{settings.PORT}",
+            f"--workers={int(settings.GUNICORN_NUM_WORKERS)}",
+            "--env", f"{settings.ENV_SWITCHER_FOR_DYNACONF}=production",
+            "pavo.app:create_app()",
+        ]
+        # fmt: on
+
+        typer.secho("dispatching to gunicorn:", fg=typer.colors.GREEN)
+        os.execvp(file="gunicorn", args=cmd)
+
+    elif settings.wsgi_server == "waitress" or (
+        settings.wsgi_server == "auto" and shutil.which("waitress-serve") is not None
+    ):
+        if shutil.which("waitress-serve") is None:
+            typer.secho(
+                "[ERROR] waitress not found", fg=typer.colors.BRIGHT_RED, err=True
+            )
+            raise typer.Exit(code=1)
+
+        # fmt: off
+        cmd = [
+            "waitress-serve",
+            f"--listen={settings.SERVER}:{settings.PORT}",
+            f"--threads={int(settings.GUNICORN_NUM_WORKERS)}",
+            "--call", "pavo.app:create_app",
+        ]
+        # fmt: on
+        os.environ[settings.ENV_SWITCHER_FOR_DYNACONF] = "production"
+
+        typer.secho("dispatching to waitress:", fg=typer.colors.GREEN)
+        typer.secho(
+            f"> access server at http://{settings.SERVER}:{settings.PORT}/",
+            fg=typer.colors.CYAN,
+        )
+        os.execvp(file="waitress-serve", args=cmd)
+
+    else:
+        if settings.wsgi_server == "gunicorn":
+            msg = "[ERROR] please install `gunicorn`"
+        elif settings.wsgi_server == "waitress":
+            msg = "[ERROR] please install `waitress`"
+        elif settings.wsgi_server == "auto":
+            msg = "[ERROR] please install `gunicorn` or `waitress`"
+        else:
+            msg = f"[ERROR] unknown wsgi_server setting `{settings.wsgi_server}`"
+        typer.secho(msg, fg=typer.colors.BRIGHT_RED, err=True)
         raise typer.Exit(code=1)
-
-    # fmt: off
-    cmd = [
-        "gunicorn",
-        f"--bind={settings.SERVER}:{settings.PORT}",
-        f"--workers={int(settings.GUNICORN_NUM_WORKERS)}",
-        "--env", f"{settings.ENV_SWITCHER_FOR_DYNACONF}=production",
-        "pavo.app:create_app()",
-    ]
-    # fmt: on
-
-    typer.secho("dispatching to gunicorn:", fg=typer.colors.GREEN)
-    os.execvp(file="gunicorn", args=cmd)
 
 
 if __name__ == "__main__":
