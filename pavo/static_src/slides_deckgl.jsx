@@ -91,10 +91,11 @@ function App({ slideUrl, annotationUrl, autoHighlight = true, onTilesLoad }) {
       maxZoom: 0,
       coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
       extent: [0, 0, dimensions.width, dimensions.height],
-      getTileData: ({ x, y, z }) => {
+      getTileData: (tile) => {
         const maxLevel = Math.ceil(
           Math.log2(Math.max(dimensions.width, dimensions.height))
         );
+        const { x, y, z } = tile.index;
         return load(`${tileRoot}/image_files/${maxLevel + z}/${x}_${y}.jpeg`);
       },
       onViewportLoad: onTilesLoad,
